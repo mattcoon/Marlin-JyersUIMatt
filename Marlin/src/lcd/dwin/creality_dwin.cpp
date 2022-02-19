@@ -24,6 +24,9 @@
  * DWIN by Creality3D
  * Rewrite and Extui Port by Jacob Myers
  */
+// TODO: BLTOUCH menu
+// TODO: host Actions
+// TODO: beeper
 
 #include "../../inc/MarlinConfigPre.h"
 
@@ -62,6 +65,10 @@
 
 #ifndef strcasecmp_P
   #define strcasecmp_P(a, b) strcasecmp((a), (b))
+#endif
+
+#ifdef BLTOUCH_HS_MODE
+  #include "../../feature/bltouch.h"
 #endif
 
 #if HAS_LEVELING
@@ -3165,7 +3172,9 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define PROBE_BACK 0
         #define PROBE_XOFFSET (PROBE_BACK + 1)
         #define PROBE_YOFFSET (PROBE_XOFFSET + 1)
-        #define PROBE_TEST (PROBE_YOFFSET + 1)
+        #define PROBE_HSMODE (PROBE_YOFFSET + ENABLED(BLTOUCH))
+        #define PROBE_ALARMR (PROBE_HSMODE + ENABLED(BLTOUCH))
+        #define PROBE_TEST (PROBE_ALARMR + 1)
         #define PROBE_TEST_COUNT (PROBE_TEST + 1)
         #define PROBE_TOTAL PROBE_TEST_COUNT
 
@@ -3199,10 +3208,30 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                 Modify_Value(probe.offset.y, -MAX_XY_OFFSET, MAX_XY_OFFSET, 10);
               }
               break;
+            #if ENABLED(BLTOUCH)
+              case PROBE_HSMODE:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_StockConfiguraton, "BLTouch HS Mode");
+                   Draw_Checkbox(row, bltouch.high_speed_mode);
+                }
+                else {
+                  bltouch.high_speed_mode = !bltouch.high_speed_mode;
+                  Draw_Checkbox(row, bltouch.high_speed_mode);
+                }
+                break;
+              case PROBE_ALARMR:
+                if (draw) {
+                 Draw_Menu_Item(row, ICON_StockConfiguraton, "Probe Alarm Release");
+                }
+                else {
+                  gcode.process_subcommands_now_P("M280 P0 S160");
+                  AudioFeedback();
+                }
+                break;
+            #endif
             case PROBE_TEST:
-              if (draw) {
-                Draw_Menu_Item(row, ICON_StepY, "M48 Probe Test");
-              }
+              if (draw)
+                Draw_Menu_Item(row, ICON_StockConfiguraton, "M48 Probe Test");
               else {
                 sprintf_P(cmd, PSTR("G28O\nM48 X%s Y%s P%i"), dtostrf((X_BED_SIZE + X_MIN_POS)/2.0f, 1, 3, str_1), dtostrf((Y_BED_SIZE + Y_MIN_POS)/2.0f, 1, 3, str_2), testcount);
                 gcode.process_subcommands_now_P(cmd);
@@ -3210,12 +3239,11 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               break;
             case PROBE_TEST_COUNT:
               if (draw) {
-                Draw_Menu_Item(row, ICON_StepY, "Probe Test Count");
+                Draw_Menu_Item(row, ICON_StockConfiguraton, "Probe Test Count");
                 Draw_Float(testcount, row, false, 1);
               }
-              else {
+              else
                 Modify_Value(testcount, 4, 50, 1);
-              }
               break;
         }
         break;
@@ -4498,65 +4526,26 @@ uint8_t CrealityDWINClass::Get_Menu_Size(uint8_t menu) {
 void CrealityDWINClass::Popup_Handler(PopupID popupid, bool option/*=false*/) {
   popup = last_popup = popupid;
   switch (popupid) {
-    case Pause:
-      Draw_Popup("Pause Print", "", "", Popup);
-      break;
-    case Stop:
-      Draw_Popup("Stop Print", "", "", Popup);
-      break;
-    case Resume:
-      Draw_Popup("Resume Print?", "Looks Like the last", "print was interupted.", Popup);
-      break;
-    case ConfFilChange:
-      Draw_Popup("Confirm Filament Change", "", "", Popup);
-      break;
-    case PurgeMore:
-      Draw_Popup("Purge more filament?", "(Cancel to finish process)", "", Popup);
-      break;
-    case SaveLevel:
-      Draw_Popup("Leveling Complete", "Save to EEPROM?", "", Popup);
-      break;
-    case MeshSlot:
-      Draw_Popup("Mesh slot not selected", "(Confirm to select slot 0)", "", Popup);
-      break;
-    case ETemp:
-      Draw_Popup("Nozzle is too cold", "Open Preheat Menu?", "", Popup);
-      break;
-    case ManualProbing:
-      Draw_Popup("Manual Probing", "(Confirm to probe)", "(cancel to exit)", Popup);
-      break;
-    case Level:
-      Draw_Popup("Auto Bed Leveling", "Please wait until done.", "", Wait, ICON_AutoLeveling);
-      break;
-    case Home:
-      Draw_Popup(option ? "Parking" : "Homing", "Please wait until done.", "", Wait, ICON_BLTouch);
-      break;
-    case MoveWait:
-      Draw_Popup("Moving to Point", "Please wait until done.", "", Wait, ICON_BLTouch);
-      break;
-    case Heating:
-      Draw_Popup("Heating", "Please wait until done.", "", Wait, ICON_BLTouch);
-      break;
-    case FilLoad:
-      Draw_Popup(option ? "Unloading Filament" : "Loading Filament", "Please wait until done.", "", Wait, ICON_BLTouch);
-      break;
-    case FilChange:
-      Draw_Popup("Filament Change", "Please wait for prompt.", "", Wait, ICON_BLTouch);
-      break;
-    case TempWarn:
-      Draw_Popup(option ? "Nozzle temp too low!" : "Nozzle temp too high!", "", "", Wait, option ? ICON_TempTooLow : ICON_TempTooHigh);
-      break;
-    case Runout:
-      Draw_Popup("Filament Runout", "", "", Wait, ICON_BLTouch);
-      break;
-    case PIDWait:
-      Draw_Popup("PID Autotune", "in process", "Please wait until done.", Wait, ICON_BLTouch);
-      break;
-    case Resuming:
-      Draw_Popup("Resuming Print", "Please wait until done.", "", Wait, ICON_BLTouch);
-      break;
-    default:
-      break;
+    case Pause:      Draw_Popup("Pause Print", "", "", Popup);      break;
+    case Stop:      Draw_Popup("Stop Print", "", "", Popup);      break;
+    case Resume:      Draw_Popup("Resume Print?", "Looks Like the last", "print was interupted.", Popup);      break;
+    case ConfFilChange:      Draw_Popup("Confirm Filament Change", "", "", Popup);      break;
+    case PurgeMore:      Draw_Popup("Purge more filament?", "(Cancel to finish process)", "", Popup);      break;
+    case SaveLevel:      Draw_Popup("Leveling Complete", "Save to EEPROM?", "", Popup);      break;
+    case MeshSlot:      Draw_Popup("Mesh slot not selected", "(Confirm to select slot 0)", "", Popup);      break;
+    case ETemp:      Draw_Popup("Nozzle is too cold", "Open Preheat Menu?", "", Popup);      break;
+    case ManualProbing:      Draw_Popup("Manual Probing", "(Confirm to probe)", "(cancel to exit)", Popup);      break;
+    case Level:      Draw_Popup("Auto Bed Leveling", "Please wait until done.", "", Wait, ICON_AutoLeveling);      break;
+    case Home:      Draw_Popup(option ? "Parking" : "Homing", "Please wait until done.", "", Wait, ICON_BLTouch);      break;
+    case MoveWait:      Draw_Popup("Moving to Point", "Please wait until done.", "", Wait, ICON_BLTouch);      break;
+    case Heating:      Draw_Popup("Heating", "Please wait until done.", "", Wait, ICON_BLTouch);      break;
+    case FilLoad:      Draw_Popup(option ? "Unloading Filament" : "Loading Filament", "Please wait until done.", "", Wait, ICON_BLTouch);      break;
+    case FilChange:      Draw_Popup("Filament Change", "Please wait for prompt.", "", Wait, ICON_BLTouch);      break;
+    case TempWarn:      Draw_Popup(option ? "Nozzle temp too low!" : "Nozzle temp too high!", "", "", Wait, option ? ICON_TempTooLow : ICON_TempTooHigh);  break;
+    case Runout:      Draw_Popup("Filament Runout", "", "", Wait, ICON_BLTouch);      break;
+    case PIDWait:      Draw_Popup("PID Autotune", "in process", "Please wait until done.", Wait, ICON_BLTouch);      break;
+    case Resuming:      Draw_Popup("Resuming Print", "Please wait until done.", "", Wait, ICON_BLTouch);      break;
+    default:      break;
   }
 }
 

@@ -196,6 +196,7 @@ enum menuID : uint8_t {
   #define ICON_Mesh                 203
   #define ICON_Tilt                 204
   #define ICON_Brightness           205
+  #define ICON_Preview              ICON_File
   #define ICON_AxisD                249
   #define ICON_AxisBR               250
   #define ICON_AxisTR               251
@@ -213,6 +214,7 @@ enum menuID : uint8_t {
   #define ICON_AxisBL               ICON_Axis
   #define ICON_AxisTL               ICON_Axis
   #define ICON_AxisC                ICON_Axis
+  #define ICON_Preview              ICON_File
 #endif
 
 
@@ -266,6 +268,10 @@ enum colorID : uint8_t {
 #define Confirm_Color   	  0x34B9
 #define Cancel_Color        0x3186
 
+#if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
+ #define Thumnail_Icon       0x00
+ #define Thumnail_Preview    0x01
+#endif
 class CrealityDWINClass {
 
 public:
@@ -288,6 +294,14 @@ public:
     uint8_t status_area_text : 4;
     uint8_t coordinates_text : 4;
     uint8_t coordinates_split_line : 4;
+    #if ENABLED(HOST_ACTION_COMMANDS)
+      uint64_t host_action_label_1 : 48;
+      uint64_t host_action_label_2 : 48;
+      uint64_t host_action_label_3 : 48;
+    #endif
+    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
+      bool show_gcode_thumbnails : 1;
+    #endif
   } eeprom_settings;
 
   const char * const color_names[11] = {"Default", "White", "Green", "Cyan", "Blue", "Magenta", "Red", "Orange", "Yellow", "Brown", "Black"};
@@ -311,7 +325,9 @@ public:
   void Draw_Print_Screen();
   void Draw_Print_Filename(bool reset=false);
   void Draw_Print_ProgressBar();
+  #if ENABLED(USE_M73_REMAINING_TIME)
   void Draw_Print_ProgressRemain();
+#endif
   void Draw_Print_ProgressElapsed();
   void Draw_Print_confirm();
   void Draw_SD_Item(uint8_t item, uint8_t row);
