@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -21,16 +21,13 @@
  */
 
 /*****************************************************************************
- * @file     rotary_encoder.cpp
- * @author   LEO / Creality3D
- * @date     2019/07/06
- * @version  2.0.1
+ * @file     lcd/e3v2/common/encoder.cpp
  * @brief    Rotary encoder functions
  *****************************************************************************/
 
 #include "../../../inc/MarlinConfigPre.h"
 
-#if ENABLED(DWIN_CREALITY_LCD)
+#if HAS_DWIN_E3V2
 
 #include "encoder.h"
 #include "../../buttons.h"
@@ -41,7 +38,6 @@
 
 #if HAS_BUZZER
   #include "../../../libs/buzzer.h"
-  #include "../../dwin/creality_dwin.h"
 #endif
 
 #include <stdlib.h>
@@ -52,10 +48,10 @@
 
 ENCODER_Rate EncoderRate;
 
-// Buzzer
+// TODO: Replace with ui.quick_feedback
 void Encoder_tick() {
   #if PIN_EXISTS(BEEPER)
-    if (CrealityDWIN.eeprom_settings.beeperenable) {
+    if (ui.buzzer_enabled) {
       WRITE(BEEPER_PIN, HIGH);
       delay(10);
       WRITE(BEEPER_PIN, LOW);
@@ -75,7 +71,7 @@ void Encoder_Configuration() {
     SET_INPUT_PULLUP(BTN_ENC);
   #endif
   #if PIN_EXISTS(BEEPER)
-    SET_OUTPUT(BEEPER_PIN);
+    SET_OUTPUT(BEEPER_PIN);     // TODO: Use buzzer.h which already inits this
   #endif
 }
 
@@ -152,7 +148,7 @@ EncoderState Encoder_ReceiveAnalyze() {
                if (encoderStepRate >= ENCODER_100X_STEPS_PER_SEC) encoderMultiplier = 100;
           else if (encoderStepRate >= ENCODER_10X_STEPS_PER_SEC)  encoderMultiplier = 10;
           #if ENCODER_5X_STEPS_PER_SEC
-          else if (encoderStepRate >= ENCODER_5X_STEPS_PER_SEC)   encoderMultiplier = 5;
+            else if (encoderStepRate >= ENCODER_5X_STEPS_PER_SEC) encoderMultiplier = 5;
           #endif
         }
         EncoderRate.lastEncoderTime = ms;
@@ -266,4 +262,4 @@ EncoderState Encoder_ReceiveAnalyze() {
 
 #endif // LCD_LED
 
-#endif // DWIN_CREALITY_LCD
+#endif // HAS_DWIN_E3V2

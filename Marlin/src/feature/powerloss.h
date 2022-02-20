@@ -145,6 +145,10 @@ class PrintJobRecovery {
     static uint32_t cmd_sdpos,        //!< SD position of the next command
                     sdpos[BUFSIZE];   //!< SD positions of queued commands
 
+    #if HAS_DWIN_E3V2_BASIC
+      static bool dwin_flag;
+    #endif
+
     static void init();
     static void prepare();
 
@@ -200,9 +204,9 @@ class PrintJobRecovery {
     static inline bool valid() { return info.valid() && interrupted_file_exists(); }
 
     #if ENABLED(DEBUG_POWER_LOSS_RECOVERY)
-      static void debug(PGM_P const prefix);
+      static void debug(FSTR_P const prefix);
     #else
-      static inline void debug(PGM_P const) {}
+      static inline void debug(FSTR_P const) {}
     #endif
 
   private:

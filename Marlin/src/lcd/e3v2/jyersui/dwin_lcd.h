@@ -26,13 +26,13 @@
  * @brief    DWIN screen control functions
  ********************************************************************************/
 
-#include "../../dwin/dwin.h"
+#include "../common/dwin_api.h"
 
 // Draw the degree (°) symbol
 // Color: color
 //  x/y: Upper-left coordinate of the first pixel
 void DWIN_Draw_DegreeSymbol(uint16_t Color, uint16_t x, uint16_t y);
 
-// void DWIN_Save_JPEG_in_SRAM(uint8_t *data, uint16_t size, uint16_t dest_addr);
+void DWIN_Save_JPEG_in_SRAM(uint8_t *data, uint16_t size, uint16_t dest_addr);
 
-// void DWIN_SRAM_Memory_Icon_Display(uint16_t x, uint16_t y, uint16_t source_addr);
+void DWIN_SRAM_Memory_Icon_Display(uint16_t x, uint16_t y, uint16_t source_addr);
