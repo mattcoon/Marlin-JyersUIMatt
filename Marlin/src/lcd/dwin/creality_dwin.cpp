@@ -377,61 +377,68 @@ CrealityDWINClass CrealityDWIN;
         const auto start_y_px = padding_y_top + (GRID_MAX_POINTS_Y - y - 1) * cell_height_px;
         const auto end_y_px   = start_y_px + cell_height_px - 1 - gridline_width;
         DWIN_Draw_Rectangle(1,        // RGB565 colors: http://www.barth-dev.de/online/rgb565-color-picker/
-          isnan(mesh_z_values[x][y]) ? Color_Grey : (                                                              // gray if undefined
-            (mesh_z_values[x][y] < 0 ? 
-              (uint16_t)round(0b11111  * -mesh_z_values[x][y] / (!viewer_asymmetric_range ? range : v_min)) << 11 : // red if mesh point value is negative
-              (uint16_t)round(0b111111 *  mesh_z_values[x][y] / (!viewer_asymmetric_range ? range : v_max)) << 5) | // green if mesh point value is positive
-                min(0b11111, (((uint8_t)abs(mesh_z_values[x][y]) / 10) * 4))),                                     // + blue stepping for every mm
-          start_x_px, start_y_px, end_x_px, end_y_px);
-        while (LCD_SERIAL.availableForWrite() < 32) { // wait for serial to be available without blocking and resetting the MCU 
-          gcode.process_subcommands_now_P("G4 P10");
-          planner.synchronize();
-        } 
+          isnan(Z_VALUES_ARR[x][y]) ? Color_Grey : (                                                           // gray if undefined
+            (Z_VALUES_ARR[x][y] < 0 ?
+              (uint16_t)round(0x1F * -Z_VALUES_ARR[x][y] / (!viewer_asymmetric_range ? range : v_min)) << 11 : // red if mesh point value is negative
+              (uint16_t)round(0x3F *  Z_VALUES_ARR[x][y] / (!viewer_asymmetric_range ? range : v_max)) << 5) | // green if mesh point value is positive
+                _MIN(0x1F, (((uint8_t)abs(Z_VALUES_ARR[x][y]) / 10) * 4))),                                    // + blue stepping for every mm
+          start_x_px, start_y_px, end_x_px, end_y_px
+        );
+
+        safe_delay(10);
+        LCD_SERIAL.flushTX();
+
         // Draw value text on 
         if (viewer_print_value) { 
-          gcode.process_subcommands_now_P("G4 P10");  // still fails without additional delay...
-          planner.synchronize();
           int8_t offset_x, offset_y = cell_height_px / 2 - 6;
-          if (isnan(mesh_z_values[x][y])) {  // undefined
+          if (isnan(Z_VALUES_ARR[x][y])) {  // undefined
             DWIN_Draw_String(false, false, font6x12, Color_White, Color_Bg_Blue, start_x_px + cell_width_px / 2 - 5, start_y_px + offset_y, F("X"));
           }
           else {                          // has value
-            if (GRID_MAX_POINTS_X < 10) {
-              sprintf(buf, "%s", dtostrf(abs(mesh_z_values[x][y]), 1, 2, str_1));
-            }
-            else {
-              sprintf(buf, "%02i", (uint16_t)(abs(mesh_z_values[x][y] - (int16_t)mesh_z_values[x][y]) * 100));
-            }
+            if (GRID_MAX_POINTS_X < 10)
+              sprintf(buf, "%s", dtostrf(abs(Z_VALUES_ARR[x][y]), 1, 2, str_1));
+            else
+              sprintf(buf, "%02i", (uint16_t)(abs(Z_VALUES_ARR[x][y] - (int16_t)Z_VALUES_ARR[x][y]) * 100));
             offset_x = cell_width_px / 2 - 3 * (strlen(buf)) - 2;
             if (!(GRID_MAX_POINTS_X < 10))
               DWIN_Draw_String(false, false, font6x12, Color_White, Color_Bg_Blue, start_x_px-2 + offset_x, start_y_px + offset_y /*+ square / 2 - 6*/, F("."));
             DWIN_Draw_String(false, false, font6x12, Color_White, Color_Bg_Blue, start_x_px+1 + offset_x, start_y_px + offset_y /*+ square / 2 - 6*/, buf);
           }
+          safe_delay(10);
+          LCD_SERIAL.flushTX();
         }
       }
     }
 
     void Set_Mesh_Viewer_Status() { // TODO: draw gradient with values as a legend instead
-      float v_max = abs(get_max_value()), v_min = abs(get_min_value()), range = max(v_min, v_max);
+      float v_max = abs(get_max_value()), v_min = abs(get_min_value()), range = _MAX(v_min, v_max);
       if (v_min > 3e+10F) v_min = 0.0000001;
       if (v_max > 3e+10F) v_max = 0.0000001;
       if (range > 3e+10F) range = 0.0000001;
-      char msg[32];
+      char msg[46];
       if (viewer_asymmetric_range) {
-        sprintf(msg, "Red %s..0..%s Green", dtostrf(-v_min, 1, 3, str_1), dtostrf(v_max, 1, 3, str_2));
+        dtostrf(-v_min, 1, 3, str_1);
+        dtostrf( v_max, 1, 3, str_2);
       }
       else {
-        sprintf(msg, "Red %s..0..%s Green", dtostrf(-range, 1, 3, str_1), dtostrf(range, 1, 3, str_2));
+        dtostrf(-range, 1, 3, str_1);
+        dtostrf( range, 1, 3, str_2);
       }
+      sprintf(msg, "Red %s..0..%s Green", str_1, str_2);
       CrealityDWIN.Update_Status(msg);
       drawing_mesh = false;
     }
 
   };
   Mesh_Settings mesh_conf;
-#endif
+
+#endif // HAS_MESH
 
 /* General Display Functions */
+
+struct CrealityDWINClass::EEPROM_Settings CrealityDWINClass::eeprom_settings{0};
+constexpr const char * const CrealityDWINClass::color_names[11];
+constexpr const char * const CrealityDWINClass::preheat_modes[3];
 
 // Clear a part of the screen
 //  4=Entire screen
@@ -1309,7 +1316,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #if HAS_BED_PROBE
           case MOVE_P:
             if (draw) {
-              Draw_Menu_Item(row, ICON_StockConfiguraton, "Probe");
+              Draw_Menu_Item(row, ICON_StockConfiguration, "Probe");
               Draw_Checkbox(row, probe_deployed);
             }
             else {
@@ -3059,7 +3066,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             #if ENABLED(BLTOUCH)
               case PROBE_HSMODE:
                 if (draw) {
-                  Draw_Menu_Item(row, ICON_StockConfiguraton, "BLTouch HS Mode");
+                  Draw_Menu_Item(row, ICON_StockConfiguration, "BLTouch HS Mode");
                    Draw_Checkbox(row, bltouch.high_speed_mode);
                 }
                 else {
@@ -3069,7 +3076,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                 break;
               case PROBE_ALARMR:
                 if (draw) {
-                 Draw_Menu_Item(row, ICON_StockConfiguraton, "Probe Alarm Release");
+                 Draw_Menu_Item(row, ICON_StockConfiguration, "Probe Alarm Release");
                 }
                 else {
                   gcode.process_subcommands_now_P("M280 P0 S160");
@@ -3079,7 +3086,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             #endif
             case PROBE_TEST:
               if (draw)
-                Draw_Menu_Item(row, ICON_StockConfiguraton, "M48 Probe Test");
+                Draw_Menu_Item(row, ICON_StockConfiguration, "M48 Probe Test");
               else {
                 sprintf_P(cmd, PSTR("G28O\nM48 X%s Y%s P%i"), dtostrf((X_BED_SIZE + X_MIN_POS)/2.0f, 1, 3, str_1), dtostrf((Y_BED_SIZE + Y_MIN_POS)/2.0f, 1, 3, str_2), testcount);
                 gcode.process_subcommands_now_P(cmd);
@@ -3087,7 +3094,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               break;
             case PROBE_TEST_COUNT:
               if (draw) {
-                Draw_Menu_Item(row, ICON_StockConfiguraton, "Probe Test Count");
+                Draw_Menu_Item(row, ICON_StockConfiguration, "Probe Test Count");
                 Draw_Float(testcount, row, false, 1);
               }
               else
@@ -3166,7 +3173,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             break;
           case LEVELING_ACTIVE:
             if (draw) {
-              Draw_Menu_Item(row, ICON_StockConfiguraton, "Leveling Active");
+              Draw_Menu_Item(row, ICON_StockConfiguration, "Leveling Active");
               Draw_Checkbox(row, planner.leveling_active);
             }
             else {
@@ -3567,7 +3574,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             break;
           case LEVELING_M_GOTO_VALUE: 
             if (draw) {
-              Draw_Menu_Item(row, ICON_StockConfiguraton, "Go to Mesh Z Value");
+              Draw_Menu_Item(row, ICON_StockConfiguration, "Go to Mesh Z Value");
               Draw_Checkbox(row, mesh_conf.goto_mesh_value);
             }
             else {
