@@ -31,8 +31,10 @@
 #include "../../libs/BL24CXX.h"
 #include "../../inc/MarlinConfigPre.h"
 
+
+
 enum processID : uint8_t {
-  Main, Print, Menu, Value, Option, File, Popup, Confirm, Wait
+  Main, Print, Menu, Value, Option, File, Popup, Confirm, Keyboard, Wait
 };
 
 enum PopupID : uint8_t {
@@ -336,6 +338,10 @@ public:
   void Draw_Popup(const char * line1, const char * line2, const char * line3, uint8_t mode, uint8_t icon=0);
   void Popup_Select();
   void Update_Status_Bar(bool refresh=false);
+
+  #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
+    static bool find_and_decode_gcode_preview(char *name, uint8_t preview_type, uint16_t *address, bool onlyCachedFileIcon=false);
+  #endif
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     void Draw_Bed_Mesh(int16_t selected = -1, uint8_t gridline_width = 1, uint16_t padding_x = 8, uint16_t padding_y_top = 40 + 53 - 7);
