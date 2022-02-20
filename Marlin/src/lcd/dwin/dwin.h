@@ -116,7 +116,7 @@ inline void DWIN_Draw_Box(uint8_t mode, uint16_t color, uint16_t xStart, uint16_
 //Color: color
 //x: upper left point
 //y: bottom right point
-void DWIN_Draw_DegreeSymbol(uint16_t Color, uint16_t x, uint16_t y);
+// void DWIN_Draw_DegreeSymbol(uint16_t Color, uint16_t x, uint16_t y);
 
 // Move a screen area
 //  mode: 0, circle shift; 1, translation

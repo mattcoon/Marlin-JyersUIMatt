@@ -29,7 +29,7 @@
   * @brief    Rotary encoder functions
   ****************************************************************************/
 
-#include "../../inc/MarlinConfig.h"
+#include "../../../inc/MarlinConfig.h"
 
 /*********************** Encoder Set ***********************/
 
@@ -46,13 +46,13 @@ typedef enum {
   ENCODER_DIFF_CW    = 1,  // clockwise rotation
   ENCODER_DIFF_CCW   = 2,  // counterclockwise rotation
   ENCODER_DIFF_ENTER = 3   // click
-} ENCODER_DiffState;
+} EncoderState;
 
 // Encoder initialization
 void Encoder_Configuration();
 
 // Analyze encoder value and return state
-ENCODER_DiffState Encoder_ReceiveAnalyze();
+EncoderState Encoder_ReceiveAnalyze();
 
 /*********************** Encoder LED ***********************/
 

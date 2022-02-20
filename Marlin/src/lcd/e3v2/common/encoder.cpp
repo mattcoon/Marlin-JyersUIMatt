@@ -28,20 +28,20 @@
  * @brief    Rotary encoder functions
  *****************************************************************************/
 
-#include "../../inc/MarlinConfigPre.h"
+#include "../../../inc/MarlinConfigPre.h"
 
 #if ENABLED(DWIN_CREALITY_LCD)
 
-#include "rotary_encoder.h"
-#include "../buttons.h"
+#include "encoder.h"
+#include "../../buttons.h"
 
-#include "../../MarlinCore.h"
-#include "../marlinui.h"
-#include "../../HAL/shared/Delay.h"
+#include "../../../MarlinCore.h"
+#include "../../marlinui.h"
+#include "../../../HAL/shared/Delay.h"
 
 #if HAS_BUZZER
-  #include "../../libs/buzzer.h"
-  #include "creality_dwin.h"
+  #include "../../../libs/buzzer.h"
+  #include "../../dwin/creality_dwin.h"
 #endif
 
 #include <stdlib.h>
@@ -80,13 +80,13 @@ void Encoder_Configuration() {
 }
 
 // Analyze encoder value and return state
-ENCODER_DiffState Encoder_ReceiveAnalyze() {
+EncoderState Encoder_ReceiveAnalyze() {
   const millis_t now = millis();
   static uint8_t lastEncoderBits;
   uint8_t newbutton = 0;
   static signed char temp_diff = 0;
 
-  ENCODER_DiffState temp_diffState = ENCODER_DIFF_NO;
+  EncoderState temp_diffState = ENCODER_DIFF_NO;
   if (BUTTON_PRESSED(EN1)) newbutton |= EN_A;
   if (BUTTON_PRESSED(EN2)) newbutton |= EN_B;
   if (BUTTON_PRESSED(ENC)) {
@@ -97,11 +97,15 @@ ENCODER_DiffState Encoder_ReceiveAnalyze() {
       #if PIN_EXISTS(LCD_LED)
         //LED_Action();
       #endif
-      if (!ui.backlight) {
-        ui.refresh_brightness();
-      }
+      if (!ui.backlight) ui.refresh_brightness();
       else {
-        return ENCODER_DIFF_ENTER;
+        #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+          return ENCODER_DIFF_ENTER;
+        #else
+          const bool was_waiting = wait_for_user;
+          wait_for_user = false;
+          return was_waiting ? ENCODER_DIFF_NO : ENCODER_DIFF_ENTER;
+        #endif
       }
     }
     else return ENCODER_DIFF_NO;
@@ -128,9 +132,9 @@ ENCODER_DiffState Encoder_ReceiveAnalyze() {
     lastEncoderBits = newbutton;
   }
 
-  if (abs(temp_diff) >= ENCODER_PULSES_PER_STEP) {
-    if (temp_diff > 0) temp_diffState = ENCODER_DIFF_CW;
-    else temp_diffState = ENCODER_DIFF_CCW;
+  if (ABS(temp_diff) >= ENCODER_PULSES_PER_STEP) {
+    if (temp_diff > 0) temp_diffState = TERN(REVERSE_ENCODER_DIRECTION, ENCODER_DIFF_CCW, ENCODER_DIFF_CW);
+    else temp_diffState = TERN(REVERSE_ENCODER_DIRECTION, ENCODER_DIFF_CW, ENCODER_DIFF_CCW);
 
     #if ENABLED(ENCODER_RATE_MULTIPLIER)
 
@@ -147,7 +151,9 @@ ENCODER_DiffState Encoder_ReceiveAnalyze() {
           const float encoderStepRate = encoderMovementSteps / float(ms - EncoderRate.lastEncoderTime) * 1000;
                if (encoderStepRate >= ENCODER_100X_STEPS_PER_SEC) encoderMultiplier = 100;
           else if (encoderStepRate >= ENCODER_10X_STEPS_PER_SEC)  encoderMultiplier = 10;
+          #if ENCODER_5X_STEPS_PER_SEC
           else if (encoderStepRate >= ENCODER_5X_STEPS_PER_SEC)   encoderMultiplier = 5;
+          #endif
         }
         EncoderRate.lastEncoderTime = ms;
       }

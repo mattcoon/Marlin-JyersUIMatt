@@ -26,11 +26,11 @@
  * Rewrite and Extui Port by Jacob Myers
  */
 
-#include "dwin.h"
+#include "../e3v2/jyersui/dwin_lcd.h"
 #include "../e3v2/common/dwin_font.h"
 #include "../e3v2/common/dwin_color.h"
 #include "../e3v2/common/dwin_set.h"
-#include "rotary_encoder.h"
+#include "../e3v2/common/encoder.h"
 #include "../../libs/BL24CXX.h"
 #include "../../inc/MarlinConfigPre.h"
 

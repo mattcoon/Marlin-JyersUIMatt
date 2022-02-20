@@ -76,7 +76,7 @@
 
 #if ENABLED(DWIN_CREALITY_LCD)
   #include "lcd/dwin/creality_dwin.h"
-  #include "lcd/dwin/rotary_encoder.h"
+  #include "lcd/e3v2/common/encoder.h"
 #endif
 
 #if ENABLED(EXTENSIBLE_UI)

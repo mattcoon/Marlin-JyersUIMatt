@@ -4263,7 +4263,7 @@ void CrealityDWINClass::Confirm_Handler(PopupID popupid) {
 /* Navigation and Control */
 
 void CrealityDWINClass::Main_Menu_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
   if (encoder_diffState == ENCODER_DIFF_CW && selection < PAGE_COUNT - 1) {
     selection++; // Select Down
@@ -4284,7 +4284,7 @@ void CrealityDWINClass::Main_Menu_Control() {
 }
 
 void CrealityDWINClass::Menu_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
   if (encoder_diffState == ENCODER_DIFF_CW && selection < Get_Menu_Size(active_menu)) {
     DWIN_Draw_Rectangle(1, Color_Bg_Black, 0, MBASE(selection-scrollpos) - 18, 14, MBASE(selection-scrollpos) + 33);
@@ -4312,7 +4312,7 @@ void CrealityDWINClass::Menu_Control() {
 }
 
 void CrealityDWINClass::Value_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
   if (encoder_diffState == ENCODER_DIFF_CW)
     tempvalue += EncoderRate.encoderMoveValue;
@@ -4377,7 +4377,7 @@ void CrealityDWINClass::Value_Control() {
 }
 
 void CrealityDWINClass::Option_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
   if (encoder_diffState == ENCODER_DIFF_CW) 
     tempvalue += EncoderRate.encoderMoveValue;
@@ -4416,7 +4416,7 @@ void CrealityDWINClass::Option_Control() {
 }
 
 void CrealityDWINClass::File_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   static uint8_t filescrl = 0;
   if (encoder_diffState == ENCODER_DIFF_NO) {
     if (selection > 0) {
@@ -4476,6 +4476,11 @@ void CrealityDWINClass::File_Control() {
       DWIN_Frame_AreaMove(1, 3, MLINE, Color_Bg_Black, 0, 31, DWIN_WIDTH, 349);
       Draw_SD_Item(selection, selection-scrollpos);
     }
+
+    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
+      thumbtime = millis() + SCROLL_WAIT;
+      name_scroll_time = millis() + SCROLL_WAIT;
+    #endif
     DWIN_Draw_Rectangle(1, GetColor(eeprom_settings.cursor_color, Rectangle_Color), 0, MBASE(selection-scrollpos) - 18, 14, MBASE(selection-scrollpos) + 33);
   }
   else if (encoder_diffState == ENCODER_DIFF_ENTER) {
@@ -4517,9 +4522,9 @@ void CrealityDWINClass::File_Control() {
 }
 
 void CrealityDWINClass::Print_Screen_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
-  if (encoder_diffState == ENCODER_DIFF_CW && selection < 2) {
+  if (encoder_diffState == ENCODER_DIFF_CW && selection < PRINT_COUNT - 1) {
     selection++; // Select Down
     Print_Screen_Icons();
   }
@@ -4527,7 +4532,7 @@ void CrealityDWINClass::Print_Screen_Control() {
     selection--; // Select Up
     Print_Screen_Icons();
   }
-  else if (encoder_diffState == ENCODER_DIFF_ENTER)
+  else if (encoder_diffState == ENCODER_DIFF_ENTER) {
     switch(selection) {
       case PRINT_SETUP:
         Draw_Menu(Tune);
@@ -4561,11 +4566,12 @@ void CrealityDWINClass::Print_Screen_Control() {
         break;
       case PRINT_STOP: Popup_Handler(Stop); break;
     }
+  }
   DWIN_UpdateLCD();
 }
 
 void CrealityDWINClass::Popup_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
   if (encoder_diffState == ENCODER_DIFF_CW && selection < 1) {
     selection++;
@@ -4575,7 +4581,7 @@ void CrealityDWINClass::Popup_Control() {
     selection--;
     Popup_Select();
   }
-  else if (encoder_diffState == ENCODER_DIFF_ENTER)
+  else if (encoder_diffState == ENCODER_DIFF_ENTER) {
     switch(popup) {
       case Pause:
         if (selection==0) {
@@ -4711,11 +4717,12 @@ void CrealityDWINClass::Popup_Control() {
       #endif
       default: break;
   }
+  }
   DWIN_UpdateLCD();
 }
 
 void CrealityDWINClass::Confirm_Control() {
-  ENCODER_DiffState encoder_diffState = Encoder_ReceiveAnalyze();
+  EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
   if (encoder_diffState == ENCODER_DIFF_NO) return;
   if (encoder_diffState == ENCODER_DIFF_ENTER) {
     switch(popup) {
