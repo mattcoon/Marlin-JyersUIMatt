@@ -766,7 +766,7 @@ void CrealityDWINClass::Draw_Print_Screen() {
   Draw_Print_Filename(true);
 }
 
-// TODO: mmm test long filename print
+// TODO: mmm correct long filename end character issue
 void CrealityDWINClass::Draw_Print_Filename(const bool reset/*=false*/) {
   static uint8_t namescrl = 0;
   if (reset) namescrl = 0;
@@ -1999,9 +1999,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define HOSTACTIONS_1 (HOSTACTIONS_BACK + 1)
         #define HOSTACTIONS_2 (HOSTACTIONS_1 + 1)
         #define HOSTACTIONS_3 (HOSTACTIONS_2 + 1)
-        // #define HOSTACTIONS_4 (HOSTACTIONS_3 + 1)
-        // #define HOSTACTIONS_TOTAL HOSTACTIONS_4
-        #define HOSTACTIONS_TOTAL HOSTACTIONS_3
+        #define HOSTACTIONS_4 (HOSTACTIONS_3 + 1)
+        #define HOSTACTIONS_TOTAL HOSTACTIONS_4
 
         switch(item) {
           case HOSTACTIONS_BACK:
@@ -2036,15 +2035,14 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               if (!strcmp(action3, "-") == 0) hostui.action(F(action3));
             }
             break;
-            // mmm Add shutdown host action
-          // case HOSTACTIONS_4:
-          //   if (draw) {
-          //     Draw_Menu_Item(row, ICON_File, "Shutdown");
-          //   }
-          //   else {
-          //     hostui.action(F("Host Shutdown"));
-          //   }
-          //   break;
+          case HOSTACTIONS_4:
+            if (draw) {
+              Draw_Menu_Item(row, ICON_File, "Shutdown");
+            }
+            else {
+              hostui.shutdown();
+            }
+            break;
         }
         break;
     #endif
