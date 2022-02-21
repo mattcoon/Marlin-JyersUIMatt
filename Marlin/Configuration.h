@@ -43,6 +43,9 @@
 // #define MATT_BTT  // mmm comment out for standard switch
 #define MATT_DirectEx // mmm commend out for Bowden extrusion
 
+// TODO: Filename garbage on printing
+// TODO: Dynamic icon load
+// TODO: Preload host shutdown
 
 
 /**

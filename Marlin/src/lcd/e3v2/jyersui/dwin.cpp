@@ -766,35 +766,39 @@ void CrealityDWINClass::Draw_Print_Screen() {
   Draw_Print_Filename(true);
 }
 
+// TODO: mmm test long filename print
 void CrealityDWINClass::Draw_Print_Filename(const bool reset/*=false*/) {
   static uint8_t namescrl = 0;
   if (reset) namescrl = 0;
   if (process == Print) {
-    constexpr int8_t maxlen = 30;
-    char *outstr = filename;
-    size_t slen = strlen(filename);
-    int8_t outlen = slen;
-    if (slen > maxlen) {
-      char dispname[maxlen + 1];
-      int8_t pos = slen - namescrl, len = maxlen;
+    size_t len = strlen(filename);
+    int8_t pos = len;
+    if (pos > 30) {
+      pos -= namescrl;
+      len = pos;
+      if (len > 30)
+        len = 30;
+      char dispname[len+1];
       if (pos >= 0) {
-        NOMORE(len, pos);
-        LOOP_L_N(i, len) dispname[i] = filename[i + namescrl];
+        LOOP_L_N(i, len) dispname[i] = filename[i+namescrl];
       }
       else {
-        const int8_t mp = maxlen + pos;
-        LOOP_L_N(i, mp) dispname[i] = ' ';
-        LOOP_S_L_N(i, mp, maxlen) dispname[i] = filename[i - mp];
-        if (mp <= 0) namescrl = 0;
+        LOOP_L_N(i, 30+pos) dispname[i] = ' ';
+        LOOP_S_L_N(i, 30+pos, 30) dispname[i] = filename[i-(30+pos)];
       }
       dispname[len] = '\0';
-      outstr = dispname;
-      outlen = maxlen;
+      DWIN_Draw_Rectangle(1, Color_Bg_Black, 8, 50, DWIN_WIDTH-8, 80);
+      const int8_t npos = (DWIN_WIDTH - 30 * MENU_CHR_W) / 2;
+      DWIN_Draw_String(false, DWIN_FONT_MENU, Color_White, Color_Bg_Black, npos, 60, dispname);
+      if (-pos >= 30)
+        namescrl = 0;
       namescrl++;
     }
-    DWIN_Draw_Rectangle(1, Color_Bg_Black, 8, 50, DWIN_WIDTH - 8, 80);
-    const int8_t npos = (DWIN_WIDTH - outlen * MENU_CHR_W) / 2;
-    DWIN_Draw_String(false, DWIN_FONT_MENU, Color_White, Color_Bg_Black, npos, 60, outstr);
+    else {
+      DWIN_Draw_Rectangle(1, Color_Bg_Black, 8, 50, DWIN_WIDTH-8, 80);
+      const int8_t npos = (DWIN_WIDTH - strlen(filename) * MENU_CHR_W) / 2;
+      DWIN_Draw_String(false, DWIN_FONT_MENU, Color_White, Color_Bg_Black, npos, 60, filename);
+    }
   }
 }
 
@@ -1995,6 +1999,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define HOSTACTIONS_1 (HOSTACTIONS_BACK + 1)
         #define HOSTACTIONS_2 (HOSTACTIONS_1 + 1)
         #define HOSTACTIONS_3 (HOSTACTIONS_2 + 1)
+        // #define HOSTACTIONS_4 (HOSTACTIONS_3 + 1)
+        // #define HOSTACTIONS_TOTAL HOSTACTIONS_4
         #define HOSTACTIONS_TOTAL HOSTACTIONS_3
 
         switch(item) {
@@ -2030,6 +2036,15 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               if (!strcmp(action3, "-") == 0) hostui.action(F(action3));
             }
             break;
+            // mmm Add shutdown host action
+          // case HOSTACTIONS_4:
+          //   if (draw) {
+          //     Draw_Menu_Item(row, ICON_File, "Shutdown");
+          //   }
+          //   else {
+          //     hostui.action(F("Host Shutdown"));
+          //   }
+          //   break;
         }
         break;
     #endif
