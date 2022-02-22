@@ -80,7 +80,7 @@
 #if ENABLED(EXTENSIBLE_UI)
   #include "../lcd/extui/ui_api.h"
 #elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
-  #include "../lcd/e3v2/enhanced/dwin.h"
+  #include "../lcd/e3v2/proui/dwin.h"
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
@@ -120,6 +120,17 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
       WRITE(SOL1_PIN, !stow); // switch solenoid
     #endif
   }
+
+#elif ENABLED(MAGLEV4)
+
+  // Write trigger pin to release the probe
+  inline void maglev_deploy() {
+    WRITE(MAGLEV_TRIGGER_PIN, HIGH);
+    delay(MAGLEV_TRIGGER_DELAY);
+    WRITE(MAGLEV_TRIGGER_PIN, LOW);
+  }
+
+  inline void maglev_idle() { do_blocking_move_to_z(10); }
 
 #elif ENABLED(TOUCH_MI_PROBE)
 
@@ -311,6 +322,10 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
       WRITE(SOL1_PIN, deploy);
     #endif
 
+  #elif ENABLED(MAGLEV4)
+
+    deploy ? maglev_deploy() : maglev_idle();
+
   #elif ENABLED(Z_PROBE_SLED)
 
     dock_sled(!deploy);
@@ -489,7 +504,6 @@ bool Probe::probe_down_to_z(const_float_t z, const_feedRate_t fr_mm_s) {
   #if BOTH(HAS_TEMP_HOTEND, WAIT_FOR_HOTEND)
     thermalManager.wait_for_hotend_heating(active_extruder);
   #endif
-
   #if ENABLED(BLTOUCH)
     if (!bltouch.high_speed_mode && bltouch.deploy())
       return true; // Deploy in LOW SPEED MODE on every probe action
@@ -773,7 +787,10 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
   #endif
 
   // On delta keep Z below clip height or do_blocking_move_to will abort
-  xyz_pos_t npos = { rx, ry, TERN(DELTA, _MIN(delta_clip_start_height, current_position.z), current_position.z) };
+  xyz_pos_t npos = LINEAR_AXIS_ARRAY(
+    rx, ry, TERN(DELTA, _MIN(delta_clip_start_height, current_position.z), current_position.z),
+    current_position.i, current_position.j, current_position.k
+  );
   if (!can_reach(npos, probe_relative)) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Position Not Reachable");
     return NAN;

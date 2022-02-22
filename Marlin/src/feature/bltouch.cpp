@@ -73,7 +73,7 @@ void BLTouch::init(const bool set_voltage/*=false*/) {
         PGMSTR(mode0, "OD");
         PGMSTR(mode1, "5V");
         DEBUG_ECHOPGM("BLTouch Mode: ");
-        DEBUG_ECHOPGM(bltouch.od_5v_mode ? mode1 : mode0);
+        DEBUG_ECHOPGM_P(bltouch.od_5v_mode ? mode1 : mode0);
         DEBUG_ECHOLNPGM(" (Default " TERN(BLTOUCH_SET_5V_MODE, "5V", "OD") ")");
       }
     #endif

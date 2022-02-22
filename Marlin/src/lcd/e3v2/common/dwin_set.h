@@ -25,7 +25,11 @@
 #define Language_English    1
 #define Language_Chinese    2
 
-#define ICON                9 // Icon set file 9.ICO
+  #define ICON 9 // 9.ICO
+
+#ifndef CORP_WEBSITE
+  #define CORP_WEBSITE WEBSITE_URL
+#endif
 
 #define ICON_LOGO                0
 #define ICON_Print_0             1

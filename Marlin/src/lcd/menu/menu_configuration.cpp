@@ -26,7 +26,7 @@
 
 #include "../../inc/MarlinConfigPre.h"
 
-#if HAS_LCD_MENU
+#if HAS_MARLINUI_MENU
 
 #include "menu_item.h"
 
@@ -226,7 +226,7 @@ void menu_advanced_settings();
       DEBUG_ECHOLNPGM(" (Default " TERN(BLTOUCH_SET_5V_MODE, "5V", "OD") ")");
       char mess[21];
       strcpy_P(mess, PSTR("BLTouch Mode: "));
-      strcpy_P(&mess[15], bltouch.od_5v_mode ? PSTR("5V") : PSTR("OD"));
+      strcpy_P(&mess[15], bltouch.od_5v_mode ? mode1 : mode0);
       ui.set_status(mess);
       ui.return_to_status();
     }
@@ -538,7 +538,7 @@ void menu_configuration() {
   #if HAS_LCD_BRIGHTNESS
     EDIT_ITEM_FAST(uint8, MSG_BRIGHTNESS, &ui.brightness, LCD_BRIGHTNESS_MIN, LCD_BRIGHTNESS_MAX, ui.refresh_brightness, true);
   #endif
-  #if HAS_LCD_CONTRAST
+  #if HAS_LCD_CONTRAST && LCD_CONTRAST_MIN < LCD_CONTRAST_MAX
     EDIT_ITEM_FAST(uint8, MSG_CONTRAST, &ui.contrast, LCD_CONTRAST_MIN, LCD_CONTRAST_MAX, ui.refresh_contrast, true);
   #endif
   #if ENABLED(FWRETRACT)
@@ -577,4 +577,4 @@ void menu_configuration() {
   END_MENU();
 }
 
-#endif // HAS_LCD_MENU
+#endif // HAS_MARLINUI_MENU

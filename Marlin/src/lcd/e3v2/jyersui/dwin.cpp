@@ -1999,7 +1999,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define HOSTACTIONS_1 (HOSTACTIONS_BACK + 1)
         #define HOSTACTIONS_2 (HOSTACTIONS_1 + 1)
         #define HOSTACTIONS_3 (HOSTACTIONS_2 + 1)
-        #define HOSTACTIONS_4 (HOSTACTIONS_3 + 1)
+        #define HOSTACTIONS_4 (HOSTACTIONS_3 + ENABLED(HOST_SHUTDOWN_MENU_ITEM))
         #define HOSTACTIONS_TOTAL HOSTACTIONS_4
 
         switch(item) {
@@ -2035,6 +2035,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               if (!strcmp(action3, "-") == 0) hostui.action(F(action3));
             }
             break;
+          #if ENABLED(HOST_SHUTDOWN_MENU_ITEM)
           case HOSTACTIONS_4:
             if (draw) {
               Draw_Menu_Item(row, ICON_File, "Shutdown");
@@ -2043,6 +2044,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               hostui.shutdown();
             }
             break;
+          #endif
         }
         break;
     #endif
@@ -5766,7 +5768,7 @@ void CrealityDWINClass::Reset_Settings() {
   Redraw_Screen();
 }
 
-void MarlinUI::init() {
+void MarlinUI::init_lcd() {
   delay(800);
   SERIAL_ECHOPGM("\nDWIN handshake ");
   if (DWIN_Handshake()) SERIAL_ECHOLNPGM("ok."); else SERIAL_ECHOLNPGM("error.");

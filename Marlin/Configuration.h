@@ -43,10 +43,10 @@
 // #define MATT_BTT  // mmm comment out for standard switch
 #define MATT_DirectEx // mmm commend out for Bowden extrusion
 
-// TODO: Filename garbage on printing
 // TODO: Dynamic icon load
-// TODO: Preload host shutdown
-
+// TODO: Dynamic BTT/Fil
+// TODO: PWM while out of printing
+// TODO:
 
 /**
  * Here are some useful links to help get your machine configured and calibrated:
@@ -148,6 +148,8 @@
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
   #define MOTHERBOARD BOARD_CREALITY_V4
+  //#define MOTHERBOARD BOARD_CREALITY_V427
+  //#define MOTHERBOARD BOARD_CREALITY_V431
 #endif
 
 // Name displayed in the LCD "Ready" message and Info menu
@@ -350,6 +352,7 @@
   #define MIXING_VIRTUAL_TOOLS 16  // Use the Virtual Tool method with M163 and M164
   //#define DIRECT_MIXING_IN_G1    // Allow ABCDHI mix factors in G1 movement commands
   //#define GRADIENT_MIX           // Support for gradient mixing with M166 and LCD
+  //#define MIXING_PRESETS         // Assign 8 default V-tool presets for 2 or 3 MIXING_STEPPERS
   #if ENABLED(GRADIENT_MIX)
     //#define GRADIENT_VTOOL       // Add M166 T to use a V-tool index as a Gradient alias
   #endif
@@ -374,6 +377,7 @@
 //#define PSU_NAME "Power Supply"
 
 #if ENABLED(PSU_CONTROL)
+  //#define MKS_PWC                 // Using the MKS PWC add-on
   //#define PS_OFF_CONFIRM          // Confirm dialog when power off
   //#define PS_OFF_SOUND            // Beep 1s when power off
   #define PSU_ACTIVE_STATE LOW      // Set 'LOW' for ATX, 'HIGH' for X-Box
@@ -514,7 +518,7 @@
 
 // Resistor values when using MAX31865 sensors (-5) on TEMP_SENSOR_0 / 1
 //#define MAX31865_SENSOR_OHMS_0      100   // (Ω) Typically 100 or 1000 (PT100 or PT1000)
-//#define MAX31865_CALIBRATION_OHMS_0 430   // (Ω) Typically 430 for AdaFruit PT100; 4300 for AdaFruit PT1000
+//#define MAX31865_CALIBRATION_OHMS_0 430   // (Ω) Typically 430 for Adafruit PT100; 4300 for Adafruit PT1000
 //#define MAX31865_SENSOR_OHMS_1      100
 //#define MAX31865_CALIBRATION_OHMS_1 430
 
@@ -601,8 +605,8 @@
                                   // Set/get with gcode: M301 E[extruder number, 0-2]
 
   #if ENABLED(PID_PARAMS_PER_HOTEND)
-    // Specify between 1 and HOTENDS values per array.
-    // If fewer than EXTRUDER values are provided, the last element will be repeated.
+    // Specify up to one value per hotend here, according to your setup.
+    // If there are fewer values, the last one applies to the remaining hotends.
     #define DEFAULT_Kp_LIST {  28.72,  28.72 }
     #define DEFAULT_Ki_LIST {   2.62,   2.62 }
     #define DEFAULT_Kd_LIST {  78.81,  78.81 }
@@ -763,6 +767,7 @@
 //#define COREZX
 //#define COREZY
 //#define MARKFORGED_XY  // MarkForged. See https://reprap.org/forum/read.php?152,504042
+//#define MARKFORGED_YX
 
 // Enable for a belt style printer with endless "Z" motion
 //#define BELTPRINTER
@@ -1127,7 +1132,7 @@
 #endif
 
 // Duet Smart Effector (for delta printers) - https://bit.ly/2ul5U7J
-// When the pin is defined you can use M672 to set/reset the probe sensivity.
+// When the pin is defined you can use M672 to set/reset the probe sensitivity.
 //#define DUET_SMART_EFFECTOR
 #if ENABLED(DUET_SMART_EFFECTOR)
   #define SMART_EFFECTOR_MOD_PIN  -1  // Connect a GPIO pin to the Smart Effector MOD pin
@@ -1225,6 +1230,15 @@
   #if ENABLED(PROBE_ACTIVATION_SWITCH)
     //#define PROBE_TARE_ONLY_WHILE_INACTIVE  // Fail to tare/probe if PROBE_ACTIVATION_SWITCH is active
   #endif
+#endif
+
+/**
+ * Probe Enable / Disable
+ * The probe only provides a triggered signal when enabled.
+ */
+//#define PROBE_ENABLE_DISABLE
+#if ENABLED(PROBE_ENABLE_DISABLE)
+  //#define PROBE_ENABLE_PIN -1   // Override the default pin here
 #endif
 
 /**
@@ -1839,7 +1853,7 @@
 #define EEPROM_BOOT_SILENT    // Keep M503 quiet and only give errors during first load
 #if ENABLED(EEPROM_SETTINGS)
   #define EEPROM_AUTO_INIT    // Init EEPROM automatically on any errors.
-  // #define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
+  //#define EEPROM_INIT_NOW   // Init EEPROM on first boot after a new build.
 #endif
 
 //
@@ -1883,6 +1897,11 @@
 #define PREHEAT_4_TEMP_HOTEND 240
 #define PREHEAT_4_TEMP_BED     60
 #define PREHEAT_4_FAN_SPEED   255 // Value from 0 to 255
+
+//#define PREHEAT_5_LABEL       "TPU"
+//#define PREHEAT_5_TEMP_HOTEND 230
+//#define PREHEAT_5_TEMP_BED     60
+//#define PREHEAT_5_FAN_SPEED   255 // Value from 0 to 255
 
 /**
  * Nozzle Park
@@ -2068,10 +2087,10 @@
  *
  * Select the language to display on the LCD. These languages are available:
  *
- *   en, an, bg, ca, cz, da, de, el, el_gr, es, eu, fi, fr, gl, hr, hu, it,
+ *   en, an, bg, ca, cz, da, de, el, el_CY, es, eu, fi, fr, gl, hr, hu, it,
  *   jp_kana, ko_KR, nl, pl, pt, pt_br, ro, ru, sk, sv, tr, uk, vi, zh_CN, zh_TW
  *
- * :{ 'en':'English', 'an':'Aragonese', 'bg':'Bulgarian', 'ca':'Catalan', 'cz':'Czech', 'da':'Danish', 'de':'German', 'el':'Greek', 'el_gr':'Greek (Greece)', 'es':'Spanish', 'eu':'Basque-Euskera', 'fi':'Finnish', 'fr':'French', 'gl':'Galician', 'hr':'Croatian', 'hu':'Hungarian', 'it':'Italian', 'jp_kana':'Japanese', 'ko_KR':'Korean (South Korea)', 'nl':'Dutch', 'pl':'Polish', 'pt':'Portuguese', 'pt_br':'Portuguese (Brazilian)', 'ro':'Romanian', 'ru':'Russian', 'sk':'Slovak', 'sv':'Swedish', 'tr':'Turkish', 'uk':'Ukrainian', 'vi':'Vietnamese', 'zh_CN':'Chinese (Simplified)', 'zh_TW':'Chinese (Traditional)' }
+ * :{ 'en':'English', 'an':'Aragonese', 'bg':'Bulgarian', 'ca':'Catalan', 'cz':'Czech', 'da':'Danish', 'de':'German', 'el':'Greek (Greece)', 'el_CY':'Greek (Cyprus)', 'es':'Spanish', 'eu':'Basque-Euskera', 'fi':'Finnish', 'fr':'French', 'gl':'Galician', 'hr':'Croatian', 'hu':'Hungarian', 'it':'Italian', 'jp_kana':'Japanese', 'ko_KR':'Korean (South Korea)', 'nl':'Dutch', 'pl':'Polish', 'pt':'Portuguese', 'pt_br':'Portuguese (Brazilian)', 'ro':'Romanian', 'ru':'Russian', 'sk':'Slovak', 'sv':'Swedish', 'tr':'Turkish', 'uk':'Ukrainian', 'vi':'Vietnamese', 'zh_CN':'Chinese (Simplified)', 'zh_TW':'Chinese (Traditional)' }
  */
 #define LCD_LANGUAGE en
 
@@ -2183,6 +2202,7 @@
 // Add individual axis homing items (Home X, Home Y, and Home Z) to the LCD menu.
 //
 //#define INDIVIDUAL_AXIS_HOMING_MENU
+//#define INDIVIDUAL_AXIS_HOMING_SUBMENU
 
 //
 // SPEAKER/BUZZER
@@ -2393,6 +2413,11 @@
 //#define miniVIKI
 
 //
+// Alfawise Ex8 printer LCD marked as WYH L12864 COG
+//
+//#define WYH_L12864
+
+//
 // MakerLab Mini Panel with graphic
 // controller and SD support - https://reprap.org/wiki/Mini_panel
 //
@@ -2564,12 +2589,39 @@
 // DGUS Touch Display with DWIN OS. (Choose one.)
 // ORIGIN : https://www.aliexpress.com/item/32993409517.html
 // FYSETC : https://www.aliexpress.com/item/32961471929.html
+// MKS    : https://www.aliexpress.com/item/1005002008179262.html
+//
+// Flash display with DGUS Displays for Marlin:
+//  - Format the SD card to FAT32 with an allocation size of 4kb.
+//  - Download files as specified for your type of display.
+//  - Plug the microSD card into the back of the display.
+//  - Boot the display and wait for the update to complete.
+//
+// ORIGIN (Marlin DWIN_SET)
+//  - Download https://github.com/coldtobi/Marlin_DGUS_Resources
+//  - Copy the downloaded DWIN_SET folder to the SD card.
+//
+// FYSETC (Supplier default)
+//  - Download https://github.com/FYSETC/FYSTLCD-2.0
+//  - Copy the downloaded SCREEN folder to the SD card.
+//
+// HIPRECY (Supplier default)
+//  - Download https://github.com/HiPrecy/Touch-Lcd-LEO
+//  - Copy the downloaded DWIN_SET folder to the SD card.
+//
+// MKS (MKS-H43) (Supplier default)
+//  - Download https://github.com/makerbase-mks/MKS-H43
+//  - Copy the downloaded DWIN_SET folder to the SD card.
+//
+// RELOADED (T5UID1)
+//  - Download https://github.com/Desuuuu/DGUS-reloaded/releases
+//  - Copy the downloaded DWIN_SET folder to the SD card.
 //
 //#define DGUS_LCD_UI_ORIGIN
 //#define DGUS_LCD_UI_FYSETC
 //#define DGUS_LCD_UI_HIPRECY
-
 //#define DGUS_LCD_UI_MKS
+//#define DGUS_LCD_UI_RELOADED
 #if ENABLED(DGUS_LCD_UI_MKS)
   #define USE_MKS_GREEN_UI
 #endif
@@ -2637,32 +2689,32 @@
  */
 
 //
-// 480x320, 3.5", SPI Display From MKS
-// Normally used in MKS Robin Nano V2
+// 480x320, 3.5", SPI Display with Rotary Encoder from MKS
+// Usually paired with MKS Robin Nano V2 & V3
 //
 //#define MKS_TS35_V2_0
 
 //
 // 320x240, 2.4", FSMC Display From MKS
-// Normally used in MKS Robin Nano V1.2
+// Usually paired with MKS Robin Nano V1.2
 //
 //#define MKS_ROBIN_TFT24
 
 //
 // 320x240, 2.8", FSMC Display From MKS
-// Normally used in MKS Robin Nano V1.2
+// Usually paired with MKS Robin Nano V1.2
 //
 //#define MKS_ROBIN_TFT28
 
 //
 // 320x240, 3.2", FSMC Display From MKS
-// Normally used in MKS Robin Nano V1.2
+// Usually paired with MKS Robin Nano V1.2
 //
 //#define MKS_ROBIN_TFT32
 
 //
 // 480x320, 3.5", FSMC Display From MKS
-// Normally used in MKS Robin Nano V1.2
+// Usually paired with MKS Robin Nano V1.2
 //
 //#define MKS_ROBIN_TFT35
 
@@ -2673,7 +2725,7 @@
 
 //
 // 320x240, 3.2", FSMC Display From MKS
-// Normally used in MKS Robin
+// Usually paired with MKS Robin
 //
 //#define MKS_ROBIN_TFT_V1_1R
 
@@ -2703,9 +2755,14 @@
 //#define ANET_ET5_TFT35
 
 //
-// 1024x600, 7", RGB Stock Display from BIQU-BX
+// 1024x600, 7", RGB Stock Display with Rotary Encoder from BIQU-BX
 //
 //#define BIQU_BX_TFT70
+
+//
+// 480x320, 3.5", SPI Stock Display with Rotary Encoder from BIQU B1 SE Series
+//
+//#define BTT_TFT35_SPI_V1_0
 
 //
 // Generic TFT with detailed options
@@ -2723,6 +2780,7 @@
   //#define TFT_RES_320x240
   //#define TFT_RES_480x272
   //#define TFT_RES_480x320
+  //#define TFT_RES_1024x600
 #endif
 
 /**
@@ -2785,6 +2843,8 @@
 #if ENABLED(TOUCH_SCREEN)
   #define BUTTON_DELAY_EDIT  50 // (ms) Button repeat delay for edit screens
   #define BUTTON_DELAY_MENU 250 // (ms) Button repeat delay for menus
+
+  //#define TOUCH_IDLE_SLEEP 300 // (secs) Turn off the TFT backlight if set (5mn)
 
   #define TOUCH_SCREEN_CALIBRATION
 
@@ -2946,9 +3006,9 @@
  * Set this manually if there are extra servos needing manual control.
  * Set to 0 to turn off servo support.
  */
-//#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
+//#define NUM_SERVOS 3 // Note: Servo index starts with 0 for M280-M282 commands
 
-// (ms) Delay  before the next move will start, to give the servo time to reach its target angle.
+// (ms) Delay before the next move will start, to give the servo time to reach its target angle.
 // 300ms is a good value but you can try less delay.
 // If the servo can't reach the requested position, increase it.
 #define SERVO_DELAY { 300 }
@@ -2958,3 +3018,6 @@
 
 // Edit servo angles with M281 and save to EEPROM with M500
 //#define EDITABLE_SERVO_ANGLES
+
+// Disable servo with M282 to reduce power consumption, noise, and heat when not in use
+//#define SERVO_DETACH_GCODE
