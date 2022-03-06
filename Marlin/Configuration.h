@@ -46,7 +46,7 @@
 // TODO: Dynamic icon load
 // TODO: Dynamic BTT/Fil
 // TODO: PWM while out of printing
-// TODO:
+// TODO: Host action start on 
 
 /**
  * Here are some useful links to help get your machine configured and calibrated:
@@ -150,6 +150,18 @@
   #define MOTHERBOARD BOARD_CREALITY_V4
   //#define MOTHERBOARD BOARD_CREALITY_V427
   //#define MOTHERBOARD BOARD_CREALITY_V431
+#endif
+#ifdef CREALITY427
+  #define X_STEP_PIN                          PB9
+  #define X_DIR_PIN                           PC2
+  #define Y_STEP_PIN                          PB7
+
+  #define Y_DIR_PIN                           PB8
+  #define Z_STEP_PIN                          PB5
+  #define Z_DIR_PIN                           PB6
+
+  #define E0_STEP_PIN                         PB3
+  #define E0_DIR_PIN                          PB4
 #endif
 
 // Name displayed in the LCD "Ready" message and Info menu

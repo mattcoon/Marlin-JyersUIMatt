@@ -562,7 +562,7 @@
 #elif MB(CHITU3D_V9)
   #include "stm32f1/pins_CHITU3D_V9.h"          // STM32F1                                env:chitu_f103 env:chitu_f103_maple
 #elif MB(CREALITY_V4)
-  #include "stm32f1/pins_CREALITY_V4.h"         // STM32F1                                env:STM32F103RE_creality env:STM32F103RE_creality_xfer env:STM32F103RC_creality env:STM32F103RC_creality_xfer env:STM32F103RE_creality_maple
+  #include "stm32f1/pins_CREALITY_V4.h"         // STM32F1                                env:STM32F103RE_creality env:STM32F103RE_creality_v427 env:STM32F103RE_creality_maple
 #elif MB(CREALITY_V4210)
   #include "stm32f1/pins_CREALITY_V4210.h"      // STM32F1                                env:STM32F103RE_creality env:STM32F103RE_creality_xfer env:STM32F103RC_creality env:STM32F103RC_creality_xfer env:STM32F103RE_creality_maple
 #elif MB(CREALITY_V422)

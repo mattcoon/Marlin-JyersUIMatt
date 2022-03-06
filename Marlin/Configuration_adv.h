@@ -3612,7 +3612,7 @@
  *
  * NOTE: This option sacrifices some cooling fan speed options.
  */
-#define LASER_SYNCHRONOUS_M106_M107 // mmm needed for laser accuracy
+// mmm #define LASER_SYNCHRONOUS_M106_M107 // mmm needed for laser accuracy
 
 /**
  * Coolant Control
