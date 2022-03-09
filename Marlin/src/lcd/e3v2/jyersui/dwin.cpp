@@ -957,8 +957,7 @@ void CrealityDWINClass::Draw_Status_Area(bool icons/*=false*/) {
     if (thermalManager.fan_speed[0] != fan) {
       fan = thermalManager.fan_speed[0];
       // mmm change percentage
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, GetColor(eeprom_settings.status_area_text, Color_White), Color_Bg_Black, 3, 195 + 2 * STAT_CHR_W, 384, u_int16_t(thermalManager.fan_speed[0]) * 100 / MAX_FAN_SPEED);
-  // mmm    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, GetColor(eeprom_settings.status_area_text, Color_White), Color_Bg_Black, 3, 195 + 2 * STAT_CHR_W, 384, thermalManager.fan_speed[0]);
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, GetColor(eeprom_settings.status_area_text, Color_White), Color_Bg_Black, 3, 195 + 2 * STAT_CHR_W, 384, u_int16_t(thermalManager.fan_speed[0]) * 100 / MAX_FAN_SPEED); // mmm
     }
   #endif
 
@@ -1246,7 +1245,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
       #define PREPARE_PREHEAT (PREPARE_ZOFFSET + ENABLED(HAS_PREHEAT))
       #define PREPARE_COOLDOWN (PREPARE_PREHEAT + EITHER(HAS_HOTEND, HAS_HEATED_BED))
       #define PREPARE_CHANGEFIL (PREPARE_COOLDOWN + ENABLED(ADVANCED_PAUSE_FEATURE))
-      #define PREPARE_ACTIONCOMMANDS (PREPARE_CHANGEFIL + 1)
+      #define PREPARE_LASERMODE (PREPARE_CHANGEFIL + 1) // mmm
+      #define PREPARE_ACTIONCOMMANDS (PREPARE_LASERMODE + 1)
       #define PREPARE_TOTAL PREPARE_ACTIONCOMMANDS
 
       switch (item) {
@@ -1321,7 +1321,13 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               thermalManager.cooldown();
             break;
         #endif
-
+          case PREPARE_LASERMODE:
+            if (draw)
+              Draw_Menu_Item(row, ICON_StockConfiguration, F("Laser Mode"));
+            else
+              planner.laserMode = !planner.laserMode;
+            Draw_Checkbox(row, planner.laserMode);
+            break;
         #if ENABLED(HOST_ACTION_COMMANDS)
           case PREPARE_ACTIONCOMMANDS:
           if (draw) {

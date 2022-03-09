@@ -446,6 +446,9 @@ class Planner {
       }
     #endif
 
+  // mmm used to force fan sync if in sync m106/m107 mode
+  static bool laserMode;
+
   private:
 
     /**
@@ -759,7 +762,7 @@ class Planner {
      */
     static void buffer_sync_block(
       TERN_(LASER_SYNCHRONOUS_M106_M107, uint8_t sync_flag=BLOCK_FLAG_SYNC_POSITION)
-    );
+    ); // mmm is ok prototype for function
 
   #if IS_KINEMATIC
     private:

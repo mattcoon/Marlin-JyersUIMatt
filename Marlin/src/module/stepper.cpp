@@ -2137,7 +2137,7 @@ uint32_t Stepper::block_phase_isr() {
           constexpr bool is_sync_fans = false;
         #endif
 
-        if (!is_sync_fans) _set_position(current_block->position);
+        if (!is_sync_fans || !planner.laserMode) _set_position(current_block->position);
 
         discard_current_block();
 

@@ -148,8 +148,6 @@
 // Choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
   #define MOTHERBOARD BOARD_CREALITY_V4
-  //#define MOTHERBOARD BOARD_CREALITY_V427
-  //#define MOTHERBOARD BOARD_CREALITY_V431
 #endif
 #ifdef CREALITY427
   #define X_STEP_PIN                          PB9

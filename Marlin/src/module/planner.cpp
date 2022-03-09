@@ -199,6 +199,7 @@ skew_factor_t Planner::skew_factor; // Initialized by settings.load()
   bool Planner::autotemp_enabled = false;
 #endif
 
+bool Planner::laserMode = LASER_MODE_DEFAULT;
 // private:
 
 xyze_long_t Planner::position{0};
@@ -1304,7 +1305,7 @@ void Planner::check_axes_activity() {
     xyze_bool_t axis_active = { false };
   #endif
 
-  #if HAS_FAN && DISABLED(LASER_SYNCHRONOUS_M106_M107)
+  #if HAS_FAN //&& DISABLED(LASER_SYNCHRONOUS_M106_M107)
     #define HAS_TAIL_FAN_SPEED 1
     static uint8_t tail_fan_speed[FAN_COUNT] = ARRAY_N_1(FAN_COUNT, 128);
     bool fans_need_update = false;
@@ -1326,6 +1327,7 @@ void Planner::check_axes_activity() {
     #endif
 
     #if HAS_TAIL_FAN_SPEED
+    if (!planner.laserMode) {
       FANS_LOOP(i) {
         const uint8_t spd = thermalManager.scaledFanSpeed(i, block->fan_speed[i]);
         if (tail_fan_speed[i] != spd) {
@@ -1333,6 +1335,7 @@ void Planner::check_axes_activity() {
           tail_fan_speed[i] = spd;
         }
       }
+    }
     #endif
 
     #if ENABLED(BARICUDA)
@@ -1360,6 +1363,7 @@ void Planner::check_axes_activity() {
     TERN_(HAS_CUTTER, cutter.refresh());
 
     #if HAS_TAIL_FAN_SPEED
+    if (!planner.laserMode){
       FANS_LOOP(i) {
         const uint8_t spd = thermalManager.scaledFanSpeed(i);
         if (tail_fan_speed[i] != spd) {
@@ -1367,6 +1371,7 @@ void Planner::check_axes_activity() {
           tail_fan_speed[i] = spd;
         }
       }
+    }
     #endif
 
     #if ENABLED(BARICUDA)
@@ -2830,6 +2835,7 @@ void Planner::buffer_sync_block(TERN_(LASER_SYNCHRONOUS_M106_M107, uint8_t sync_
   #if DISABLED(LASER_SYNCHRONOUS_M106_M107)
     constexpr uint8_t sync_flag = BLOCK_FLAG_SYNC_POSITION;
   #endif
+  if(!planner.laserMode) sync_flag = BLOCK_FLAG_SYNC_POSITION;  //mmm
 
   // Wait for the next available block
   uint8_t next_buffer_head;
@@ -2843,7 +2849,8 @@ void Planner::buffer_sync_block(TERN_(LASER_SYNCHRONOUS_M106_M107, uint8_t sync_
   block->position = position;
 
   #if BOTH(HAS_FAN, LASER_SYNCHRONOUS_M106_M107)
-    FANS_LOOP(i) block->fan_speed[i] = thermalManager.fan_speed[i];
+    if (planner.laserMode) // mmm
+      FANS_LOOP(i) block->fan_speed[i] = thermalManager.fan_speed[i];
   #endif
 
   // If this is the first added movement, reload the delay, otherwise, cancel it.
