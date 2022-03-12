@@ -237,7 +237,7 @@ typedef struct SettingsDataStruct {
   //
   bool runout_sensor_enabled;                           // M412 S
   float runout_distance_mm;                             // M412 D
-
+  bool runout_motion_sensor;
   //
   // ENABLE_LEVELING_FADE_HEIGHT
   //
@@ -791,6 +791,11 @@ void MarlinSettings::postprocess() {
         constexpr float runout_distance_mm = 0;
       #endif
       EEPROM_WRITE(runout_distance_mm);
+      #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
+          const bool &runout_motion_sensor = runout.motionsensor;
+          EEPROM_WRITE(runout_motion_sensor);
+      #endif
+
     }
 
     //
@@ -1699,6 +1704,13 @@ void MarlinSettings::postprocess() {
         #if HAS_FILAMENT_RUNOUT_DISTANCE
           if (!validating) runout.set_runout_distance(runout_distance_mm);
         #endif
+        #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
+        int8_t runout_motion_sensor;
+//          _FIELD_TEST(runout_motion_sensor);
+          EEPROM_READ(runout_motion_sensor);
+          runout.motionsensor = runout_motion_sensor < 0 ? DYNAM_FILAMENT_MOTION_DEFAULT : runout_motion_sensor;
+        #endif
+
       }
 
       //
@@ -2752,6 +2764,9 @@ void MarlinSettings::reset() {
     runout.enabled = FIL_RUNOUT_ENABLED_DEFAULT;
     runout.reset();
     TERN_(HAS_FILAMENT_RUNOUT_DISTANCE, runout.set_runout_distance(FILAMENT_RUNOUT_DISTANCE_MM));
+    #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
+      runout.motionsensor = DYNAM_FILAMENT_MOTION_DEFAULT;
+    #endif
   #endif
 
   //

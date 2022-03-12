@@ -56,7 +56,11 @@ class RunoutResponseDebounced;
 
 typedef TFilamentMonitor<
           TERN(HAS_FILAMENT_RUNOUT_DISTANCE, RunoutResponseDelayed, RunoutResponseDebounced),
-          TERN(FILAMENT_MOTION_SENSOR, FilamentSensorEncoder, FilamentSensorSwitch)
+          #if ANY(FILAMENT_MOTION_SENSOR,DYNAM_FILAMENT_MOTION_SENSOR)
+            FilamentSensorEncoder
+          #else
+            FilamentSensorSwitch
+          #endif
         > FilamentMonitor;
 
 extern FilamentMonitor runout;
@@ -65,7 +69,7 @@ extern FilamentMonitor runout;
 
 class FilamentMonitorBase {
   public:
-    static bool enabled, filament_ran_out;
+    static bool enabled, filament_ran_out, motionsensor;
 
     #if ENABLED(HOST_ACTION_COMMANDS)
       static bool host_handling;
@@ -242,7 +246,7 @@ class FilamentSensorBase {
     }
 };
 
-#if ENABLED(FILAMENT_MOTION_SENSOR)
+#if ANY(FILAMENT_MOTION_SENSOR, DYNAM_FILAMENT_MOTION_SENSOR)
 
   /**
    * This sensor uses a magnetic encoder disc and a Hall effect
@@ -272,6 +276,18 @@ class FilamentSensorBase {
         motion_detected |= change;
       }
 
+      static bool poll_runout_state(const uint8_t extruder) {
+        const uint8_t runout_states = poll_runout_states();
+        #if MULTI_FILAMENT_SENSOR
+          if ( !TERN0(DUAL_X_CARRIAGE, idex_is_duplicating())
+            && !TERN0(MULTI_NOZZLE_DUPLICATION, extruder_duplication_enabled)
+          ) return TEST(runout_states, extruder); // A specific extruder ran out
+        #else
+          UNUSED(extruder);
+        #endif
+        return !!runout_states;                   // Any extruder ran out
+      }
+
     public:
       static void block_completed(const block_t * const b) {
         // If the sensor wheel has moved since the last call to
@@ -283,10 +299,30 @@ class FilamentSensorBase {
         motion_detected = 0;
       }
 
-      static void run() { poll_motion_sensor(); }
+      static void run() { 
+        if (FilamentMonitorBase::motionsensor){
+          poll_motion_sensor(); 
+        }
+        else
+        {
+        #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
+          LOOP_L_N(s, NUM_RUNOUT_SENSORS) {
+            const bool out = poll_runout_state(s);
+            if (!out) filament_present(s);
+            #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+              static uint8_t was_out; // = 0
+              if (out != TEST(was_out, s)) {
+                TBI(was_out, s);
+                SERIAL_ECHOLNF(F("Filament Sensor "), AS_DIGIT(s), out ? F(" OUT") : F(" IN"));
+              }
+            #endif
+          }
+        #endif
+        }
+      }
   };
 
-#else
+#endif
 
   /**
    * This is a simple endstop switch in the path of the filament.
@@ -325,7 +361,6 @@ class FilamentSensorBase {
   };
 
 
-#endif // !FILAMENT_MOTION_SENSOR
 
 /********************************* RESPONSE TYPE *********************************/
 

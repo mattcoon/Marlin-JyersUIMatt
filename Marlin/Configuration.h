@@ -1528,6 +1528,10 @@
   #if ENABLED(MATT_BTT)
     #define FILAMENT_MOTION_SENSOR
   #endif
+  #define DYNAM_FILAMENT_MOTION_SENSOR
+    #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
+      #define DYNAM_FILAMENT_MOTION_DEFAULT false
+    #endif
   #endif
 #endif
 
@@ -2845,7 +2849,9 @@
 //
 //#define DWIN_MARLINUI_PORTRAIT
 //#define DWIN_MARLINUI_LANDSCAPE
-
+//
+// allows changing ICON set
+#define DWIN_ICON_SET
 //
 // Touch Screen Settings
 //

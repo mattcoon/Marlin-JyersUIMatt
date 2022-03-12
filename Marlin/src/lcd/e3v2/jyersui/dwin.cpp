@@ -154,9 +154,11 @@ constexpr uint16_t TROWS = 6, MROWS = TROWS - 1,
 constexpr float default_max_feedrate[]        = DEFAULT_MAX_FEEDRATE;
 constexpr float default_max_acceleration[]    = DEFAULT_MAX_ACCELERATION;
 constexpr float default_steps[]               = DEFAULT_AXIS_STEPS_PER_UNIT;
+
 #if HAS_CLASSIC_JERK
   constexpr float default_max_jerk[]            = { DEFAULT_XJERK, DEFAULT_YJERK, DEFAULT_ZJERK, DEFAULT_EJERK };
 #endif
+
 
 enum SelectItem : uint8_t {
   PAGE_PRINT = 0,
@@ -212,6 +214,7 @@ float corner_pos;
 #endif
 
 bool probe_deployed = false;
+
 
 #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
 std::map<string, int> image_cache;
@@ -3250,7 +3253,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
       #define ADVANCED_COLD_EXTRUDE  (ADVANCED_UNLOAD + ENABLED(PREVENT_COLD_EXTRUSION))
       #define ADVANCED_FILSENSORENABLED (ADVANCED_COLD_EXTRUDE + ENABLED(FILAMENT_RUNOUT_SENSOR))
       #define ADVANCED_FILSENSORDISTANCE (ADVANCED_FILSENSORENABLED + ENABLED(HAS_FILAMENT_RUNOUT_DISTANCE))
-      #define ADVANCED_POWER_LOSS (ADVANCED_FILSENSORDISTANCE + ENABLED(POWER_LOSS_RECOVERY))
+      #define ADVANCED_FILSENSORMOTION (ADVANCED_FILSENSORDISTANCE + ENABLED(DYNAM_FILAMENT_MOTION_SENSOR))
+      #define ADVANCED_POWER_LOSS (ADVANCED_FILSENSORMOTION + ENABLED(POWER_LOSS_RECOVERY))
       #define ADVANCED_TOTAL ADVANCED_POWER_LOSS
 
       switch (item) {
@@ -3355,6 +3359,19 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               }
               else
                 Modify_Value(runout.runout_distance(), 0, 999, 10);
+              break;
+          #endif
+          #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
+            case ADVANCED_FILSENSORMOTION:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_Extruder, F("Motion Sensor"));
+                //TODO: make only possible if enabled
+                Draw_Checkbox(row, runout.motionsensor);
+              }
+              else {
+                runout.motionsensor = !runout.motionsensor;
+                Draw_Checkbox(row, runout.motionsensor);
+              }
               break;
           #endif
         #endif // FILAMENT_RUNOUT_SENSOR
@@ -5742,6 +5759,7 @@ void CrealityDWINClass::Load_Settings(const char *buff) {
       queue.inject(F("M1000 S"));
     }
   #endif
+
 }
 
 void CrealityDWINClass::Reset_Settings() {
