@@ -609,6 +609,12 @@
   #error "LCD_SCREEN_ROT_270 is now LCD_SCREEN_ROTATE with a value of 270."
 #elif defined(DEFAULT_LCD_BRIGHTNESS)
   #error "DEFAULT_LCD_BRIGHTNESS is now LCD_BRIGHTNESS_DEFAULT."
+#elif defined(NOZZLE_PARK_X_ONLY)
+  #error "NOZZLE_PARK_X_ONLY is now NOZZLE_PARK_MOVE 1."
+#elif defined(NOZZLE_PARK_Y_ONLY)
+  #error "NOZZLE_PARK_X_ONLY is now NOZZLE_PARK_MOVE 2."
+#elif defined(Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
+  #error "Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS is now just Z_STEPPER_ALIGN_STEPPER_XY."
 #endif
 
 constexpr float arm[] = AXIS_RELATIVE_MODES;
@@ -840,7 +846,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "PROGRESS_MSG_EXPIRE must be greater than or equal to 0."
   #endif
 #elif ENABLED(LCD_SET_PROGRESS_MANUALLY) && NONE(HAS_MARLINUI_U8GLIB, HAS_GRAPHICAL_TFT, HAS_MARLINUI_HD44780, EXTENSIBLE_UI, HAS_DWIN_E3V2, IS_DWIN_MARLINUI)
-  #error "LCD_SET_PROGRESS_MANUALLY requires LCD_PROGRESS_BAR, Character LCD, Graphical LCD, TFT, DWIN_CREALITY_LCD, DWIN_CREALITY_LCD_ENHANCED, DWIN_CREALITY_LCD_JYERSUI, DWIN_MARLINUI_*, OR EXTENSIBLE_UI."
+  #error "LCD_SET_PROGRESS_MANUALLY requires LCD_PROGRESS_BAR, Character LCD, Graphical LCD, TFT, DWIN_CREALITY_LCD, DWIN_LCD_PROUI, DWIN_CREALITY_LCD_JYERSUI, DWIN_MARLINUI_*, OR EXTENSIBLE_UI."
 #endif
 
 #if ENABLED(USE_M73_REMAINING_TIME) && DISABLED(LCD_SET_PROGRESS_MANUALLY)
@@ -990,10 +996,73 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "You can't enable FIL_RUNOUT7_PULLUP and FIL_RUNOUT7_PULLDOWN at the same time."
   #elif BOTH(FIL_RUNOUT8_PULLUP, FIL_RUNOUT8_PULLDOWN)
     #error "You can't enable FIL_RUNOUT8_PULLUP and FIL_RUNOUT8_PULLDOWN at the same time."
-  #elif FILAMENT_RUNOUT_DISTANCE_MM < 0
-    #error "FILAMENT_RUNOUT_DISTANCE_MM must be greater than or equal to zero."
   #elif DISABLED(ADVANCED_PAUSE_FEATURE)
     static_assert(nullptr == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
+  //add
+  #elif defined(FIL_RUNOUT_ENABLED_DEFAULT)
+//    #error "FIL_RUNOUT_ENABLED_DEFAULT is now set with the FILAMENT_RUNOUT_ENABLED array."
+  #elif defined(FILAMENT_RUNOUT_DISTANCE_MM)
+    #error "FILAMENT_RUNOUT_DISTANCE_MM is now set with the FIL_RUNOUT_DISTANCE_MM array."
+  #elif defined(FIL_RUNOUT_STATE) || defined(FIL_RUNOUT2_STATE) || defined(FIL_RUNOUT3_STATE) || defined(FIL_RUNOUT4_STATE) || defined(FIL_RUNOUT5_STATE) || defined(FIL_RUNOUT6_STATE) || defined(FIL_RUNOUT7_STATE) || defined(FIL_RUNOUT8_STATE)
+    #ifdef FIL_RUNOUT_STATE
+      #if FIL_RUNOUT_STATE
+        #error "FIL_RUNOUT_STATE HIGH is now set with FIL_RUNOUT_MODE { 2 ... }."
+      #else
+        #error "FIL_RUNOUT_STATE LOW is now set with FIL_RUNOUT_MODE { 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT2_STATE
+      #if FIL_RUNOUT2_STATE
+        #error "FIL_RUNOUT2_STATE HIGH is now set with FIL_RUNOUT_MODE { n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT2_STATE LOW is now set with FIL_RUNOUT_MODE { n, 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT3_STATE
+      #if FIL_RUNOUT3_STATE
+        #error "FIL_RUNOUT3_STATE HIGH is now set with FIL_RUNOUT_MODE { n, n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT3_STATE LOW is now set with FIL_RUNOUT_MODE { n, n, 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT4_STATE
+      #if FIL_RUNOUT4_STATE
+        #error "FIL_RUNOUT4_STATE HIGH is now set with FIL_RUNOUT_MODE { n, n, n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT4_STATE LOW is now set with FIL_RUNOUT_MODE { n, n, n, 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT5_STATE
+      #if FIL_RUNOUT5_STATE
+        #error "FIL_RUNOUT5_STATE HIGH is now set with FIL_RUNOUT_MODE { n, n, n, n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT5_STATE LOW is now set with FIL_RUNOUT_MODE { n, n, n, n, 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT6_STATE
+      #if FIL_RUNOUT6_STATE
+        #error "FIL_RUNOUT6_STATE HIGH is now set with FIL_RUNOUT_MODE { n, n, n, n, n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT6_STATE LOW is now set with FIL_RUNOUT_MODE { n, n, n, n, n, 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT7_STATE
+      #if FIL_RUNOUT7_STATE
+        #error "FIL_RUNOUT7_STATE HIGH is now set with FIL_RUNOUT_MODE { n, n, n, n, n, n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT7_STATE LOW is now set with FIL_RUNOUT_MODE { n, n, n, n, n, n, 1 ... }."
+      #endif
+    #endif
+    #ifdef FIL_RUNOUT8_STATE
+      #if FIL_RUNOUT8_STATE
+        #error "FIL_RUNOUT8_STATE HIGH is now set with FIL_RUNOUT_MODE { n, n, n, n, n, n, n, 2 ... }."
+      #else
+        #error "FIL_RUNOUT8_STATE LOW is now set with FIL_RUNOUT_MODE { n, n, n, n, n, n, n, 1 ... }."
+      #endif
+    #endif
+  #elif ENABLED(FILAMENT_MOTION_SENSOR)
+    #error "FILAMENT_MOTION_SENSOR is now set with FIL_RUNOUT_MODE { 7 ... }."
+  //
   #endif
 #endif
 
@@ -1022,7 +1091,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
-#if ENABLED(NOZZLE_PARK_FEATURE)
+#if ENABLED(NOZZLE_PARK_FEATURE) && !EXTJYERSUI
   constexpr float npp[] = NOZZLE_PARK_POINT;
   static_assert(COUNT(npp) == XYZ, "NOZZLE_PARK_POINT requires X, Y, and Z values.");
   constexpr xyz_pos_t npp_xyz = NOZZLE_PARK_POINT;
@@ -1228,8 +1297,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "MIXING_EXTRUDER is incompatible with SINGLENOZZLE."
   #elif ENABLED(DISABLE_INACTIVE_EXTRUDER)
     #error "MIXING_EXTRUDER is incompatible with DISABLE_INACTIVE_EXTRUDER."
-  #elif HAS_FILAMENT_RUNOUT_DISTANCE
-    #error "MIXING_EXTRUDER is incompatible with FILAMENT_RUNOUT_DISTANCE_MM."
+  //#elif HAS_FILAMENT_RUNOUT_DISTANCE
+  //  #error "MIXING_EXTRUDER is incompatible with FILAMENT_RUNOUT_DISTANCE_MM."
   #endif
 #endif
 
@@ -1568,10 +1637,14 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
       #else
         #define _IS_5V_TOLERANT(P) 1 // Assume 5V tolerance
       #endif
-      #if USES_Z_MIN_PROBE_PIN && !_IS_5V_TOLERANT(Z_MIN_PROBE_PIN)
-        #error "BLTOUCH_SET_5V_MODE is not compatible with the Z_MIN_PROBE_PIN."
+      #if USES_Z_MIN_PROBE_PIN
+        #if !_IS_5V_TOLERANT(Z_MIN_PROBE_PIN)
+          #error "BLTOUCH_SET_5V_MODE is not compatible with the Z_MIN_PROBE_PIN."
+        #endif
       #elif !_IS_5V_TOLERANT(Z_MIN_PIN)
-        #error "BLTOUCH_SET_5V_MODE is not compatible with the Z_MIN_PIN."
+        #if !MB(CHITU3D_V6)
+          #error "BLTOUCH_SET_5V_MODE is not compatible with the Z_MIN_PIN."
+        #endif
       #endif
       #undef _IS_5V_TOLERANT
       #undef _5V
@@ -1657,7 +1730,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #if ENABLED(NOZZLE_AS_PROBE)
     static_assert(sanity_nozzle_to_probe_offset.x == 0 && sanity_nozzle_to_probe_offset.y == 0,
                   "NOZZLE_AS_PROBE requires the XY offsets in NOZZLE_TO_PROBE_OFFSET to both be 0.");
-  #elif !IS_KINEMATIC
+  #elif !(IS_KINEMATIC || EXTJYERSUI)
     static_assert(PROBING_MARGIN       >= 0, "PROBING_MARGIN must be >= 0.");
     static_assert(PROBING_MARGIN_BACK  >= 0, "PROBING_MARGIN_BACK must be >= 0.");
     static_assert(PROBING_MARGIN_FRONT >= 0, "PROBING_MARGIN_FRONT must be >= 0.");
@@ -1665,13 +1738,15 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     static_assert(PROBING_MARGIN_RIGHT >= 0, "PROBING_MARGIN_RIGHT must be >= 0.");
   #endif
 
-  #define _MARGIN(A) TERN(IS_SCARA, SCARA_PRINTABLE_RADIUS, TERN(DELTA, DELTA_PRINTABLE_RADIUS, ((A##_BED_SIZE) / 2)))
-  static_assert(PROBING_MARGIN       < _MARGIN(X), "PROBING_MARGIN is too large.");
-  static_assert(PROBING_MARGIN_BACK  < _MARGIN(Y), "PROBING_MARGIN_BACK is too large.");
-  static_assert(PROBING_MARGIN_FRONT < _MARGIN(Y), "PROBING_MARGIN_FRONT is too large.");
-  static_assert(PROBING_MARGIN_LEFT  < _MARGIN(X), "PROBING_MARGIN_LEFT is too large.");
-  static_assert(PROBING_MARGIN_RIGHT < _MARGIN(X), "PROBING_MARGIN_RIGHT is too large.");
-  #undef _MARGIN
+  #if !EXTJYERSUI
+    #define _MARGIN(A) TERN(IS_SCARA, SCARA_PRINTABLE_RADIUS, TERN(DELTA, DELTA_PRINTABLE_RADIUS, ((A##_BED_SIZE) / 2)))
+    static_assert(PROBING_MARGIN       < _MARGIN(X), "PROBING_MARGIN is too large.");
+    static_assert(PROBING_MARGIN_BACK  < _MARGIN(Y), "PROBING_MARGIN_BACK is too large.");
+    static_assert(PROBING_MARGIN_FRONT < _MARGIN(Y), "PROBING_MARGIN_FRONT is too large.");
+    static_assert(PROBING_MARGIN_LEFT  < _MARGIN(X), "PROBING_MARGIN_LEFT is too large.");
+    static_assert(PROBING_MARGIN_RIGHT < _MARGIN(X), "PROBING_MARGIN_RIGHT is too large.");
+    #undef _MARGIN
+  #endif
 
   /**
    * Make sure Z raise values are set
@@ -1758,8 +1833,10 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
   #elif DISABLED(EEPROM_SETTINGS)
     #error "AUTO_BED_LEVELING_UBL requires EEPROM_SETTINGS."
-  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
-    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
+  #elif !EXTJYERSUI
+    #if !WITHIN(GRID_MAX_POINTS_X, 3, 15) || !WITHIN(GRID_MAX_POINTS_Y, 3, 15)
+      #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 15."
+    #endif
   #endif
 
 #elif HAS_ABL_NOT_UBL
@@ -1780,10 +1857,11 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   // Mesh Bed Leveling
   #if ENABLED(DELTA)
     #error "MESH_BED_LEVELING is not compatible with DELTA printers."
-  #elif (GRID_MAX_POINTS_X) > 9 || (GRID_MAX_POINTS_Y) > 9
-    #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10 for MBL."
+  #elif !EXTJYERSUI
+    #if (GRID_MAX_POINTS_X) > 9 || (GRID_MAX_POINTS_Y) > 9
+      #error "GRID_MAX_POINTS_X and GRID_MAX_POINTS_Y must be less than 10 for MBL."
+    #endif
   #endif
-
 #endif
 
 #if ALL(HAS_LEVELING, RESTORE_LEVELING_AFTER_G28, ENABLE_LEVELING_AFTER_G28)
@@ -1897,7 +1975,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 /**
  * Make sure Z_SAFE_HOMING point is reachable
  */
-#if ENABLED(Z_SAFE_HOMING)
+#if ENABLED(Z_SAFE_HOMING) && !EXTJYERSUI
   static_assert(WITHIN(Z_SAFE_HOMING_X_POINT, X_MIN_POS, X_MAX_POS), "Z_SAFE_HOMING_X_POINT can't be reached by the nozzle.");
   static_assert(WITHIN(Z_SAFE_HOMING_Y_POINT, Y_MIN_POS, Y_MAX_POS), "Z_SAFE_HOMING_Y_POINT can't be reached by the nozzle.");
 #endif
@@ -2169,9 +2247,9 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
  * Test Sensor & Heater pin combos.
  * Pins and Sensor IDs must be set for each heater
  */
-#if !ANY_PIN(TEMP_0, TEMP_0_CS)
+#if HAS_EXTRUDERS && !ANY_PIN(TEMP_0, TEMP_0_CS)
   #error "TEMP_0_PIN or TEMP_0_CS_PIN not defined for this board."
-#elif !HAS_HEATER_0 && EXTRUDERS
+#elif HAS_EXTRUDERS && !HAS_HEATER_0
   #error "HEATER_0_PIN not defined for this board."
 #elif TEMP_SENSOR_0_IS_MAX_TC && !PIN_EXISTS(TEMP_0_CS)
   #error "TEMP_SENSOR_0 MAX thermocouple requires TEMP_0_CS_PIN."
@@ -2839,15 +2917,23 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
   #if DISABLED(SDSUPPORT)
-    #error "DWIN_CREALITY_LCD_ENHANCED requires SDSUPPORT to be enabled."
+    #error "DWIN_LCD_PROUI requires SDSUPPORT to be enabled."
   #elif ENABLED(PID_EDIT_MENU)
-    #error "DWIN_CREALITY_LCD_ENHANCED does not support PID_EDIT_MENU."
+    #error "DWIN_LCD_PROUI does not support PID_EDIT_MENU."
   #elif ENABLED(PID_AUTOTUNE_MENU)
-    #error "DWIN_CREALITY_LCD_ENHANCED does not support PID_AUTOTUNE_MENU."
+    #error "DWIN_LCD_PROUI does not support PID_AUTOTUNE_MENU."
   #elif ENABLED(LEVEL_BED_CORNERS)
-    #error "DWIN_CREALITY_LCD_ENHANCED does not support LEVEL_BED_CORNERS."
+    #error "DWIN_LCD_PROUI does not support LEVEL_BED_CORNERS."
   #elif BOTH(LCD_BED_LEVELING, PROBE_MANUALLY)
-    #error "DWIN_CREALITY_LCD_ENHANCED does not support LCD_BED_LEVELING with PROBE_MANUALLY."
+    #error "DWIN_LCD_PROUI does not support LCD_BED_LEVELING with PROBE_MANUALLY."
+  #endif
+#endif
+
+#if LCD_BACKLIGHT_TIMEOUT
+  #if !HAS_ENCODER_ACTION
+    #error "LCD_BACKLIGHT_TIMEOUT requires an LCD with encoder or keypad."
+  #elif !PIN_EXISTS(LCD_BACKLIGHT)
+    #error "LCD_BACKLIGHT_TIMEOUT requires LCD_BACKLIGHT_PIN."
   #endif
 #endif
 
@@ -3461,10 +3547,10 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
     #error "Z_STEPPER_AUTO_ALIGN requires NUM_Z_STEPPER_DRIVERS greater than 1."
   #elif !HAS_BED_PROBE
     #error "Z_STEPPER_AUTO_ALIGN requires a Z-bed probe."
-  #elif ENABLED(Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
+  #elif HAS_Z_STEPPER_ALIGN_STEPPER_XY
     static_assert(WITHIN(Z_STEPPER_ALIGN_AMP, 0.5, 2.0), "Z_STEPPER_ALIGN_AMP must be between 0.5 and 2.0.");
     #if NUM_Z_STEPPER_DRIVERS < 3
-      #error "Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS requires NUM_Z_STEPPER_DRIVERS to be 3 or 4."
+      #error "Z_STEPPER_ALIGN_STEPPER_XY requires NUM_Z_STEPPER_DRIVERS to be 3 or 4."
     #endif
   #endif
 #endif

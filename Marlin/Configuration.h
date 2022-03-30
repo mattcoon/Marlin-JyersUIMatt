@@ -40,8 +40,6 @@
 //===========================================================================
 //============================= Getting Started =============================
 //===========================================================================
-// #define MATT_BTT  // mmm comment out for standard switch
-#define MATT_DirectEx // mmm commend out for Bowden extrusion
 
 // TODO: Dynamic icon load
 // TODO: Dynamic BTT/Fil
@@ -150,6 +148,9 @@
   #define MOTHERBOARD BOARD_CREALITY_V4
 #endif
 #ifdef CREALITY427
+
+  #define MATT_DirectEx //comment out for Bowden extrusion
+
   #define X_STEP_PIN                          PB9
   #define X_DIR_PIN                           PC2
   #define Y_STEP_PIN                          PB7
@@ -1464,22 +1465,32 @@
  * RAMPS-based boards use SERVO3_PIN for the first runout sensor.
  * For other boards you may need to define FIL_RUNOUT_PIN, FIL_RUNOUT2_PIN, etc.
  */
-#define FILAMENT_RUNOUT_SENSOR  // mmm
+#define FILAMENT_RUNOUT_SENSOR   // Ender3v2 Configs
 #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define FIL_RUNOUT_ENABLED_DEFAULT true // Enable the sensor on startup. Override with M412 followed by M500.
-  #define NUM_RUNOUT_SENSORS   1          // Number of sensors, up to one per extruder. Define a FIL_RUNOUT#_PIN for each.
-#if ENABLED(MATT_BTT)
-  #define FIL_RUNOUT_STATE     LOW       // mmm Pin state indicating that filament is NOT present.
-#else
-  #define FIL_RUNOUT_STATE     HIGH       // mmm Pin state indicating that filament is NOT present.
-#endif
-  #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
-  //#define FIL_RUNOUT_PULLDOWN           // Use internal pulldown for filament runout pins.
+  #define NUM_RUNOUT_SENSORS   1          // Number of sensors, up to one per extruder. Define a FIL_RUNOUT_ENABLES and a FIL_RUNOUT_MODE for each.
+  
+  #define FIL_RUNOUT_ENABLED { true } // Default state for sensors E0, E1[, E2, E3] // Enable the sensor on startup. Override with M591 followed by M500.
+  #define FIL_RUNOUT_MODE { 1 } // Array set that will take the place of FIL_RUNOUT_STATE and FIL_RUNOUT_ENABLED_DEFAULT as this code matures
+                                // 0 -> None, 1 -> HIGH switch, 2 -> LOW switch, 7 -> Motion Sensor detector
+  
   //#define WATCH_ALL_RUNOUT_SENSORS      // Execute runout script on any triggering sensor, not only for the active extruder.
                                           // This is automatically enabled for MIXING_EXTRUDERs.
 
+  // Commands to execute on filament runout.
+  // With multiple runout sensors use the %c placeholder for the current tool in commands (e.g., "M600 T%c")
+  // NOTE: After 'M591 H1' the host handles filament runout and this script does not apply.
+  #define FILAMENT_RUNOUT_SCRIPT "M600"
+
+  // In Mode 1 or 2, continue printing this length of filament after a run out occurs before executing the
+  // runout script. Useful for a sensor at the end of a feed tube or debounce on a flakey sensor.
+  // In Mode 7, extrusion distance to expect a change of state.
+  // Override with M591EnLnn
+  #define FIL_RUNOUT_DISTANCE_MM { 10 }
+
+  #define FIL_RUNOUT_PULLUP               // Use internal pullup for filament runout pins.
+  //#define FIL_RUNOUT_PULLDOWN           // Use internal pulldown for filament runout pins.
+
   // Override individually if the runout sensors vary
-  //#define FIL_RUNOUT1_STATE LOW
   //#define FIL_RUNOUT1_PULLUP
   //#define FIL_RUNOUT1_PULLDOWN
 
@@ -1511,28 +1522,6 @@
   //#define FIL_RUNOUT8_PULLUP
   //#define FIL_RUNOUT8_PULLDOWN
 
-  // Commands to execute on filament runout.
-  // With multiple runout sensors use the %c placeholder for the current tool in commands (e.g., "M600 T%c")
-  // NOTE: After 'M412 H1' the host handles filament runout and this script does not apply.
-  #define FILAMENT_RUNOUT_SCRIPT "M600"
-
-  // After a runout is detected, continue printing this length of filament
-  // before executing the runout script. Useful for a sensor at the end of
-  // a feed tube. Requires 4 bytes SRAM per sensor, plus 4 bytes overhead.
-  #define FILAMENT_RUNOUT_DISTANCE_MM 7 // mmm used as filter
-
-  #ifdef FILAMENT_RUNOUT_DISTANCE_MM
-    // Enable this option to use an encoder disc that toggles the runout pin
-    // as the filament moves. (Be sure to set FILAMENT_RUNOUT_DISTANCE_MM
-    // large enough to avoid false positives.)
-  #if ENABLED(MATT_BTT)
-    #define FILAMENT_MOTION_SENSOR
-  #endif
-  #define DYNAM_FILAMENT_MOTION_SENSOR
-    #if ENABLED(DYNAM_FILAMENT_MOTION_SENSOR)
-      #define DYNAM_FILAMENT_MOTION_DEFAULT false
-    #endif
-  #endif
 #endif
 
 //===========================================================================
@@ -1928,14 +1917,13 @@
  *    P1  Raise the nozzle always to Z-park height.
  *    P2  Raise the nozzle by Z-park amount, limited to Z_MAX_POS.
  */
-#define NOZZLE_PARK_FEATURE
+#define NOZZLE_PARK_FEATURE   // Ender3v2 Configs
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
   // Specify a park position as { X, Y, Z_raise }
   #define NOZZLE_PARK_POINT { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
-  //#define NOZZLE_PARK_X_ONLY          // X move only is required to park
-  //#define NOZZLE_PARK_Y_ONLY          // Y move only is required to park
-  #define NOZZLE_PARK_Z_RAISE_MIN   5   // (mm) Always raise Z by at least this distance
+  #define NOZZLE_PARK_MOVE          0   // Park motion: 0 = XY Move, 1 = X Only, 2 = Y Only, 3 = X before Y, 4 = Y before X
+  #define NOZZLE_PARK_Z_RAISE_MIN   5   // (mm) Always raise Z by at least this distance   // Ender3v2 Configs
   #define NOZZLE_PARK_XY_FEEDRATE 100   // (mm/s) X and Y axes feedrate (also used for delta Z axis)
   #define NOZZLE_PARK_Z_FEEDRATE    5   // (mm/s) Z axis feedrate (not used for delta printers)
 #endif

@@ -389,8 +389,10 @@ namespace ExtUI {
     return !thermalManager.tooColdToExtrude(extruder - E0);
   }
 
-  GcodeSuite::MarlinBusyState getHostKeepaliveState() { return TERN0(HOST_KEEPALIVE_FEATURE, gcode.busy_state); }
-  bool getHostKeepaliveIsPaused() { return TERN0(HOST_KEEPALIVE_FEATURE, gcode.host_keepalive_is_paused()); }
+  #if ENABLED(HOST_KEEPALIVE_FEATURE)
+    GcodeSuite::MarlinBusyState getHostKeepaliveState() { return gcode.busy_state; }
+    bool getHostKeepaliveIsPaused() { return gcode.host_keepalive_is_paused(); }
+  #endif
 
   #if HAS_SOFTWARE_ENDSTOPS
     bool getSoftEndstopState() { return soft_endstop._enabled; }
@@ -651,15 +653,17 @@ namespace ExtUI {
   }
 
   #if HAS_FILAMENT_SENSOR
-    bool getFilamentRunoutEnabled()                 { return runout.enabled; }
-    void setFilamentRunoutEnabled(const bool value) { runout.enabled = value; }
+    //bool getFilamentRunoutEnabled()                 { return runout.enabled; }
+    //void setFilamentRunoutEnabled(const bool value) { runout.enabled = value; }
+    bool getFilamentRunoutEnabled(const extruder_t extruder/*=E0*/)                 { return runout.enabled[extruder]; }
+    void setFilamentRunoutEnabled(const bool value, const extruder_t extruder/*=E0*/) { runout.enabled[extruder] = value; }
     bool getFilamentRunoutState()                   { return runout.filament_ran_out; }
     void setFilamentRunoutState(const bool value)   { runout.filament_ran_out = value; }
 
-    #if HAS_FILAMENT_RUNOUT_DISTANCE
+    //#if HAS_FILAMENT_RUNOUT_DISTANCE
       float getFilamentRunoutDistance_mm()                 { return runout.runout_distance(); }
       void setFilamentRunoutDistance_mm(const_float_t value) { runout.set_runout_distance(constrain(value, 0, 999)); }
-    #endif
+    //#endif
   #endif
 
   #if ENABLED(CASE_LIGHT_ENABLE)
@@ -861,16 +865,16 @@ namespace ExtUI {
   #endif
 
   #if ENABLED(BACKLASH_GCODE)
-    float getAxisBacklash_mm(const axis_t axis)       { return backlash.distance_mm[axis]; }
+    float getAxisBacklash_mm(const axis_t axis)       { return backlash.get_distance_mm((AxisEnum)axis); }
     void setAxisBacklash_mm(const_float_t value, const axis_t axis)
-                                                      { backlash.distance_mm[axis] = constrain(value,0,5); }
+                                                      { backlash.set_distance_mm((AxisEnum)axis, constrain(value,0,5)); }
 
-    float getBacklashCorrection_percent()             { return ui8_to_percent(backlash.correction); }
-    void setBacklashCorrection_percent(const_float_t value) { backlash.correction = map(constrain(value, 0, 100), 0, 100, 0, 255); }
+    float getBacklashCorrection_percent()             { return backlash.get_correction() * 100.0f; }
+    void setBacklashCorrection_percent(const_float_t value) { backlash.set_correction(constrain(value, 0, 100) / 100.0f); }
 
     #ifdef BACKLASH_SMOOTHING_MM
-      float getBacklashSmoothing_mm()                 { return backlash.smoothing_mm; }
-      void setBacklashSmoothing_mm(const_float_t value) { backlash.smoothing_mm = constrain(value, 0, 999); }
+      float getBacklashSmoothing_mm()                 { return backlash.get_smoothing_mm(); }
+      void setBacklashSmoothing_mm(const_float_t value) { backlash.set_smoothing_mm(constrain(value, 0, 999)); }
     #endif
   #endif
 

@@ -77,6 +77,14 @@
   #include "servo.h"
 #endif
 
+#if HAS_PTC
+  #include "../feature/probe_temp_comp.h"
+#endif
+
+#if ENABLED(X_AXIS_TWIST_COMPENSATION)
+  #include "../feature/x_twist.h"
+#endif
+
 #if ENABLED(EXTENSIBLE_UI)
   #include "../lcd/extui/ui_api.h"
 #elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
@@ -92,6 +100,22 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
 
 #if HAS_PROBE_XY_OFFSET
   const xy_pos_t &Probe::offset_xy = Probe::offset;
+#endif
+
+// EXTJYERSUI - Probe margin
+#if EXTJYERSUI
+  float Probe::_min_x(const xy_pos_t &probe_offset_xy) {
+     return _MAX((X_MIN_BED) + (HMI_datas.probing_margin), (X_MIN_POS) + probe_offset_xy.x);
+  }
+  float Probe::_max_x(const xy_pos_t &probe_offset_xy) {
+     return _MIN((X_MAX_BED) - (HMI_datas.probing_margin), (X_MAX_POS) + probe_offset_xy.x);
+  }
+  float Probe::_min_y(const xy_pos_t &probe_offset_xy) {
+     return _MAX((Y_MIN_BED) + (HMI_datas.probing_margin), (Y_MIN_POS) + probe_offset_xy.y);
+  }
+  float Probe::_max_y(const xy_pos_t &probe_offset_xy) {
+     return _MIN((Y_MAX_BED) - (HMI_datas.probing_margin), (Y_MAX_POS) + probe_offset_xy.y);
+  }
 #endif
 
 #if ENABLED(SENSORLESS_PROBING)
@@ -298,8 +322,7 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
         if (deploy != PROBE_TRIGGERED()) break;
       #endif
 
-      BUZZ(100, 659);
-      BUZZ(100, 698);
+      OKAY_BUZZ();
 
       FSTR_P const ds_str = deploy ? GET_TEXT_F(MSG_MANUAL_DEPLOY) : GET_TEXT_F(MSG_MANUAL_STOW);
       ui.return_to_status();       // To display the new status message
@@ -655,7 +678,7 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
     // Raise to give the probe clearance
     do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, z_probe_fast_mm_s);
 
-  #elif Z_PROBE_FEEDRATE_FAST != Z_PROBE_FEEDRATE_SLOW
+  #elif TERN(EXTJYERSUI, 1, Z_PROBE_FEEDRATE_FAST != Z_PROBE_FEEDRATE_SLOW)
 
     // If the nozzle is well over the travel height then
     // move down quickly before doing the slow probe
@@ -801,7 +824,11 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
   do_blocking_move_to(npos, feedRate_t(XY_PROBE_FEEDRATE_MM_S));
 
   float measured_z = NAN;
-  if (!deploy()) measured_z = run_z_probe(sanity_check) + offset.z;
+  if (!deploy()) {
+    measured_z = run_z_probe(sanity_check) + offset.z;
+    TERN_(HAS_PTC, ptc.apply_compensation(measured_z));
+    TERN_(X_AXIS_TWIST_COMPENSATION, measured_z += xatc.compensation(npos + offset_xy));
+  }
   if (!isnan(measured_z)) {
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     if (big_raise || raise_after == PROBE_PT_RAISE)

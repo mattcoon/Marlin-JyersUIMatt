@@ -94,9 +94,11 @@ void safe_delay(millis_t ms) {
           SERIAL_ECHOPGM(" (Aligned With");
 
         if (probe.offset_xy.y > 0)
-          SERIAL_ECHOF(F(TERN(IS_SCARA, "-Distal", "-Back")));
+          //SERIAL_ECHOF(F(TERN(IS_SCARA, "-Distal", "-Back")));
+          SERIAL_ECHOPGM(TERN(IS_SCARA, "-Distal", "-Back"));
         else if (probe.offset_xy.y < 0)
-          SERIAL_ECHOF(F(TERN(IS_SCARA, "-Proximal", "-Front")));
+          //SERIAL_ECHOF(F(TERN(IS_SCARA, "-Proximal", "-Front")));
+          SERIAL_ECHOPGM(TERN(IS_SCARA, "-Proximal", "-Front"));
         else if (probe.offset_xy.x != 0)
           SERIAL_ECHOPGM("-Center");
 
@@ -126,10 +128,8 @@ void safe_delay(millis_t ms) {
         #if ABL_PLANAR
           SERIAL_ECHOPGM("ABL Adjustment");
           LOOP_LINEAR_AXES(a) {
-            const float v = planner.get_axis_position_mm(AxisEnum(a)) - current_position[a];
             SERIAL_CHAR(' ', AXIS_CHAR(a));
-            if (v > 0) SERIAL_CHAR('+');
-            SERIAL_DECIMAL(v);
+            serial_offset(planner.get_axis_position_mm(AxisEnum(a)) - current_position[a]);
           }
         #else
           #if ENABLED(AUTO_BED_LEVELING_UBL)

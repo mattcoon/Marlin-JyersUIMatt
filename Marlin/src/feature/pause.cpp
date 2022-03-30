@@ -59,6 +59,8 @@
   #include "../lcd/extui/ui_api.h"
 #elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
   #include "../lcd/e3v2/proui/dwin.h"
+#elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+  #include "../lcd/e3v2/jyersui/dwin.h"
 #endif
 
 #include "../lcd/marlinui.h"
@@ -208,13 +210,24 @@ bool load_filament(const_float_t slow_load_length/*=0*/, const_float_t fast_load
     while (wait_for_user) {
       impatient_beep(max_beep_count);
       #if BOTH(FILAMENT_CHANGE_RESUME_ON_INSERT, FILAMENT_RUNOUT_SENSOR)
-        #if ENABLED(MULTI_FILAMENT_SENSOR)
-          #define _CASE_INSERTED(N) case N-1: if (READ(FIL_RUNOUT##N##_PIN) != FIL_RUNOUT##N##_STATE) wait_for_user = false; break;
-          switch (active_extruder) {
-            REPEAT_1(NUM_RUNOUT_SENSORS, _CASE_INSERTED)
+           #if MULTI_FILAMENT_SENSOR
+            LOOP_S_LE_N(i, 1, NUM_RUNOUT_SENSORS) {
+              pin_t pin;
+              //uint8_t state;
+              switch (i) {
+                default: continue;
+                #define _CASE_RUNOUT(N) case N: pin = FIL_RUNOUT##N##_PIN; break;
+                REPEAT_1(NUM_RUNOUT_SENSORS, _CASE_RUNOUT)
+                #undef _CASE_RUNOUT
+              }
+              const uint8_t rm = runout.mode[i - 1];
+              if (rm != 0 && rm != 7 && extDigitalRead(pin) != runout.out_state(i - 1))
+                wait_for_user = false;
           }
         #else
-          if (READ(FIL_RUNOUT_PIN) != FIL_RUNOUT_STATE) wait_for_user = false;
+          if (READ(FIL_RUNOUT_PIN) != runout.out_state(active_extruder))
+            wait_for_user = false;
+        //
         #endif
       #endif
       idle_no_sleep();
@@ -550,6 +563,7 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
       TERN_(EXTENSIBLE_UI, ExtUI::onStatusChanged(GET_TEXT_F(MSG_REHEATING)));
 
       TERN_(DWIN_CREALITY_LCD_ENHANCED, LCD_MESSAGE(MSG_REHEATING));
+      TERN_(DWIN_CREALITY_LCD_JYERSUI, LCD_MESSAGE(MSG_REHEATING));
 
       // Re-enable the heaters if they timed out
       HOTEND_LOOP() thermalManager.reset_hotend_idle_timer(e);
@@ -568,6 +582,7 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
       TERN_(HOST_PROMPT_SUPPORT, hostui.prompt_do(PROMPT_USER_CONTINUE, GET_TEXT_F(MSG_REHEATDONE), FPSTR(CONTINUE_STR)));
       TERN_(EXTENSIBLE_UI, ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_REHEATDONE)));
       TERN_(DWIN_CREALITY_LCD_ENHANCED, LCD_MESSAGE(MSG_REHEATDONE));
+      TERN_(DWIN_CREALITY_LCD_JYERSUI, LCD_MESSAGE(MSG_REHEATDONE));
 
       IF_DISABLED(PAUSE_REHEAT_FAST_RESUME, wait_for_user = true);
 

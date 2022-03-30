@@ -25,7 +25,9 @@
  * lcd/e3v2/jyersui/dwin.h
  */
 
+#include "dwin_defines.h"
 #include "dwin_lcd.h"
+#include "jyersui.h"
 #include "../common/dwin_set.h"
 #include "../common/dwin_font.h"
 #include "../common/dwin_color.h"
@@ -35,17 +37,21 @@
 #include "../../../inc/MarlinConfigPre.h"
 
 //#define DWIN_CREALITY_LCD_CUSTOM_ICONS
-#define DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW
+//#define BOOTPERSO
+#ifndef DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW
+  #define DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW
+#endif
 
 
 enum processID : uint8_t {
-  Main, Print, Menu, Value, Option, File, Popup, Confirm, Keyboard, Wait
+  Main, Print, Menu, Value, Option, File, Popup, Confirm, Keyboard, Wait, Locked
 };
 
 enum PopupID : uint8_t {
   Pause, Stop, Resume, SaveLevel, ETemp, ConfFilChange, PurgeMore, MeshSlot,
   Level, Home, MoveWait, Heating,  FilLoad, FilChange, TempWarn, Runout, PIDWait, Resuming, ManualProbing,
-  FilInsert, HeaterTime, UserInput, LevelError, InvalidMesh, UI, Complete, ConfirmStartPrint
+  FilInsert, HeaterTime, UserInput, LevelError, InvalidMesh, NocreatePlane, UI, Complete, ConfirmStartPrint, BadextruderNumber,
+  TemptooHigh, PIDTimeout, PIDDone, viewmesh, Level2, endsdiag
 };
 
 enum menuID : uint8_t {
@@ -74,12 +80,15 @@ enum menuID : uint8_t {
         MaxAcceleration,
         MaxJerk,
         Steps,
+      FwRetraction,
+      Parkmenu,
       Visual,
         ColorSettings,
       HostSettings,
         ActionCommands,
       Advanced,
         ProbeMenu,
+        Filmenu,
       Info,
     Leveling,
       LevelManual,
@@ -93,42 +102,52 @@ enum menuID : uint8_t {
   PreheatHotend
 };
 
-// Custom icons
-#if ENABLED(DWIN_CREALITY_LCD_CUSTOM_ICONS)
-  // index of every custom icon should be >= CUSTOM_ICON_START
-  #define CUSTOM_ICON_START         ICON_Checkbox_F
-  #define ICON_Checkbox_F           200
-  #define ICON_Checkbox_T           201
-  #define ICON_Fade                 202
-  #define ICON_Mesh                 203
-  #define ICON_Tilt                 204
-  #define ICON_Brightness           205
-  #define ICON_Preview              ICON_File
-  #define ICON_AxisD                249
-  #define ICON_AxisBR               250
-  #define ICON_AxisTR               251
-  #define ICON_AxisBL               252
-  #define ICON_AxisTL               253
-  #define ICON_AxisC                254
-#else
-  #define ICON_Fade                 ICON_Version
-  #define ICON_Mesh                 ICON_Version
-  #define ICON_Tilt                 ICON_Version
-  #define ICON_Brightness           ICON_Version
-  #define ICON_AxisD                ICON_Axis
-  #define ICON_AxisBR               ICON_Axis
-  #define ICON_AxisTR               ICON_Axis
-  #define ICON_AxisBL               ICON_Axis
-  #define ICON_AxisTL               ICON_Axis
-  #define ICON_AxisC                ICON_Axis
-  #define ICON_Preview              ICON_File
-#endif
+// // Custom icons
+// #if ENABLED(DWIN_CREALITY_LCD_CUSTOM_ICONS)
+//   // index of every custom icon should be >= CUSTOM_ICON_START
+//   #define CUSTOM_ICON_START         ICON_Checkbox_F
+//   #define ICON_Checkbox_F           200
+//   #define ICON_Checkbox_T           201
+//   #define ICON_Fade                 202
+//   #define ICON_Mesh                 203
+//   #define ICON_Tilt                 204
+//   #define ICON_Brightness           205
+//   #define ICON_Preview              ICON_File
+//   #define ICON_AxisD                249
+//   #define ICON_AxisBR               250
+//   #define ICON_AxisTR               251
+//   #define ICON_AxisBL               252
+//   #define ICON_AxisTL               253
+//   #define ICON_AxisC                254
+// #else
+//   #define ICON_Fade                 ICON_Version
+//   #define ICON_Mesh                 ICON_Version
+//   #define ICON_Tilt                 ICON_Version
+//   #define ICON_Brightness           ICON_Version
+//   #define ICON_AxisD                ICON_Axis
+//   #define ICON_AxisBR               ICON_Axis
+//   #define ICON_AxisTR               ICON_Axis
+//   #define ICON_AxisBL               ICON_Axis
+//   #define ICON_AxisTL               ICON_Axis
+//   #define ICON_AxisC                ICON_Axis
+//   #define ICON_Preview              ICON_File
+// #endif
+
+  //  #define Thumnail_Icon       0x00
+  //  #define Thumnail_Preview    0x01
+  //  #define Header_Time         0x00
+  //  #define Header_Filament     0x01
+  //  #define Header_Layer        0x02
 
 enum colorID : uint8_t {
-  Default, White, Green, Cyan, Blue, Magenta, Red, Orange, Yellow, Brown, Black
+  Default, White, Light_White, Blue, Yellow, Orange, Red, Light_Red, Green, Light_Green, Magenta, Light_Magenta, Cyan, Light_Cyan, Brown, Black
 };
 
-#define Custom_Colors       10
+
+extern char Hostfilename[66];
+
+#define Custom_Colors_no_Black 14
+#define Custom_Colors       15
 #define Color_Aqua          RGB(0x00,0x3F,0x1F)
 #define Color_Light_White   0xBDD7
 #define Color_Green         RGB(0x00,0x3F,0x00)
@@ -151,44 +170,19 @@ enum colorID : uint8_t {
 #define Confirm_Color       0x34B9
 #define Cancel_Color        0x3186
 
-#if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
- #define Thumnail_Icon       0x00
- #define Thumnail_Preview    0x01
-#endif
 
 class CrealityDWINClass {
 public:
-  static constexpr size_t eeprom_data_size = 64;
-  static struct EEPROM_Settings { // use bit fields to save space, max 48 bytes
-    bool time_format_textual : 1;
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      uint8_t tilt_grid_size : 3;
-    #endif
-    uint16_t corner_pos : 10;
-    uint8_t cursor_color : 4;
-    uint8_t menu_split_line : 4;
-    uint8_t menu_top_bg : 4;
-    uint8_t menu_top_txt : 4;
-    uint8_t highlight_box : 4;
-    uint8_t progress_percent : 4;
-    uint8_t progress_time : 4;
-    uint8_t status_bar_text : 4;
-    uint8_t status_area_text : 4;
-    uint8_t coordinates_text : 4;
-    uint8_t coordinates_split_line : 4;
-    #if ENABLED(HOST_ACTION_COMMANDS)
-      uint64_t host_action_label_1 : 48;
-      uint64_t host_action_label_2 : 48;
-      uint64_t host_action_label_3 : 48;
-    #endif
-    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
-      bool show_gcode_thumbnails : 1;
-    #endif
-  } eeprom_settings;
-
-  static constexpr const char * const color_names[11] = { "Default", "White", "Green", "Cyan", "Blue", "Magenta", "Red", "Orange", "Yellow", "Brown", "Black" };
+  
+  static bool printing;
+  static constexpr const char * const color_names[16] = {"Default","  White","L_White","   Blue"," Yellow"," Orange","    Red","  L_Red","  Green","L_Green","Magenta","L_Magen","   Cyan"," L_Cyan","  Brown","  Black"};
   static constexpr const char * const preheat_modes[3] = { "Both", "Hotend", "Bed" };
+  static constexpr const char * const zoffset_modes[3] = { "No Live" , "OnClick", "   Live" };
+  #if HAS_FILAMENT_SENSOR
+   static constexpr const char * const runoutsensor_modes[4] = { "   NONE" , "   HIGH" , "    LOW", " MOTION" };
+  #endif
 
+  static void Init_process();
   static void Clear_Screen(uint8_t e=3);
   static void Draw_Float(float value, uint8_t row, bool selected=false, uint8_t minunit=10);
   static void Draw_Option(uint8_t value, const char * const * options, uint8_t row, bool selected=false, bool color=false);
@@ -220,13 +214,14 @@ public:
   static void Draw_SD_List(bool removed=false, uint8_t select=0, uint8_t scroll=0, bool onlyCachedFileIcon=false);
   static void Draw_Status_Area(bool icons=false);
   static void Draw_Popup(FSTR_P const line1, FSTR_P const line2, FSTR_P const line3, uint8_t mode, uint8_t icon=0);
-  static void Popup_Select();
+  static void Popup_Select(bool stflag=false);
   static void Update_Status_Bar(bool refresh=false);
   static void Draw_Keyboard(bool restrict, bool numeric, uint8_t selected=0, bool uppercase=false, bool lock=false);
   static void Draw_Keys(uint8_t index, bool selected, bool uppercase=false, bool lock=false);
 
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
     static bool find_and_decode_gcode_preview(char *name, uint8_t preview_type, uint16_t *address, bool onlyCachedFileIcon=false);
+    static bool find_and_decode_gcode_header(char *name, uint8_t header_type);
   #endif
 
   #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -239,7 +234,7 @@ public:
   static void Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw=true);
 
   static void Popup_Handler(PopupID popupid, bool option = false);
-  static void Confirm_Handler(PopupID popupid);
+  static void Confirm_Handler(PopupID popupid, bool option = false);
 
   static void Main_Menu_Control();
   static void Menu_Control();
@@ -272,6 +267,35 @@ public:
   static void Load_Settings(const char *buff);
   static void Reset_Settings();
 
+  static void Viewmesh();
+  static void RebootPrinter();
+  static void DWIN_RebootScreen();
+  static void DWIN_ScreenLock();
+  static void DWIN_ScreenUnLock();
+  static void HMI_ScreenLock();
+  static void DWIN_Hostheader(const char *text);
+  static void DWIN_Init_diag_endstops();
+  static bool DWIN_iSprinting () { return printing; }
+
+  #if HAS_FILAMENT_SENSOR
+    static void DWIN_Filament_Runout(const uint8_t extruder);
+  #endif
+
+  static void DWIN_Invert_Extruder();
+  static void CPU_type();
+
+  static void DWIN_Gcode(const int16_t codenum);
+  static void DWIN_CError();
+  static void DWIN_C12();
+  static void DWIN_C108();
+  static void DWIN_C510();
+  static void DWIN_C997();
+
+
+  enum pidresult_t   : uint8_t { PID_STARTED, PID_BAD_EXTRUDER_NUM, PID_TEMP_TOO_HIGH, PID_TUNING_TIMEOUT, PID_DONE };
+  static void PidTuning(const pidresult_t pidresult);
+
+  
 };
 
 extern CrealityDWINClass CrealityDWIN;

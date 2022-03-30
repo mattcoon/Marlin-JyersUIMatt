@@ -31,6 +31,55 @@
 
 #include "dwin_lcd.h"
 
+/*---------------------------------------- Numeric related functions ----------------------------------------*/
+
+// Draw a numeric value
+//  bShow: true=display background color; false=don't display background color
+//  zeroFill: true=zero fill; false=no zero fill
+//  signedMode: 1=signed; 0=unsigned
+//  zeroMode: 1=leading 0 displayed as 0; 0=leading 0 displayed as a space
+//  size: Font size
+//  color: Character color
+//  bColor: Background color
+//  iNum: Number of digits
+//  fNum: Number of decimal digits
+//  x/y: Upper-left coordinate
+//  value: Integer value
+void DWIN_Draw_Value(uint8_t bShow, bool signedMode, bool zeroFill, uint8_t zeroMode, uint8_t size, uint16_t color,
+                          uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, int32_t value) {
+  size_t i = 0;
+  DWIN_Byte(i, 0x14);
+  // Bit 7: bshow
+  // Bit 6: 1 = signed; 0 = unsigned number;
+  // Bit 5: zeroFill
+  // Bit 4: zeroMode
+  // Bit 3-0: size
+  DWIN_Byte(i, (bShow * 0x80) | (signedMode * 0x40) | (zeroFill * 0x20) | (zeroMode * 0x10) | size);
+  DWIN_Word(i, color);
+  DWIN_Word(i, bColor);
+  DWIN_Byte(i, signedMode && (value >= 0) ? iNum + 1 : iNum);
+  DWIN_Byte(i, fNum);
+  DWIN_Word(i, x);
+  DWIN_Word(i, y);
+  // Write a big-endian 64 bit integer
+  const size_t p = i + 1;
+  for (char count = 8; count--;) { // 7..0
+    ++i;
+    DWIN_SendBuf[p + count] = value;
+    value >>= 8;
+  }
+  DWIN_Send(i);
+}
+
+// Draw a numeric value
+//  value: positive unscaled float value
+void DWIN_Draw_Value(uint8_t bShow, bool signedMode, bool zeroFill, uint8_t zeroMode, uint8_t size, uint16_t color,
+                          uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, float value) {
+  const int32_t val = round(value * POW(10, fNum));
+  DWIN_Draw_Value(bShow, signedMode, zeroFill, zeroMode, size, color, bColor, iNum, fNum, x, y, val);
+}
+
+
 /*-------------------------------------- System variable function --------------------------------------*/
 
 void DWIN_Startup() {}
@@ -61,7 +110,12 @@ void DWIN_ICON_Show(uint8_t libID, uint8_t picID, uint16_t x, uint16_t y) {
   DWIN_ICON_Show(true, false, false, libID, picID, x, y);
 }
 
-void DWIN_Save_JPEG_in_SRAM(uint8_t *data, uint16_t size, uint16_t dest_addr) {
+// Write buffer data to the SRAM or Flash
+//  mem: 0x5A=32KB SRAM, 0xA5=16KB Flash -> to be fixed for ender3 S1
+//  dest_addr: start address
+//  size: Bytes to write
+//  data: address of the buffer with data
+void DWIN_Save_JPEG_in_SRAM(uint8_t mem, uint8_t *data, uint16_t size, uint16_t dest_addr) {
   const uint8_t max_data_size = 128;
   uint16_t pending_data = size;
 
@@ -77,7 +131,7 @@ void DWIN_Save_JPEG_in_SRAM(uint8_t *data, uint16_t size, uint16_t dest_addr) {
 
     size_t i = 0;
     DWIN_Byte(i, 0x31);
-    DWIN_Byte(i, 0x5A);
+    DWIN_Byte(i, mem);
     DWIN_Word(i, dest_addr+(iter * max_data_size));
     ++i;
     LOOP_L_N(n, i) { LCD_SERIAL.write(DWIN_SendBuf[n]); delayMicroseconds(1); }
@@ -97,6 +151,17 @@ void DWIN_SRAM_Memory_Icon_Display(uint16_t x, uint16_t y, uint16_t source_addr)
   DWIN_Word(i, y);
   DWIN_Byte(i, 0x80);
   DWIN_Word(i, source_addr);
+  DWIN_Send(i);
+}
+
+// Write the contents of the 32KB SRAM data memory into the designated image memory space.
+//  picID: Picture memory space location, 0x00-0x0F, each space is 32Kbytes
+void DWIN_SRAMToPic(uint8_t picID) {
+  size_t i = 0;
+  DWIN_Byte(i, 0x33);
+  DWIN_Byte(i, 0x5A);
+  DWIN_Byte(i, 0xA5);
+  DWIN_Byte(i, picID);
   DWIN_Send(i);
 }
 

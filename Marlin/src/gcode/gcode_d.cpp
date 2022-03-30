@@ -38,7 +38,7 @@
 #include "../sd/cardreader.h"
 #include "../MarlinCore.h" // for kill
 
-extern void dump_delay_accuracy_check();
+void dump_delay_accuracy_check();
 
 /**
  * Dn: G-code for development and testing

@@ -23,7 +23,7 @@
 
 /**
  * Conditionals_adv.h
- * Defines that depend on advanced configuration.
+ * Conditionals set before pins.h and which depend on Configuration_adv.h.
  */
 
 #ifndef AXIS_RELATIVE_MODES
@@ -95,11 +95,12 @@
   #undef PID_EXTRUSION_SCALING
   #undef LIN_ADVANCE
   #undef FILAMENT_RUNOUT_SENSOR
+  #undef FIL_RUNOUT_ENABLED
+  #undef FIL_RUNOUT_MODE
+  #undef FIL_RUNOUT_DISTANCE_MM
   #undef ADVANCED_PAUSE_FEATURE
-  #undef FILAMENT_RUNOUT_DISTANCE_MM
   #undef FILAMENT_LOAD_UNLOAD_GCODES
   #undef DISABLE_INACTIVE_EXTRUDER
-  #undef FILAMENT_LOAD_UNLOAD_GCODES
   #undef EXTRUDER_RUNOUT_PREVENT
   #undef PREVENT_COLD_EXTRUSION
   #undef PREVENT_LENGTHY_EXTRUDE
@@ -543,19 +544,6 @@
   #define HAS_SERVICE_INTERVALS 1
 #endif
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define HAS_FILAMENT_SENSOR 1
-  #if NUM_RUNOUT_SENSORS > 1
-    #define MULTI_FILAMENT_SENSOR 1
-  #endif
-  #ifdef FILAMENT_RUNOUT_DISTANCE_MM
-    #define HAS_FILAMENT_RUNOUT_DISTANCE 1
-  #endif
-  #if ENABLED(MIXING_EXTRUDER)
-    #define WATCH_ALL_RUNOUT_SENSORS
-  #endif
-#endif
-
 // Probe Temperature Compensation
 #if !TEMP_SENSOR_PROBE
   #undef PTC_PROBE
@@ -630,7 +618,8 @@
 #endif
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)
-  #if ENABLED(Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
+  #ifdef Z_STEPPER_ALIGN_STEPPER_XY
+    #define HAS_Z_STEPPER_ALIGN_STEPPER_XY 1
     #undef Z_STEPPER_ALIGN_AMP
   #endif
   #ifndef Z_STEPPER_ALIGN_AMP
@@ -986,7 +975,7 @@
 #endif
 
 // Flag whether least_squares_fit.cpp is used
-#if ANY(AUTO_BED_LEVELING_UBL, AUTO_BED_LEVELING_LINEAR, Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
+#if ANY(AUTO_BED_LEVELING_UBL, AUTO_BED_LEVELING_LINEAR, HAS_Z_STEPPER_ALIGN_STEPPER_XY)
   #define NEED_LSF 1
 #endif
 

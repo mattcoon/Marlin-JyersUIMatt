@@ -113,7 +113,8 @@ Stepper stepper; // Singleton
   #include "../feature/mixing.h"
 #endif
 
-#if HAS_FILAMENT_RUNOUT_DISTANCE
+//#if HAS_FILAMENT_RUNOUT_DISTANCE
+#if HAS_FILAMENT_SENSOR
   #include "../feature/runout.h"
 #endif
 
@@ -497,6 +498,11 @@ void Stepper::enable_axis(const AxisEnum axis) {
 
 bool Stepper::disable_axis(const AxisEnum axis) {
   mark_axis_disabled(axis);
+
+  TERN_(DWIN_CREALITY_LCD_JYERSUI, set_axis_untrusted(axis)); //  workaround
+  TERN_(DWIN_CREALITY_LCD_ENHANCED, set_axis_untrusted(axis)); //  workaround
+  
+
   // If all the axes that share the enabled bit are disabled
   const bool can_disable = can_axis_disable(axis);
   if (can_disable) {
@@ -1945,7 +1951,7 @@ uint32_t Stepper::block_phase_isr() {
           PAGE_SEGMENT_UPDATE_POS(E);
         }
       #endif
-      TERN_(HAS_FILAMENT_RUNOUT_DISTANCE, runout.block_completed(current_block));
+      TERN_(HAS_FILAMENT_SENSOR, runout.block_completed(current_block));
       discard_current_block();
     }
     else {

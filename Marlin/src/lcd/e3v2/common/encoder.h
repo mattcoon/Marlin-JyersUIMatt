@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -22,10 +22,7 @@
 #pragma once
 
 /*****************************************************************************
-  * @file     rotary_encoder.h
-  * @author   LEO / Creality3D
-  * @date     2019/07/06
-  * @version  2.0.1
+  * @file     lcd/e3v2/common/encoder.h
   * @brief    Rotary encoder functions
   ****************************************************************************/
 
@@ -48,11 +45,31 @@ typedef enum {
   ENCODER_DIFF_ENTER = 3   // click
 } EncoderState;
 
+#define ENCODER_WAIT_MS 20
+
 // Encoder initialization
 void Encoder_Configuration();
 
 // Analyze encoder value and return state
 EncoderState Encoder_ReceiveAnalyze();
+
+inline EncoderState get_encoder_state() {
+  static millis_t Encoder_ms = 0;
+  const millis_t ms = millis();
+  if (PENDING(ms, Encoder_ms)) return ENCODER_DIFF_NO;
+  const EncoderState state = Encoder_ReceiveAnalyze();
+  if (state != ENCODER_DIFF_NO) Encoder_ms = ms + ENCODER_WAIT_MS;
+  return state;
+}
+
+template<typename T>
+inline bool Apply_Encoder(const EncoderState &encoder_diffState, T &valref) {
+  if (encoder_diffState == ENCODER_DIFF_CW)
+    valref += EncoderRate.encoderMoveValue;
+  else if (encoder_diffState == ENCODER_DIFF_CCW)
+    valref -= EncoderRate.encoderMoveValue;
+  return encoder_diffState == ENCODER_DIFF_ENTER;
+}
 
 /*********************** Encoder LED ***********************/
 

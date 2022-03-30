@@ -66,8 +66,9 @@ extern xyz_pos_t cartes;
 #endif
 
 #if HAS_BED_PROBE
-  constexpr feedRate_t z_probe_fast_mm_s = MMM_TO_MMS(Z_PROBE_FEEDRATE_FAST);
+    extern feedRate_t z_probe_fast_mm_s; //EXTJYERSUI
 #endif
+
 
 /**
  * Feed rates are often configured with mm/m
@@ -265,9 +266,11 @@ void report_current_position_projected();
   void report_current_position_moving();
 
   #if ENABLED(FULL_REPORT_TO_HOST_FEATURE)
-    inline void set_and_report_grblstate(const M_StateEnum state) {
-      M_State_grbl = state;
-      report_current_grblstate_moving();
+    inline void set_and_report_grblstate(const M_StateEnum state, const bool force=true) {
+      if (force || M_State_grbl != state) {
+        M_State_grbl = state;
+        report_current_grblstate_moving();
+      }
     }
   #endif
 
@@ -402,7 +405,8 @@ void set_axis_is_at_home(const AxisEnum axis);
   constexpr linear_axis_bits_t axis_homed = linear_bits, axis_trusted = linear_bits; // Zero-endstop machines are always homed and trusted
   inline void homeaxis(const AxisEnum axis)           {}
   inline void set_axis_never_homed(const AxisEnum)    {}
-  inline linear_axis_bits_t axes_should_home(linear_axis_bits_t=linear_bits) { return false; }
+  //inline linear_axis_bits_t axes_should_home(linear_axis_bits_t=linear_bits) { return false; }
+  inline linear_axis_bits_t axes_should_home(linear_axis_bits_t=linear_bits) { return 0; }
   inline bool homing_needed_error(linear_axis_bits_t=linear_bits) { return false; }
   inline void set_axis_unhomed(const AxisEnum axis)   {}
   inline void set_axis_untrusted(const AxisEnum axis) {}

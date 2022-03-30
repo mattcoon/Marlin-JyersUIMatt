@@ -51,13 +51,7 @@ void EndstopStatesScreen::onRedraw(draw_mode_t) {
   #define PIN_ENABLED(X,Y,LABEL,PIN,INV)  cmd.enabled(1).colors(READ(PIN##_PIN) != INV ? action_btn : normal_btn).PIN_BTN(X,Y,PIN,LABEL);
   #define PIN_DISABLED(X,Y,LABEL,PIN)     cmd.enabled(0).PIN_BTN(X,Y,PIN,LABEL);
 
-  cmd.font(
-    #if ENABLED(TOUCH_UI_PORTRAIT)
-      font_large
-    #else
-      font_medium
-    #endif
-  )
+  cmd.font(TERN(TOUCH_UI_PORTRAIT, font_large, font_medium))
   .text(BTN_POS(1,1), BTN_SIZE(6,1), GET_TEXT_F(MSG_LCD_ENDSTOPS))
   .font(font_tiny);
   #if HAS_X_MAX
@@ -91,12 +85,12 @@ void EndstopStatesScreen::onRedraw(draw_mode_t) {
     PIN_DISABLED(5, 3, PSTR(STR_Z_MIN), Z_MIN)
   #endif
   #if ENABLED(FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT)
-    PIN_ENABLED (1, 4, GET_TEXT_F(MSG_RUNOUT_1), FIL_RUNOUT, FIL_RUNOUT1_STATE)
+    PIN_ENABLED (1, 4, GET_TEXT_F(MSG_RUNOUT_1), FIL_RUNOUT, !runout.out_state())
   #else
     PIN_DISABLED(1, 4, GET_TEXT_F(MSG_RUNOUT_1), FIL_RUNOUT)
   #endif
   #if BOTH(HAS_MULTI_EXTRUDER, FILAMENT_RUNOUT_SENSOR) && PIN_EXISTS(FIL_RUNOUT2)
-    PIN_ENABLED (3, 4, GET_TEXT_F(MSG_RUNOUT_2), FIL_RUNOUT2, FIL_RUNOUT2_STATE)
+    PIN_ENABLED (3, 4, GET_TEXT_F(MSG_RUNOUT_2), FIL_RUNOUT2, !runout.out_state(1))
   #else
     PIN_DISABLED(3, 4, GET_TEXT_F(MSG_RUNOUT_2), FIL_RUNOUT2)
   #endif

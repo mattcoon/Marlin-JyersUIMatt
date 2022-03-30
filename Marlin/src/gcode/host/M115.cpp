@@ -111,7 +111,8 @@ void GcodeSuite::M115() {
     // AUTOLEVEL (G29)
     cap_line(F("AUTOLEVEL"), ENABLED(HAS_AUTOLEVEL));
 
-    // RUNOUT (M412, M600)
+    // RUNOUT (M412, M600) -> delete
+    // RUNOUT (M591, M600)
     cap_line(F("RUNOUT"), ENABLED(FILAMENT_RUNOUT_SENSOR));
 
     // Z_PROBE (G30)
@@ -141,6 +142,11 @@ void GcodeSuite::M115() {
 
     // SDCARD (M20, M23, M24, etc.)
     cap_line(F("SDCARD"), ENABLED(SDSUPPORT));
+
+    // MULTI_VOLUME (M21 S/M21 U)
+    #if ENABLED(SDSUPPORT)
+      cap_line(F("MULTI_VOLUME"), ENABLED(MULTI_VOLUME));
+    #endif
 
     // REPEAT (M808)
     cap_line(F("REPEAT"), ENABLED(GCODE_REPEAT_MARKERS));

@@ -71,6 +71,10 @@ GcodeSuite gcode;
 
 #include "../MarlinCore.h" // for idle, kill
 
+#if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+  #include "../lcd/e3v2/jyersui/dwin.h"
+#endif
+
 // Inactivity shutdown
 millis_t GcodeSuite::previous_move_ms = 0,
          GcodeSuite::max_inactive_time = 0,
@@ -822,10 +826,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 407: M407(); break;                                  // M407: Display measured filament diameter
       #endif
 
-      #if HAS_FILAMENT_SENSOR
-        case 412: M412(); break;                                  // M412: Enable/Disable filament runout detection
-      #endif
-
       #if HAS_MULTI_LANGUAGE
         case 414: M414(); break;                                  // M414: Select multi language menu
       #endif
@@ -890,6 +890,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if ENABLED(BAUD_RATE_GCODE)
         case 575: M575(); break;                                  // M575: Set serial baudrate
+      #endif
+
+       #if HAS_FILAMENT_SENSOR
+        case 412: M412(); break;                                  // Alias to M591
+        case 591: M591(); break;                                  // M591 Configure filament runout detection
       #endif
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -1072,6 +1077,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
     #if ENABLED(REALTIME_REPORTING_COMMANDS)
       case 'S': case 'P': case 'R': break;                        // Invalid S, P, R commands already filtered
+    #endif
+
+    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+      case 'C' : CrealityDWIN.DWIN_Gcode(parser.codenum); break;               // JyersUI Cn: Custom Gcodes
     #endif
 
     default:

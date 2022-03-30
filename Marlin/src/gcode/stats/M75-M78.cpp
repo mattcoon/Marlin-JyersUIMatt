@@ -31,6 +31,8 @@
 
 #if ENABLED(DWIN_CREALITY_LCD_ENHANCED)
   #include "../../lcd/e3v2/proui/dwin.h"
+#elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+  #include "../../lcd/e3v2/jyersui/dwin.h"
 #endif
 
 /**
@@ -39,9 +41,14 @@
 void GcodeSuite::M75() {
   startOrResumeJob();
   #if ENABLED(DWIN_CREALITY_LCD_ENHANCED)
-    DWIN_Print_Header(parser.string_arg && parser.string_arg[0] ? parser.string_arg : GET_TEXT(MSG_HOST_START_PRINT));
     DWIN_Print_Started(false);
+    if (!IS_SD_PRINTING()) DWIN_Print_Header(parser.string_arg && parser.string_arg[0] ? parser.string_arg : GET_TEXT(MSG_HOST_START_PRINT));
   #endif
+  #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+    if (!IS_SD_PRINTING()) CrealityDWIN.DWIN_Hostheader(parser.string_arg && parser.string_arg[0] ? parser.string_arg : "HOST Print");
+  #endif
+
+
 }
 
 /**
@@ -58,6 +65,7 @@ void GcodeSuite::M76() {
 void GcodeSuite::M77() {
   print_job_timer.stop();
   TERN_(DWIN_CREALITY_LCD_ENHANCED, DWIN_Print_Finished());
+  TERN_(DWIN_CREALITY_LCD_JYERSUI, CrealityDWIN.Stop_Print());
 }
 
 #if ENABLED(PRINTCOUNTER)

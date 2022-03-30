@@ -145,7 +145,7 @@
   #include "feature/encoder_i2c.h"
 #endif
 
-#if HAS_TRINAMIC_CONFIG && DISABLED(PSU_DEFAULT_OFF)
+#if (HAS_TRINAMIC_CONFIG || HAS_TMC_SPI) && DISABLED(PSU_DEFAULT_OFF)
   #include "feature/tmc_util.h"
 #endif
 
@@ -822,7 +822,8 @@ void idle(bool no_stepper_sleep/*=false*/) {
   TERN_(USE_BEEPER, buzzer.tick());
 
   // Handle UI input / draw events
-  TERN(HAS_DWIN_E3V2_BASIC, DWIN_Update(), ui.update());
+  //TERN(HAS_DWIN_E3V2_BASIC, DWIN_Update(), ui.update());
+  TERN(DWIN_CREALITY_LCD, DWIN_Update(), ui.update());
 
   // Run i2c Position Encoders
   #if ENABLED(I2C_POSITION_ENCODERS)
@@ -1183,13 +1184,15 @@ void setup() {
 
   #if EITHER(DISABLE_DEBUG, DISABLE_JTAG)
     delay(10);
-    // Disable any hardware debug to free up pins for IO
-    #if ENABLED(DISABLE_DEBUG) && defined(JTAGSWD_DISABLE)
-      SETUP_LOG("JTAGSWD_DISABLE");
-      JTAGSWD_DISABLE();
-    #elif defined(JTAG_DISABLE)
-      SETUP_LOG("JTAG_DISABLE");
-      JTAG_DISABLE();
+  // Disable any hardware debug to free up pins for IO
+  #if ENABLED(DISABLE_DEBUG) && defined(JTAGSWD_DISABLE)
+    delay(10);
+    SETUP_LOG("JTAGSWD_DISABLE");
+    JTAGSWD_DISABLE();
+  #elif ENABLED(DISABLE_JTAG) && defined(JTAG_DISABLE)
+    delay(10);
+    SETUP_LOG("JTAG_DISABLE");
+    JTAG_DISABLE();
     #else
       #error "DISABLE_(DEBUG|JTAG) is not supported for the selected MCU/Board."
     #endif
@@ -1251,11 +1254,11 @@ void setup() {
   SETUP_RUN(esp_wifi_init());
 
   // Report Reset Reason
-  if (mcu & RST_POWER_ON) SERIAL_ECHOLNPGM(STR_POWERUP);
-  if (mcu & RST_EXTERNAL) SERIAL_ECHOLNPGM(STR_EXTERNAL_RESET);
+  if (mcu & RST_POWER_ON)  SERIAL_ECHOLNPGM(STR_POWERUP);
+  if (mcu & RST_EXTERNAL)  SERIAL_ECHOLNPGM(STR_EXTERNAL_RESET);
   if (mcu & RST_BROWN_OUT) SERIAL_ECHOLNPGM(STR_BROWNOUT_RESET);
-  if (mcu & RST_WATCHDOG) SERIAL_ECHOLNPGM(STR_WATCHDOG_RESET);
-  if (mcu & RST_SOFTWARE) SERIAL_ECHOLNPGM(STR_SOFTWARE_RESET);
+  if (mcu & RST_WATCHDOG)  SERIAL_ECHOLNPGM(STR_WATCHDOG_RESET);
+  if (mcu & RST_SOFTWARE)  SERIAL_ECHOLNPGM(STR_SOFTWARE_RESET);
 
   // Identify myself as Marlin x.x.x
   SERIAL_ECHOLNPGM("Marlin " SHORT_BUILD_VERSION);
@@ -1542,7 +1545,7 @@ void setup() {
   #endif
 
   #if ENABLED(USE_WATCHDOG)
-    SETUP_RUN(watchdog_init());       // Reinit watchdog after HAL_get_reset_source call
+    SETUP_RUN(watchdog_init());       // Reinit watchdog after hal.get_reset_source call
   #endif
 
   #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
@@ -1577,11 +1580,7 @@ void setup() {
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
-    SETUP_LOG("E3V2 Init");
-    Encoder_Configuration();
-    HMI_Init();
-    HMI_SetLanguageCache();
-    HMI_StartFrame(true);
+    SETUP_RUN(DWIN_InitScreen());
   #endif
 
   #if HAS_SERVICE_INTERVALS && !HAS_DWIN_E3V2_BASIC

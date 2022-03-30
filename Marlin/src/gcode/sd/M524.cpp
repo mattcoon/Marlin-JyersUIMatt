@@ -27,16 +27,27 @@
 #include "../gcode.h"
 #include "../../sd/cardreader.h"
 
+#if ENABLED(DWIN_CREALITY_LCD_ENHANCED)
+  #include "../../lcd/e3v2/proui/dwin.h"
+#endif
+
 /**
  * M524: Abort the current SD print job (started with M24)
  */
 void GcodeSuite::M524() {
 
-  if (IS_SD_PRINTING())
-    card.abortFilePrintSoon();
-  else if (card.isMounted())
-    card.closefile();
+  #if ENABLED(DWIN_CREALITY_LCD_ENHANCED)
 
+    HMI_flag.abort_flag = true;    // The LCD will handle it
+
+  #else
+
+    if (IS_SD_PRINTING())
+      card.abortFilePrintSoon();
+    else if (card.isMounted())
+      card.closefile();
+
+  #endif
 }
 
 #endif // SDSUPPORT
