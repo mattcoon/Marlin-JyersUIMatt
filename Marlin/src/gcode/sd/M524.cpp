@@ -48,6 +48,7 @@ void GcodeSuite::M524() {
       card.closefile();
 
   #endif
+
 }
 
 #endif // SDSUPPORT

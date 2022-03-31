@@ -561,9 +561,11 @@
   #error "SHORT_MANUAL_Z_MOVE is now FINE_MANUAL_MOVE, applying to Z on most printers."
 #elif defined(FIL_RUNOUT_INVERTING)
   #if FIL_RUNOUT_INVERTING
-    #error "FIL_RUNOUT_INVERTING true is now FIL_RUNOUT_STATE HIGH."
+    //#error "FIL_RUNOUT_INVERTING true is now FIL_RUNOUT_STATE HIGH."
+    #error "FIL_RUNOUT_INVERTING true is now FIL_RUNOUT_MODE -> HIGH."
   #else
-    #error "FIL_RUNOUT_INVERTING false is now FIL_RUNOUT_STATE LOW."
+    //#error "FIL_RUNOUT_INVERTING false is now FIL_RUNOUT_STATE LOW."
+    #error "FIL_RUNOUT_INVERTING true is now FIL_RUNOUT_MODE -> LOW."
   #endif
 #elif defined(ASSISTED_TRAMMING_MENU_ITEM)
   #error "ASSISTED_TRAMMING_MENU_ITEM is deprecated and should be removed."
@@ -607,8 +609,8 @@
   #error "LCD_SCREEN_ROT_180 is now LCD_SCREEN_ROTATE with a value of 180."
 #elif defined(LCD_SCREEN_ROT_270)
   #error "LCD_SCREEN_ROT_270 is now LCD_SCREEN_ROTATE with a value of 270."
-#elif defined(DEFAULT_LCD_BRIGHTNESS)
-  #error "DEFAULT_LCD_BRIGHTNESS is now LCD_BRIGHTNESS_DEFAULT."
+#elif defined(LCD_BRIGHTNESS)
+  #error "LCD_BRIGHTNESS is now LCD_BRIGHTNESS_DEFAULT."
 #elif defined(NOZZLE_PARK_X_ONLY)
   #error "NOZZLE_PARK_X_ONLY is now NOZZLE_PARK_MOVE 1."
 #elif defined(NOZZLE_PARK_Y_ONLY)
@@ -616,6 +618,15 @@
 #elif defined(Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
   #error "Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS is now just Z_STEPPER_ALIGN_STEPPER_XY."
 #endif
+
+/**
+ *#if MB(DUE3DOM_MINI) && PIN_EXISTS(TEMP_2) && DISABLED(TEMP_SENSOR_BOARD)
+ *  #warning "Onboard temperature sensor for BOARD_DUE3DOM_MINI has moved from TEMP_SENSOR_2 (TEMP_2_PIN) to TEMP_SENSOR_BOARD (TEMP_BOARD_PIN)."
+ *#elif MB(BTT_SKR_E3_TURBO) && PIN_EXISTS(TEMP_2) && DISABLED(TEMP_SENSOR_BOARD)
+ *  #warning "Onboard temperature sensor for BOARD_BTT_SKR_E3_TURBO has moved from TEMP_SENSOR_2 (TEMP_2_PIN) to TEMP_SENSOR_BOARD (TEMP_BOARD_PIN)."
+ *#endif
+ *
+ */
 
 constexpr float arm[] = AXIS_RELATIVE_MODES;
 static_assert(COUNT(arm) == LOGICAL_AXES, "AXIS_RELATIVE_MODES must contain " _LOGICAL_AXES_STR "elements.");
@@ -860,8 +871,10 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 /**
  * Custom Boot and Status screens
  */
-#if ENABLED(SHOW_CUSTOM_BOOTSCREEN) && NONE(HAS_MARLINUI_U8GLIB, TOUCH_UI_FTDI_EVE)
+#if ENABLED(SHOW_CUSTOM_BOOTSCREEN) && NONE(HAS_MARLINUI_U8GLIB, TOUCH_UI_FTDI_EVE, IS_DWIN_MARLINUI)
   #error "SHOW_CUSTOM_BOOTSCREEN requires Graphical LCD or TOUCH_UI_FTDI_EVE."
+#elif ENABLED(SHOW_CUSTOM_BOOTSCREEN) && DISABLED(SHOW_BOOTSCREEN)
+  #error "SHOW_CUSTOM_BOOTSCREEN requires SHOW_BOOTSCREEN."
 #elif ENABLED(CUSTOM_STATUS_SCREEN_IMAGE) && !HAS_MARLINUI_U8GLIB
   #error "CUSTOM_STATUS_SCREEN_IMAGE requires a 128x64 DOGM B/W Graphical LCD."
 #endif
@@ -1000,7 +1013,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
     static_assert(nullptr == strstr(FILAMENT_RUNOUT_SCRIPT, "M600"), "ADVANCED_PAUSE_FEATURE is required to use M600 with FILAMENT_RUNOUT_SENSOR.");
   //add
   #elif defined(FIL_RUNOUT_ENABLED_DEFAULT)
-//    #error "FIL_RUNOUT_ENABLED_DEFAULT is now set with the FILAMENT_RUNOUT_ENABLED array."
+    #error "FIL_RUNOUT_ENABLED_DEFAULT is now set with the FILAMENT_RUNOUT_ENABLED array."
   #elif defined(FILAMENT_RUNOUT_DISTANCE_MM)
     #error "FILAMENT_RUNOUT_DISTANCE_MM is now set with the FIL_RUNOUT_DISTANCE_MM array."
   #elif defined(FIL_RUNOUT_STATE) || defined(FIL_RUNOUT2_STATE) || defined(FIL_RUNOUT3_STATE) || defined(FIL_RUNOUT4_STATE) || defined(FIL_RUNOUT5_STATE) || defined(FIL_RUNOUT6_STATE) || defined(FIL_RUNOUT7_STATE) || defined(FIL_RUNOUT8_STATE)
@@ -3973,3 +3986,10 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
 #undef _TEST_PWM
 #undef _LINEAR_AXES_STR
 #undef _LOGICAL_AXES_STR
+
+// JTAG support in the HAL
+#if ENABLED(DISABLE_DEBUG) && !defined(JTAGSWD_DISABLE)
+  #error "DISABLE_DEBUG is not supported for the selected MCU/Board."
+#elif ENABLED(DISABLE_JTAG) && !defined(JTAG_DISABLE)
+  #error "DISABLE_JTAG is not supported for the selected MCU/Board."
+#endif

@@ -738,6 +738,7 @@ namespace Language_en {
     LSTR MSG_RESUMING_PRINT                 = _UxGT("Resuming Print");
     LSTR MSG_LOADING_PREVIEW                = _UxGT("Loading Preview...");
     LSTR MSG_PRINT_FILE                     = _UxGT("Print file?");
+    LSTR MSG_REPRINT_FILE                   = _UxGT("Print file again?");
     LSTR MSG_INSERT_FILAMENT                = _UxGT("Insert Filament");
     LSTR MSG_WAITING_FOR_INPUT              = _UxGT("Waiting for Input");
     LSTR MSG_COULDNT_ENABLE_LEVELING        = _UxGT("Couldn't enable leveling");

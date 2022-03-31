@@ -790,7 +790,7 @@ void idle(bool no_stepper_sleep/*=false*/) {
   #endif
 
   // Run HAL idle tasks
-  TERN_(HAL_IDLETASK, HAL_idletask());
+  hal.idletask();
 
   // Check network connection
   TERN_(HAS_ETHERNET, ethernet.check());
@@ -930,7 +930,7 @@ void minkill(const bool steppers_off/*=false*/) {
       watchdog_refresh();
 
     // Reboot the board
-    HAL_reboot();
+    hal.reboot();
 
   #else
 
@@ -1042,7 +1042,7 @@ inline void tmc_standby_setup() {
  *    • L64XX Stepper Drivers (SPI)
  *    • Stepper Driver Reset: DISABLE
  *    • TMC Stepper Drivers (SPI)
- *    • Run BOARD_INIT if defined
+ *    • Run hal.init_board() for additional pins setup
  *    • ESP WiFi
  *  - Get the Reset Reason and report it
  *  - Print startup messages and diagnostics
@@ -1120,8 +1120,8 @@ void setup() {
   tmc_standby_setup();  // TMC Low Power Standby pins must be set early or they're not usable
 
   // Check startup - does nothing if bootloader sets MCUSR to 0
-  const byte mcu = HAL_get_reset_source();
-  HAL_clear_reset_source();
+  const byte mcu = hal.get_reset_source();
+  hal.clear_reset_source();
 
   #if ENABLED(MARLIN_DEV_MODE)
     auto log_current_ms = [&](PGM_P const msg) {
@@ -1182,8 +1182,6 @@ void setup() {
     JTAGSWD_RESET();
   #endif
 
-  #if EITHER(DISABLE_DEBUG, DISABLE_JTAG)
-    delay(10);
   // Disable any hardware debug to free up pins for IO
   #if ENABLED(DISABLE_DEBUG) && defined(JTAGSWD_DISABLE)
     delay(10);
@@ -1193,14 +1191,11 @@ void setup() {
     delay(10);
     SETUP_LOG("JTAG_DISABLE");
     JTAG_DISABLE();
-    #else
-      #error "DISABLE_(DEBUG|JTAG) is not supported for the selected MCU/Board."
-    #endif
   #endif
 
   TERN_(DYNAMIC_VECTORTABLE, hook_cpu_exceptions()); // If supported, install Marlin exception handlers at runtime
 
-  SETUP_RUN(HAL_init());
+  SETUP_RUN(hal.init());
 
   // Init and disable SPI thermocouples; this is still needed
   #if TEMP_SENSOR_0_IS_MAX_TC || (TEMP_SENSOR_REDUNDANT_IS_MAX_TC && REDUNDANT_TEMP_MATCH(SOURCE, E0))
@@ -1246,10 +1241,7 @@ void setup() {
     SETUP_RUN(tmc_init_cs_pins());
   #endif
 
-  #ifdef BOARD_INIT
-    SETUP_LOG("BOARD_INIT");
-    BOARD_INIT();
-  #endif
+  SETUP_RUN(hal.init_board());
 
   SETUP_RUN(esp_wifi_init());
 
@@ -1269,7 +1261,7 @@ void setup() {
     );
   #endif
   SERIAL_ECHO_MSG(" Compiled: " __DATE__);
-  SERIAL_ECHO_MSG(STR_FREE_MEMORY, freeMemory(), STR_PLANNER_BUFFER_BYTES, sizeof(block_t) * (BLOCK_BUFFER_SIZE));
+  SERIAL_ECHO_MSG(STR_FREE_MEMORY, hal.freeMemory(), STR_PLANNER_BUFFER_BYTES, sizeof(block_t) * (BLOCK_BUFFER_SIZE));
 
   // Some HAL need precise delay adjustment
   calibrate_delay_loop();

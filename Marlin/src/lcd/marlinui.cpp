@@ -155,7 +155,7 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
   }
 #endif
 
-#if EITHER(HAS_MARLINUI_MENU, EXTENSIBLE_UI)
+#if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI)
   bool MarlinUI::lcd_clicked;
 #endif
 
@@ -178,6 +178,15 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
 #if HAS_ENCODER_ACTION
   uint32_t MarlinUI::encoderPosition;
   volatile int8_t encoderDiff; // Updated in update_buttons, added to encoderPosition every LCD update
+#endif
+
+#if LCD_BACKLIGHT_TIMEOUT
+  uint16_t MarlinUI::lcd_backlight_timeout; // Initialized by settings.load()
+  millis_t MarlinUI::backlight_off_ms = 0;
+  void MarlinUI::refresh_backlight_timeout() {
+    backlight_off_ms = lcd_backlight_timeout ? millis() + lcd_backlight_timeout * 1000UL : 0;
+    WRITE(LCD_BACKLIGHT_PIN, HIGH);
+  }
 #endif
 
 void MarlinUI::init() {
@@ -625,7 +634,7 @@ void MarlinUI::init() {
           next_filament_display = millis() + 5000UL;  // Show status message for 5s
         #endif
         goto_screen(menu_main);
-        IF_DISABLED(NO_LCD_REINIT, init_lcd()); // May revive the LCD if static electricity killed it
+        reinit_lcd(); // Revive a noisy shared SPI LCD
         return;
       }
 
@@ -1033,14 +1042,18 @@ void MarlinUI::init() {
 
           reset_status_timeout(ms);
 
+          #if LCD_BACKLIGHT_TIMEOUT
+            refresh_backlight_timeout();
+          #endif
+
           refresh(LCDVIEW_REDRAW_NOW);
 
           #if LED_POWEROFF_TIMEOUT > 0
             if (!powerManager.psu_on) leds.reset_timeout(ms);
           #endif
-        }
+        } // encoder activity
 
-      #endif
+      #endif // HAS_ENCODER_ACTION
 
       // This runs every ~100ms when idling often enough.
       // Instead of tracking changes just redraw the Status Screen once per second.
@@ -1137,6 +1150,13 @@ void MarlinUI::init() {
           return_to_status();
       #endif
 
+      #if LCD_BACKLIGHT_TIMEOUT
+        if (backlight_off_ms && ELAPSED(ms, backlight_off_ms)) {
+          WRITE(LCD_BACKLIGHT_PIN, LOW); // Backlight off
+          backlight_off_ms = 0;
+        }
+      #endif
+
       // Change state of drawing flag between screen updates
       if (!drawing_screen) switch (lcdDrawUpdate) {
         case LCDVIEW_CLEAR_CALL_REDRAW:
@@ -1157,7 +1177,7 @@ void MarlinUI::init() {
   #if HAS_ADC_BUTTONS
 
     typedef struct {
-      uint16_t ADCKeyValueMin, ADCKeyValueMax;
+      raw_adc_t ADCKeyValueMin, ADCKeyValueMax;
       uint8_t  ADCKeyNo;
     } _stADCKeypadTable_;
 
@@ -1184,10 +1204,10 @@ void MarlinUI::init() {
     #endif
 
     // Calculate the ADC value for the voltage divider with specified pull-down resistor value
-    #define ADC_BUTTON_VALUE(r)  int(HAL_ADC_RANGE * (ADC_BUTTONS_VALUE_SCALE) * r / (r + ADC_BUTTONS_R_PULLUP))
+    #define ADC_BUTTON_VALUE(r)  raw_adc_t(HAL_ADC_RANGE * (ADC_BUTTONS_VALUE_SCALE) * r / (r + ADC_BUTTONS_R_PULLUP))
 
-    static constexpr uint16_t adc_button_tolerance = HAL_ADC_RANGE *   25 / 1024,
-                                  adc_other_button = HAL_ADC_RANGE * 1000 / 1024;
+    static constexpr raw_adc_t adc_button_tolerance = HAL_ADC_RANGE *   25 / 1024,
+                                   adc_other_button = HAL_ADC_RANGE * 1000 / 1024;
     static const _stADCKeypadTable_ stADCKeyTable[] PROGMEM = {
       // VALUE_MIN, VALUE_MAX, KEY
       { adc_other_button, HAL_ADC_RANGE, 1 + BLEN_KEYPAD_F1     }, // F1
@@ -1207,13 +1227,13 @@ void MarlinUI::init() {
 
     uint8_t get_ADC_keyValue() {
       if (thermalManager.ADCKey_count >= 16) {
-        const uint16_t currentkpADCValue = thermalManager.current_ADCKey_raw;
+        const raw_adc_t currentkpADCValue = thermalManager.current_ADCKey_raw;
         thermalManager.current_ADCKey_raw = HAL_ADC_RANGE;
         thermalManager.ADCKey_count = 0;
         if (currentkpADCValue < adc_other_button)
           LOOP_L_N(i, ADC_KEY_NUM) {
-            const uint16_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
-                           hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
+            const raw_adc_t lo = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMin),
+                            hi = pgm_read_word(&stADCKeyTable[i].ADCKeyValueMax);
             if (WITHIN(currentkpADCValue, lo, hi)) return pgm_read_byte(&stADCKeyTable[i].ADCKeyNo);
           }
       }
@@ -1421,8 +1441,10 @@ void MarlinUI::init() {
       else if (print_job_timer.needsService(3)) msg = FPSTR(service3);
     #endif
 
-    else if (!no_welcome)
-      msg = GET_TEXT_F(WELCOME_MSG);
+    else if (!no_welcome) msg = GET_TEXT_F(WELCOME_MSG);
+
+    else if (ENABLED(DWIN_LCD_PROUI))
+        msg = F("");
     else
       return;
 
@@ -1697,9 +1719,7 @@ void MarlinUI::init() {
       }
     }
 
-    #if PIN_EXISTS(SD_DETECT) && DISABLED(NO_LCD_REINIT)
-      init_lcd(); // Revive a noisy shared SPI LCD
-    #endif
+    reinit_lcd(); // Revive a noisy shared SPI LCD
 
     refresh();
 

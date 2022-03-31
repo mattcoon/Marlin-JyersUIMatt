@@ -4,8 +4,9 @@
 # Prusa / Super Slicer post-processor script
 # Author (original source) : Alexqzd
 # URL: https://github.com/alexqzd/Marlin/tree/Gcode-preview
-# version: 2.0
+# version: 3.0
 # date: 2021/06/29 - https://github.com/alexqzd/Marlin/commit/1d31b7770b8984b5f82962d7b602082e6169f214
+# Updated by : LChristophe68 (tititopher68-dev)
 # ------------------------------------------------------------------------------
 
 import sys
@@ -25,6 +26,7 @@ def install(package):
     subprocess.check_call([sys.executable, "-m", "pip3", "install", package])
 
 sourceFile = sys.argv[1]
+outFile = os.path.splitext(sourceFile)[0]+"_thumb"+os.path.splitext(sourceFile)[1]
 
 # Read the ENTIRE g-code file into memory
 with open(sourceFile, "r") as f:
@@ -95,7 +97,7 @@ maxx = 0
 maxy = 0
 maxz = 0
 
-with open(sourceFile, "w") as of:
+with open(outFile, "w+") as of:
 # Write header values
     of.write(ph)
     of.write(';FLAVOR:Marlin\n')
@@ -115,3 +117,8 @@ with open(sourceFile, "w") as of:
 
 of.close()
 f.close()
+## If file exists, delete it ##
+if os.path.isfile(sourceFile):
+    os.remove(sourceFile)
+else:    ## Show an error ##
+    print("Error: %s file not found" % sourceFile)

@@ -140,7 +140,7 @@ int16_t feedrate_percentage = 100;
 xyz_pos_t cartes;
 
 #if HAS_BED_PROBE //EXTJYERSUI
-   feedRate_t z_probe_fast_mm_s = MMM_TO_MMS(Z_PROBE_FEEDRATE_FAST);
+  TERN(EXTJYERSUI, ,constexpr) feedRate_t z_probe_fast_mm_s = MMM_TO_MMS(Z_PROBE_FEEDRATE_FAST);
 #endif
 
 #if IS_KINEMATIC

@@ -59,6 +59,8 @@
   #include "e3v2/creality/dwin.h"
 #elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
   #include "e3v2/proui/dwin.h"
+#elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+  #include "e3v2/jyersui/dwin.h"
 #endif
 
 #define START_OF_UTF8_CHAR(C) (((C) & 0xC0u) != 0x80U)
@@ -209,6 +211,8 @@ public:
     static void init_lcd() {}
   #endif
 
+  static void reinit_lcd() { TERN_(REINIT_NOISY_LCD, init_lcd()); }
+
   #if HAS_WIRED_LCD
     static bool detected();
   #else
@@ -271,6 +275,14 @@ public:
     static void _set_brightness(); // Implementation-specific
     static void set_brightness(const uint8_t value);
     FORCE_INLINE static void refresh_brightness() { set_brightness(brightness); }
+  #endif
+
+  #if LCD_BACKLIGHT_TIMEOUT
+    #define LCD_BKL_TIMEOUT_MIN 1
+    #define LCD_BKL_TIMEOUT_MAX (60*60*18) // 18 hours max within uint16_t
+    static uint16_t lcd_backlight_timeout;
+    static millis_t backlight_off_ms;
+    static void refresh_backlight_timeout();
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
@@ -356,15 +368,6 @@ public:
   static void set_status(const char * const cstr, const bool persist=false);
   static void set_status(FSTR_P const fstr, const int8_t level=0);
   static void status_printf(const uint8_t level, FSTR_P const fmt, ...);
-
-  #if EITHER(HAS_DISPLAY, DWIN_CREALITY_LCD_ENHANCED)
-    static void kill_screen(FSTR_P const lcd_error, FSTR_P const lcd_component);
-    #if DISABLED(LIGHTWEIGHT_UI)
-      static void draw_status_message(const bool blink);
-    #endif
-  #else
-    static void kill_screen(FSTR_P const, FSTR_P const) {}
-  #endif
 
   #if HAS_DISPLAY
 
@@ -479,11 +482,16 @@ public:
     #endif
 
     static void draw_kill_screen();
+    static void kill_screen(FSTR_P const lcd_error, FSTR_P const lcd_component);
+    #if DISABLED(LIGHTWEIGHT_UI)
+      static void draw_status_message(const bool blink);
+    #endif
 
   #else // No LCD
 
     static void update() {}
     static void return_to_status() {}
+    static void kill_screen(FSTR_P const, FSTR_P const) {}
 
   #endif
 
@@ -597,7 +605,7 @@ public:
 
   #endif
 
-  #if EITHER(HAS_MARLINUI_MENU, EXTENSIBLE_UI)
+  #if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI)
     static bool lcd_clicked;
     static bool use_click() {
       const bool click = lcd_clicked;
@@ -674,7 +682,31 @@ public:
     #endif
 
     static void update_buttons();
-    static bool button_pressed() { return BUTTON_CLICK() || TERN(TOUCH_SCREEN, touch_pressed(), false); }
+    
+    #if HAS_ENCODER_NOISE
+      #ifndef ENCODER_SAMPLES
+        #define ENCODER_SAMPLES 10
+      #endif
+
+      /**
+       * Some printers may have issues with EMI noise especially using a motherboard with 3.3V logic levels
+       * it may cause the logical LOW to float into the undefined region and register as a logical HIGH
+       * causing it to errorenously register as if someone clicked the button and in worst case make the printer
+       * unusable in practice.
+       */
+      static bool hw_button_pressed() {
+        LOOP_L_N(s, ENCODER_SAMPLES) {
+          if (!BUTTON_CLICK()) return false;
+          safe_delay(1);
+        }
+        return true;
+      }
+    #else
+      static bool hw_button_pressed() { return BUTTON_CLICK(); }
+    #endif
+
+    static bool button_pressed() { return hw_button_pressed() || TERN0(TOUCH_SCREEN, touch_pressed()); }
+    
     #if EITHER(AUTO_BED_LEVELING_UBL, G26_MESH_VALIDATION)
       static void wait_for_release();
     #endif

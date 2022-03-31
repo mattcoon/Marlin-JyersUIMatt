@@ -29,6 +29,10 @@
 
 #include "motion.h"
 
+//#if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+//  #include "../lcd/e3v2/jyersui/dwin.h"
+//#endif
+
 #if HAS_BED_PROBE
   enum ProbePtRaise : uint8_t {
     PROBE_PT_NONE,      // No raise or stow after run_z_probe
@@ -188,7 +192,7 @@ public:
       }
     #endif
     
-     #if EXTJYERSUI
+     #if EXTJYERSUI && HAS_BED_PROBE
       static float _min_x(const xy_pos_t &probe_offset_xy = offset_xy);
       static float _max_x(const xy_pos_t &probe_offset_xy = offset_xy);
       static float _min_y(const xy_pos_t &probe_offset_xy = offset_xy);

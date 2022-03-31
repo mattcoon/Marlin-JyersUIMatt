@@ -735,21 +735,17 @@ void unified_bed_leveling::shift_mesh_height() {
     TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos, ExtUI::G29_START));
     do {
       if (do_ubl_mesh_map) display_map(param.T_map_type);
-      
-      #if EXTJYERSUI
-        if (HMI_flags.cancel_ubl) {
-          probe.stow();
-          probe.move_z_after_probing();
-          restore_ubl_active_state_and_leave();
-          do_blocking_move_to_xy(
-              constrain(nearby.x - probe.offset_xy.x, MESH_MIN_X, MESH_MAX_X),
-              constrain(nearby.y - probe.offset_xy.y, MESH_MIN_Y, MESH_MAX_Y)
-            );
-        }
-      #endif
+
       const uint8_t point_num = (GRID_MAX_POINTS - count) + 1;
       SERIAL_ECHOLNPGM("Probing mesh point ", point_num, "/", GRID_MAX_POINTS, ".");
       TERN_(HAS_STATUS_MESSAGE, ui.status_printf(0, F(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_POINT), point_num, int(GRID_MAX_POINTS)));
+
+      #if EXTJYERSUI
+        if (HMI_flags.cancel_ubl) {
+          SERIAL_ECHOLNPGM("\nMesh only partially populated.\n");
+          break;
+        }
+      #endif
 
       #if HAS_MARLINUI_MENU
         if (ui.button_pressed()) {
