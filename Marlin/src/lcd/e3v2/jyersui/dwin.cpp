@@ -1512,12 +1512,10 @@
             break;
           #if ENABLED(HOST_ACTION_COMMANDS)
             case PREPARE_ACTIONCOMMANDS:
-            if (draw) {
+            if (draw)
               Draw_Menu_Item(row, ICON_SetHome, GET_TEXT_F(MSG_HOST_ACTIONS), nullptr, true);
-            }
-            else {
+            else 
               Draw_Menu(HostActions);
-            }
             break;
           #endif
 
@@ -2218,12 +2216,10 @@
 
           switch(item) {
             case HOSTACTIONS_BACK:
-              if (draw) {
+              if (draw) 
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
-              }
-              else {
+              else
                 Draw_Menu(Prepare, PREPARE_ACTIONCOMMANDS);
-              }
               break;
             case HOSTACTIONS_1:
               if (draw) {
@@ -4686,7 +4682,7 @@
                 flag_leveling_m = true;
                 gcode.process_subcommands_now(F("M211 S1"));
                 set_bed_leveling_enabled(level_state);
-                TERN_(AUTO_BED_LEVELING_BILINEAR, refresh_bed_level());
+                TERN_(AUTO_BED_LEVELING_BILINEAR, bbl.refresh_bed_level());
                 Popup_Handler(SaveLevel, true);
               }
               break;
@@ -4746,7 +4742,7 @@
                       #endif
                     #endif
                     liveadjust = false;
-                    TERN_(AUTO_BED_LEVELING_BILINEAR, refresh_bed_level());
+                    TERN_(AUTO_BED_LEVELING_BILINEAR, bbl.refresh_bed_level());
                     planner.synchronize();
                     Draw_Menu(Leveling, LEVELING_MANUAL);
                   }
@@ -6492,10 +6488,10 @@
         #endif
         case Complete:
           queue.inject(F("M84"));
-          Popup_Handler(Reprint);
+          //Popup_Handler(Reprint);
           //TERN_(DEBUG_DWIN, SERIAL_ECHOLNPGM("DWIN_Print_Finished"));
           //queue.inject(F("M84"));
-          //Draw_Main_Menu();
+          Draw_Main_Menu();
           break;
         case FilInsert:
           Popup_Handler(FilChange);

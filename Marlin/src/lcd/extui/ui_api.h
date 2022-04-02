@@ -57,7 +57,7 @@ namespace ExtUI {
 
   static constexpr size_t eeprom_data_size = 48;
 
-  enum axis_t     : uint8_t { X, Y, Z, I, J, K, X2, Y2, Z2, Z3, Z4 };
+  enum axis_t     : uint8_t { X, Y, Z, I, J, K, U, V, W, X2, Y2, Z2, Z3, Z4 };
   enum extruder_t : uint8_t { E0, E1, E2, E3, E4, E5, E6, E7 };
   enum heater_t   : uint8_t { H0, H1, H2, H3, H4, H5, BED, CHAMBER, COOLER };
   enum fan_t      : uint8_t { FAN0, FAN1, FAN2, FAN3, FAN4, FAN5, FAN6, FAN7 };
@@ -297,17 +297,15 @@ namespace ExtUI {
   #endif
 
   #if HAS_FILAMENT_SENSOR
-    //bool getFilamentRunoutEnabled();
-    //void setFilamentRunoutEnabled(const bool);
-    bool getFilamentRunoutEnabled(const extruder_t extruder=E0);
-    void setFilamentRunoutEnabled(const bool, const extruder_t extruder=E0);
+    bool getFilamentRunoutEnabled();
+    void setFilamentRunoutEnabled(const bool);
     bool getFilamentRunoutState();
     void setFilamentRunoutState(const bool);
 
-    //#if HAS_FILAMENT_RUNOUT_DISTANCE
+    #if HAS_FILAMENT_RUNOUT_DISTANCE
       float getFilamentRunoutDistance_mm();
       void setFilamentRunoutDistance_mm(const_float_t);
-    //#endif
+    #endif
   #endif
 
   #if ENABLED(CASE_LIGHT_ENABLE)
@@ -422,8 +420,8 @@ namespace ExtUI {
   void onStoreSettings(char *);
   void onLoadSettings(const char *);
   void onPostprocessSettings();
-  void onConfigurationStoreWritten(bool success);
-  void onConfigurationStoreRead(bool success);
+  void onSettingsStored(bool success);
+  void onSettingsLoaded(bool success);
   #if ENABLED(POWER_LOSS_RECOVERY)
     void onPowerLossResume();
   #endif

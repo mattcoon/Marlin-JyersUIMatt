@@ -35,12 +35,8 @@
   #error "Disable Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN when using BLTOUCH with Creality V24S1-301."
 #endif
 
-#ifndef BOARD_INFO_NAME
-  #define BOARD_INFO_NAME      "Creality V24S1-301"
-#endif
-#ifndef DEFAULT_MACHINE_NAME
-  #define DEFAULT_MACHINE_NAME "Ender 3 S1"
-#endif
+#define BOARD_INFO_NAME      "Creality V24S1-301"
+#define DEFAULT_MACHINE_NAME "Ender 3 S1"
 
 //
 // Servos
@@ -52,41 +48,41 @@
 //
 // Limit Switches
 //
-#define Z_STOP_PIN                        PA15
+#define Z_STOP_PIN                          PA15
 
 #ifndef Z_MIN_PROBE_PIN
-  #define Z_MIN_PROBE_PIN                 PC14  // BLTouch IN
+  #define Z_MIN_PROBE_PIN                   PC14  // BLTouch IN
 #endif
 
 //
 // Filament Runout Sensor
 //
 #ifndef FIL_RUNOUT_PIN
-  #define FIL_RUNOUT_PIN                  PC15  // "Pulled-high"
+  #define FIL_RUNOUT_PIN                    PC15  // "Pulled-high"
 #endif
 
 //
 // Heaters / Fans
 //
-#define HEATER_BED_PIN                     PA7  // HOT BED
-#define FAN1_PIN                           PC0  // extruder fan
+#define HEATER_BED_PIN                      PA7   // HOT BED
+#define FAN1_PIN                            PC0   // extruder fan
 
 //
 // SD Card
 //
-#define ONBOARD_SPI_DEVICE                 1
-#define ONBOARD_SD_CS_PIN                  PA4  // SDSS
+#define ONBOARD_SPI_DEVICE                  1
+#define ONBOARD_SD_CS_PIN                   PA4  // SDSS
 
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
 #if HAS_CUTTER
-  //#define HEATER_0_PIN                   -1
-  //#define HEATER_BED_PIN                 -1
-  #define FAN_PIN                          -1
-  #define SPINDLE_LASER_ENA_PIN            PA0  // FET 1
-  #define SPINDLE_LASER_PWM_PIN            PA0  // Bed FET
-  #define SPINDLE_DIR_PIN                  PA0  // FET 4
+  //#define HEATER_0_PIN                    -1
+  //#define HEATER_BED_PIN                  -1
+  #define FAN_PIN                           -1
+  #define SPINDLE_LASER_ENA_PIN             PA0  // FET 1
+  #define SPINDLE_LASER_PWM_PIN             PA0  // Bed FET
+  #define SPINDLE_DIR_PIN                   PA0  // FET 4
 #endif
 
 #include "pins_CREALITY_V4.h"

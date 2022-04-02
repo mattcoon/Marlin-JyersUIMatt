@@ -65,8 +65,8 @@ void GcodeSuite::M115() {
     "PROTOCOL_VERSION:" PROTOCOL_VERSION " "
     "MACHINE_TYPE:" MACHINE_NAME " "
     "EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " "
-    #if LINEAR_AXES != XYZ
-      "AXIS_COUNT:" STRINGIFY(LINEAR_AXES) " "
+    #if NUM_AXES != XYZ
+      "AXIS_COUNT:" STRINGIFY(NUM_AXES) " "
     #endif
     #ifdef MACHINE_UUID
       "UUID:" MACHINE_UUID
@@ -111,8 +111,7 @@ void GcodeSuite::M115() {
     // AUTOLEVEL (G29)
     cap_line(F("AUTOLEVEL"), ENABLED(HAS_AUTOLEVEL));
 
-    // RUNOUT (M412, M600) -> delete
-    // RUNOUT (M591, M600)
+    // RUNOUT (M412, M600)
     cap_line(F("RUNOUT"), ENABLED(FILAMENT_RUNOUT_SENSOR));
 
     // Z_PROBE (G30)

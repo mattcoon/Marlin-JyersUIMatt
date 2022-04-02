@@ -145,9 +145,9 @@ void menu_advanced_settings();
       EDIT_ITEM(uint8, MSG_TOOL_MIGRATION_END, &migration.last, 0, EXTRUDERS - 1);
 
       // Migrate to a chosen extruder
-      LOOP_L_N(s, EXTRUDERS) {
-        if (s != active_extruder) {
-          ACTION_ITEM_N_P(s, msg_migrate, []{
+      EXTRUDER_LOOP() {
+        if (e != active_extruder) {
+          ACTION_ITEM_N_P(e, msg_migrate, []{
             char cmd[12];
             sprintf_P(cmd, PSTR("M217 T%i"), int(MenuItemBase::itemIndex));
             queue.inject(cmd);
@@ -550,8 +550,7 @@ void menu_configuration() {
   #endif
 
   #if HAS_FILAMENT_SENSOR
-    //EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled, runout.reset);
-    EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled[active_extruder], runout.reset);
+    EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled, runout.reset);
   #endif
 
   #if HAS_FANCHECK

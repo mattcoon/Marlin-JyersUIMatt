@@ -32,8 +32,6 @@
   #define HIGH 0x1
 #endif
 
-  #define DEF_INVERT_E0_DIR false
-
 #if EXTJYERSUI
 
   #define DEF_NOZZLE_PARK_POINT {240, 220, 20}

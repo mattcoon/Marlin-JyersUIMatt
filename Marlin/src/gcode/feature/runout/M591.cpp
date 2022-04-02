@@ -55,8 +55,7 @@ void GcodeSuite::M591() {
       constexpr uint8_t tool = 0;
     #endif
     if (seenS) runout.enabled[tool] = parser.value_bool();
-    if (parser.seen('D')) runout.set_runout_distance(parser.value_linear_units(), tool);
-    if (parser.seen('L')) runout.set_runout_distance(parser.value_linear_units(), tool);
+    if (parser.seen('D') || parser.seen('L')) runout.set_runout_distance(parser.value_linear_units(), tool);
     if (parser.seen('P')) {
       const uint8_t tmp_mode = parser.value_int();
       if (tmp_mode < 3 || tmp_mode == 7) {

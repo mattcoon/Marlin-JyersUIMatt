@@ -133,12 +133,6 @@ enum menuID : uint8_t {
 //   #define ICON_Preview              ICON_File
 // #endif
 
-  //  #define Thumnail_Icon       0x00
-  //  #define Thumnail_Preview    0x01
-  //  #define Header_Time         0x00
-  //  #define Header_Filament     0x01
-  //  #define Header_Layer        0x02
-
 enum colorID : uint8_t {
   Default, White, Light_White, Blue, Yellow, Orange, Red, Light_Red, Green, Light_Green, Magenta, Light_Magenta, Cyan, Light_Cyan, Brown, Black
 };

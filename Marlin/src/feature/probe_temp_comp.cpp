@@ -28,6 +28,7 @@
 
 #include "probe_temp_comp.h"
 #include <math.h>
+#include "../module/temperature.h"
 
 ProbeTempComp ptc;
 
