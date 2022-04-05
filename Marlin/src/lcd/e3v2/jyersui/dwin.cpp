@@ -2537,8 +2537,8 @@
           #define HOTENDPID_TEMP (HOTENDPID_TUNE + 1)
           #define HOTENDPID_FAN (HOTENDPID_TEMP + 1)
           #define HOTENDPID_KP (HOTENDPID_FAN + 1)
-          #define HOTENDPID_KI (HOTENDPID_KP + 1)
-          #define HOTENDPID_KD (HOTENDPID_KI + 1)
+          #define HOTENDPID_KI (HOTENDPID_KP + ENABLED(PIDTEMP))
+          #define HOTENDPID_KD (HOTENDPID_KI + ENABLED(PIDTEMP))
           #define HOTENDPID_TOTAL HOTENDPID_KD
 
           static uint16_t PID_e_temp = 180;
@@ -2580,6 +2580,7 @@
               }
               break;
             #endif
+            #if ENABLED(PIDTEMP)
             case HOTENDPID_KP:
               if (draw) {
                 sprintf_P(cmd, PSTR("%s Value: "), GET_TEXT(MSG_PID_P));
@@ -2607,6 +2608,7 @@
               else
                 Modify_Value(thermalManager.temp_hotend[0].pid.Kd, 0, 5000, 100, thermalManager.updatePID);
               break;
+              #endif
           }
           break;
       #endif // HAS_HOTEND
