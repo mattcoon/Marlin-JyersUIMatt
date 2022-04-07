@@ -72,15 +72,18 @@ void draw_ends_state(const bool is_hit) {
 }
 
 void EndSDiagClass::Draw_ends_diag() {
+  char str[20];
+  sprintf_P(str, PSTR("%s %s"), GET_TEXT(MSG_LCD_ENDSTOPS), GET_TEXT(MSG_DEBUG_MENU));
   CrealityDWINClass::Clear_Screen(1);
-  CrealityDWINClass::Draw_Title(F("Endstops Diagnotic"));
+  CrealityDWINClass::Draw_Title(str);
   JYERSUI::ClearMenuArea();
   DWIN_Draw_Rectangle(0, Color_White, 13, 59, 259, 351);
   CrealityDWINClass::DWIN_Init_diag_endstops();
   DWIN_Draw_Rectangle(1, Confirm_Color, 87, 280, 186, 317);
   DWIN_Draw_Rectangle(0, Color_White, 86, 279, 187, 318);
   DWIN_Draw_Rectangle(0, Color_White, 85, 278, 188, 319);
-  DWIN_Draw_String(false, DWIN_FONT_STAT, Color_White, Color_Bg_Window, 96, 290, F(" Cancel "));
+  sprintf_P(str, PSTR(" %s "), GET_TEXT(MSG_BUTTON_CANCEL));
+  DWIN_Draw_String(false, DWIN_FONT_STAT, Color_White, Color_Bg_Window, 96, 290, F(str));
   JYERSUI::cursor.y = 80;
   #define ES_LABEL(S) draw_ends_label(F(STR_##S))
   #if HAS_X_MIN

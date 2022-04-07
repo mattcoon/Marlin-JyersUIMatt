@@ -37,6 +37,34 @@ bool FilamentMonitorBase::enabled[NUM_RUNOUT_SENSORS], // Initialized by setting
      FilamentMonitorBase::filament_ran_out; // = false
 uint8_t FilamentMonitorBase::mode[NUM_RUNOUT_SENSORS]; // Initialized by settings.load
 
+void FilamentMonitorBase::setRunoutState() {
+      #define _SET_RUNOUT_PIN(P,S,U,D) do{ if (ENABLED(U)) {if ((S) == 1) SET_INPUT_PULLUP(P);  else SET_INPUT_PULLDOWN(P);}; if (ENABLED(D)) {if ((S) == 1) SET_INPUT_PULLDOWN(P); else SET_INPUT_PULLUP(P);}; }while(0)
+      #define SET_RUNOUT_PIN(N) _SET_RUNOUT_PIN(FIL_RUNOUT##N##_PIN, mode[(N) - 1], FIL_RUNOUT##N##_PULLUP, FIL_RUNOUT##N##_PULLDOWN)
+      #if NUM_RUNOUT_SENSORS >= 1
+        SET_RUNOUT_PIN(1);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 2
+        SET_RUNOUT_PIN(2);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 3
+        SET_RUNOUT_PIN(3);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 4
+        SET_RUNOUT_PIN(4);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 5
+        SET_RUNOUT_PIN(5);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 6
+        SET_RUNOUT_PIN(6);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 7
+        SET_RUNOUT_PIN(7);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 8
+        SET_RUNOUT_PIN(8);
+      #endif
+    }
 #if ENABLED(HOST_ACTION_COMMANDS)
   bool FilamentMonitorBase::host_handling; // = false
 #endif

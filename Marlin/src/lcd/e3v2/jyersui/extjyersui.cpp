@@ -22,16 +22,13 @@
 
 #include "../../../inc/MarlinConfigPre.h"
 #include "../../../core/types.h"
-#include "dwin_defines.h"
+
 
 #if ENABLED(EXTJYERSUI)
 
 #include "dwin.h"
 #include "../../../gcode/gcode.h"
 
-#if HAS_FILAMENT_SENSOR
-  #include "../../../feature/runout.h"
-#endif
 #include "extjyersui.h"
 
 

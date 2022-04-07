@@ -72,6 +72,7 @@ class FilamentMonitorBase {
     static uint8_t mode[NUM_RUNOUT_SENSORS];  // 0:NONE  1:Switch NC  2:Switch NO  7:Motion Sensor
 
     static uint8_t out_state(const uint8_t e=0) { return mode[e] == 1 ? HIGH : LOW; }
+    static void setRunoutState();
 
     #if ENABLED(HOST_ACTION_COMMANDS)
       static bool host_handling;
@@ -215,7 +216,7 @@ class FilamentSensorBase {
 
     // Return a bitmask of runout flag states (1 bits always indicates runout)
     static uint8_t poll_runout_states() {
-      #define _OR_INVERT(N) | (runout.out_state(N) ? 0 : _BV(N))
+      #define _OR_INVERT(N) | (runout.out_state((N) - 1) ? 0 : _BV((N) - 1))
       return poll_runout_pins() ^ uint8_t(0 REPEAT_1(NUM_RUNOUT_SENSORS, _OR_INVERT));
       #undef _OR_INVERT
     }

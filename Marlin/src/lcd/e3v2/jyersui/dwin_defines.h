@@ -121,6 +121,8 @@ typedef struct {
       uint64_t host_action_label_2 : 48;
       uint64_t host_action_label_3 : 48;
     #endif
+    uint8_t shortcut_0 = 0;
+    uint8_t shortcut_1 = 1;
 
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
       bool show_gcode_thumbnails : 1;

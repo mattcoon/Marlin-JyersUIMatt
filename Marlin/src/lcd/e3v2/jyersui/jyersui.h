@@ -95,6 +95,7 @@
 #endif
 
 // Extra Icons
+#define ICON_Shortcut             ICON_Contact
 #define ICON_AdvSet               ICON_Language
 #define ICON_BedSizeX             ICON_PrintSize
 #define ICON_BedSizeY             ICON_PrintSize
