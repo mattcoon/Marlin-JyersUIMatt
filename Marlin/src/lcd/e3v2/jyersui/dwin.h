@@ -147,7 +147,8 @@ extern char Hostfilename[66];
 #define Custom_Colors       15
 #define Color_Aqua          RGB(0x00,0x3F,0x1F)
 #define Color_Light_White   0xBDD7
-#define Color_Green         RGB(0x00,0x3F,0x00)
+//#define Color_Green         RGB(0x00,0x3F,0x00)
+#define Color_Green         0x07E0
 #define Color_Light_Green   0x3460
 #define Color_Cyan          0x07FF
 #define Color_Light_Cyan    0x04F3

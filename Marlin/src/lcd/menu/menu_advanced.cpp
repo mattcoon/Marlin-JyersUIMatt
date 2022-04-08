@@ -98,7 +98,7 @@ void menu_backlash();
 
 #endif
 
-#if HAS_FILAMENT_SENSOR
+#if HAS_FILAMENT_SENSOR && DISABLED(SLIM_LCD_MENUS)
 
   #define RUNOUT_EDIT_ITEMS(F) do{ \
     EDIT_ITEM_N(bool, F, MSG_RUNOUT_SENSOR, &runout.enabled[F]); \
@@ -112,10 +112,10 @@ void menu_backlash();
     ); \
   }while(0)
 
-  void set_runout_mode_none(uint8_t e) { runout.mode[e] = 0; }
-  void set_runout_mode_high(uint8_t e) { runout.mode[e] = 1; }
-  void set_runout_mode_low(uint8_t e) { runout.mode[e] = 2; }
-  void set_runout_mode_motion(uint8_t e) { runout.mode[e] = 7; }
+  void set_runout_mode_none(uint8_t e) { runout.mode[e] = 0; runout.setRunoutState();}
+  void set_runout_mode_high(uint8_t e) { runout.mode[e] = 1; runout.setRunoutState();}
+  void set_runout_mode_low(uint8_t e) { runout.mode[e] = 2; runout.setRunoutState();}
+  void set_runout_mode_motion(uint8_t e) { runout.mode[e] = 7; runout.setRunoutState();}
 
   void menu_runout_config() {
     START_MENU();
@@ -201,7 +201,7 @@ void menu_backlash();
     #endif
 
     //#if HAS_FILAMENT_RUNOUT_DISTANCE
-    #if HAS_FILAMENT_SENSOR
+    #if HAS_FILAMENT_SENSOR && DISABLED(SLIM_LCD_MENUS)
       SUBMENU(MSG_RUNOUT_MODE, menu_runout_config);
     #endif
 
@@ -362,6 +362,7 @@ void menu_backlash();
         EDIT_ITEM_FAST_N(float41sign, N, MSG_PID_D_E, &raw_Kd, 1, 9990, []{ copy_and_scalePID_d(N); })
     #endif
 
+    HOTEND_PID_EDIT_MENU_ITEMS(0);
     #if ENABLED(PIDTEMP)
       #if ENABLED(PID_AUTOTUNE_MENU)
         #define HOTEND_PID_EDIT_MENU_ITEMS(N) \
