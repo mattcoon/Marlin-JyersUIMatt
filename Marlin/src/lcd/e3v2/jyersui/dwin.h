@@ -77,6 +77,7 @@ enum menuID : uint8_t {
         MaxSpeed,
         MaxAcceleration,
         MaxJerk,
+        JDmenu,
         Steps,
       FwRetraction,
       Parkmenu,

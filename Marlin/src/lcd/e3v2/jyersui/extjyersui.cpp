@@ -39,15 +39,15 @@
         xyz_int_t park_value = { HMI_datas.Park_point.x, HMI_datas.Park_point.y, HMI_datas.Park_point.z };
         if (parser.seenval('X')) {
             park_value.x = static_cast<int>(parser.value_linear_units());
-            if ((park_value.x < 0) || (park_value.x > X_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            if (!WITHIN(park_value.x, 0, X_MAX_POS)) return CrealityDWIN.DWIN_CError();
             }
         if (parser.seenval('Y')) {
             park_value.y = static_cast<int>(parser.value_linear_units());
-            if ((park_value.y < 0) || (park_value.y> Y_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            if (!WITHIN(park_value.y, 0, Y_MAX_POS)) return CrealityDWIN.DWIN_CError();
             }
         if (parser.seenval('Z')) {
             park_value.z = static_cast<int>(parser.value_linear_units());
-            if ((park_value.z < MIN_PARK_POINT_Z) || (park_value.z > Z_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            if (!WITHIN(park_value.z, MIN_PARK_POINT_Z, Z_MAX_POS)) return CrealityDWIN.DWIN_CError();
             }
         
         HMI_datas.Park_point = park_value;
@@ -71,15 +71,15 @@ void ExtJyersuiClass::C562() {
 
         if (parser.seenval('M')) {
             margin_parser = parser.value_linear_units();
-            if ((margin_parser < MIN_PROBE_MARGIN) || (margin_parser > MAX_PROBE_MARGIN)) return CrealityDWIN.DWIN_CError();
+            if (!WITHIN(margin_parser, MIN_PROBE_MARGIN, MAX_PROBE_MARGIN)) return CrealityDWIN.DWIN_CError();
             }
         if (parser.seenval('F')) {
             z_fast_feedrate_parser = static_cast<int>(parser.value_linear_units());
-            if ((z_fast_feedrate_parser < (MIN_Z_PROBE_FEEDRATE * 2)) || (z_fast_feedrate_parser > MIN_Z_PROBE_FEEDRATE)) return CrealityDWIN.DWIN_CError();
+            if (!WITHIN(z_fast_feedrate_parser, (MIN_Z_PROBE_FEEDRATE * 2), MAX_Z_PROBE_FEEDRATE)) return CrealityDWIN.DWIN_CError();
             }
         if (parser.seenval('S')) {
             z_slow_feedrate_parser = static_cast<int>(parser.value_linear_units());
-            if ((z_slow_feedrate_parser < MIN_Z_PROBE_FEEDRATE) || (z_slow_feedrate_parser > MAX_Z_PROBE_FEEDRATE)) return CrealityDWIN.DWIN_CError();
+            if  (!WITHIN(z_slow_feedrate_parser, MIN_Z_PROBE_FEEDRATE, MAX_Z_PROBE_FEEDRATE)) return CrealityDWIN.DWIN_CError();
             }
         HMI_datas.probing_margin = margin_parser;
         HMI_datas.zprobefeedfast = z_fast_feedrate_parser;

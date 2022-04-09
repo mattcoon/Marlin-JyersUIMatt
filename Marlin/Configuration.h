@@ -1124,7 +1124,7 @@
  *   https://blog.kyneticcnc.com/2018/10/computing-junction-deviation-for-marlin.html
  */
 #if DISABLED(CLASSIC_JERK)
-  #define JUNCTION_DEVIATION_MM 0.013 // (mm) Distance from real junction edge
+  #define JUNCTION_DEVIATION_MM 0.08  // (mm) Distance from real junction edge: 0.4*(jerk * jerk)/Acceleration -> 0.4*(10*10)/500 // (mm) Distance from real junction edge
   #define JD_HANDLE_SMALL_SEGMENTS    // Use curvature estimation instead of just the junction angle
                                       // for small segments (< 1mm) with large junction angles (> 135°).
 #endif
@@ -2023,22 +2023,22 @@
 #define PREHEAT_1_LABEL       "Warmup"
 #define PREHEAT_1_TEMP_HOTEND 180
 #define PREHEAT_1_TEMP_BED     45
-#define PREHEAT_1_FAN_SPEED   255 // Value from 0 to 255
+#define PREHEAT_1_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_2_LABEL       "PLA"
 #define PREHEAT_2_TEMP_HOTEND 210
 #define PREHEAT_2_TEMP_BED     60
-#define PREHEAT_2_FAN_SPEED   255 // Value from 0 to 255
+#define PREHEAT_2_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_3_LABEL       "ABS"
 #define PREHEAT_3_TEMP_HOTEND 240
 #define PREHEAT_3_TEMP_BED     90
-#define PREHEAT_3_FAN_SPEED   255 // Value from 0 to 255
+#define PREHEAT_3_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_4_LABEL       "PETG"
 #define PREHEAT_4_TEMP_HOTEND 240
 #define PREHEAT_4_TEMP_BED     60
-#define PREHEAT_4_FAN_SPEED   255 // Value from 0 to 255
+#define PREHEAT_4_FAN_SPEED     0 // Value from 0 to 255
 
 #define PREHEAT_5_LABEL       "TPU"
 #define PREHEAT_5_TEMP_HOTEND 230
