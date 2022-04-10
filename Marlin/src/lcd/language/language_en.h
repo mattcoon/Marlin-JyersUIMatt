@@ -698,6 +698,11 @@ namespace Language_en {
 
   // Extra strings for JyersUI
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+    LSTR MSG_LIVEMOVE_Z                     = _UxGT("Live Move Z:");
+    LSTR MSG_UNLOCK                         = _UxGT("Scroll to unlock.");
+    LSTR MSG_PRINTER_LOCKED                 = _UxGT("Printer is Locked,");
+    LSTR MSG_SCREENLOCK                     = _UxGT("Screen Lock");
+    LSTR MSG_JUNCTION_DEVIATION_MENU        = _UxGT("Junction Dev in mm"); 
     LSTR MSG_CHGFIL                         = _UxGT("Change Fil");
     LSTR MSG_M_TRAMMING                     = _UxGT("M. Tramming");
     LSTR MSG_DIS_STEPS                      = _UxGT("Dis Steps M"); 

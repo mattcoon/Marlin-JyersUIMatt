@@ -46,10 +46,6 @@
   #include "../../../libs/buzzer.h"
   #include "../../../inc/Conditionals_post.h"
 
-  //#include "../../../core/macros.h"
-  //#include "../../../gcode/gcode.h"
-  //#include "../../../gcode/queue.h"
-
   //#define DEBUG_OUT 1
   #include "../../../core/debug_out.h"
 
@@ -102,13 +98,17 @@
     #include "diag_endstops.h"
   #endif
 
+  #if HAS_SHORTCUTS
+    #include "shortcuts.h"
+  #endif
+
   #include <stdio.h>
+  
   bool sd_item_flag = false;
+  
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
   #include "../../../libs/base64.hpp"
   #include <map>
-  //#include <string>
-  //using namespace std;
   #endif
   #include <string>
   using namespace std;
@@ -204,7 +204,7 @@
 
   uint8_t shortcut0 = 0;
   uint8_t shortcut1 = 0;
-  
+
   uint8_t scrollpos = 0;
   uint8_t active_menu = MainMenu, last_menu = MainMenu;
   uint8_t selection = 0, last_selection = 0, last_pos_selection = 0;
@@ -253,7 +253,6 @@
     uint8_t rsensormode = 0;
   #endif
   
-
   uint8_t gridpoint;
   float corner_avg;
   float corner_pos;
@@ -272,16 +271,17 @@
   bool probe_deployed = false;
 
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
-  std::map<string, int> image_cache;
-  uint16_t next_available_address = 1;
-  static millis_t thumbtime = 0;
-  static millis_t name_scroll_time = 0;
-  #define SCROLL_WAIT 1000
-  uint16_t file_preview_image_address = 1;
+    std::map<string, int> image_cache;
+    uint16_t next_available_address = 1;
+    static millis_t thumbtime = 0;
+    static millis_t name_scroll_time = 0;
+    #define SCROLL_WAIT 1000
+    uint16_t file_preview_image_address = 1;
     bool file_preview = false;
-  uint16_t header_time_s = 0;
-  char header1[40], header2[40], header3[40];
+    uint16_t header_time_s = 0;
+    char header1[40], header2[40], header3[40];
   #endif
+
   #if HAS_LEVELING
     static bool level_state;
   #endif
@@ -508,10 +508,10 @@
   constexpr const char * const CrealityDWINClass::preheat_modes[3];
   constexpr const char * const CrealityDWINClass::zoffset_modes[3];
   #if HAS_FILAMENT_SENSOR
-  constexpr const char * const CrealityDWINClass::runoutsensor_modes[4];
+    constexpr const char * const CrealityDWINClass::runoutsensor_modes[4];
   #endif
-  constexpr const char * const CrealityDWINClass::shortcut_list[7];
-  constexpr const char * const CrealityDWINClass::_shortcut_list[7];
+  constexpr const char * const CrealityDWINClass::shortcut_list[NB_Shortcuts + 1];
+  constexpr const char * const CrealityDWINClass::_shortcut_list[NB_Shortcuts + 1];
 
   // Clear a part of the screen
   //  4=Entire screen
@@ -623,6 +623,14 @@
           #endif
         break;
       #endif
+      #if HAS_SHORTCUTS
+        case Move_rel_Z:
+          DWIN_Move_Z();
+          break;
+      #endif
+      case ScreenL:
+        DWIN_ScreenLock();
+        break;
       default : break;
     }
   }
@@ -777,7 +785,7 @@
   void CrealityDWINClass::Redraw_Menu(bool lastprocess/*=true*/, bool lastselection/*=false*/, bool lastmenu/*=false*/, bool flag_scroll/*=false*/) {
     switch ((lastprocess) ? last_process : process) {
       case Menu:
-        if (flag_tune) {last_selection = last_pos_selection; flag_tune = false; }
+        if (flag_tune) { last_selection = last_pos_selection; flag_tune = false; }
         Draw_Menu((lastmenu) ? last_menu : active_menu, (lastselection) ? last_selection : selection, (flag_scroll) ? 0 : scrollpos);
         break;
       case Main:  Draw_Main_Menu((lastselection) ? last_selection : selection); break;
@@ -936,7 +944,6 @@
     Draw_Print_Filename(true);
   }
 
-// TODO: mmm correct long filename end character issue
 
   void CrealityDWINClass::Draw_Print_Filename(const bool reset/*=false*/) {
     static uint8_t namescrl = 0;
@@ -1008,8 +1015,8 @@
 
   void CrealityDWINClass::Draw_Print_confirm() {
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
-    if (!file_preview) Draw_Print_Screen(); 
-    else {Clear_Screen(); Draw_Title(GET_TEXT(MSG_PRINTING));}
+      if (!file_preview) Draw_Print_Screen(); 
+      else {Clear_Screen(); Draw_Title(GET_TEXT(MSG_PRINTING));}
     #else
       Draw_Print_Screen();
     #endif
@@ -1175,11 +1182,11 @@
             DWIN_Draw_Rectangle(0, GetColor(HMI_datas.background, Color_Bg_Black), 187, 415, 204, 435);
         }
         else {
-        _leveling_active = (planner.leveling_active || _leveling_active);
-        if ((_leveling_active = planner.leveling_active && ui.get_blink()))
+          _leveling_active = (planner.leveling_active || _leveling_active);
+          if ((_leveling_active = planner.leveling_active && ui.get_blink()))
             DWIN_Draw_Rectangle(0, GetColor(HMI_datas.status_area_text, Color_White), 187, 415, 204, 435);
           else 
-            DWIN_Draw_Rectangle(0, GetColor(HMI_datas.background, Color_Bg_Black), 187, 415, 204, 435);   
+            DWIN_Draw_Rectangle(0, GetColor(HMI_datas.background, Color_Bg_Black), 187, 415, 204, 435);
         }  
       #endif
     #endif
@@ -1291,6 +1298,29 @@
     if (screenLock.isUnlocked()) DWIN_ScreenUnLock();
   }
 
+  #if HAS_SHORTCUTS
+    void CrealityDWINClass::DWIN_Move_Z() {
+      process = Short_cuts;
+      if  (!shortcuts.quitmenu) {
+        shortcuts.initZ();
+      }
+    }
+
+    void CrealityDWINClass::DWIN_QuitMove_Z() {
+      if (shortcuts.quitmenu) {
+        shortcuts.quitmenu = false;
+        queue.inject(F("M84"));
+        Draw_Main_Menu();
+      }
+    }
+
+    void CrealityDWINClass::HMI_Move_Z() {
+      EncoderState encoder_diffState = Encoder_ReceiveAnalyze();
+      if (encoder_diffState == ENCODER_DIFF_NO) return;
+      shortcuts.onEncoderZ(encoder_diffState);
+      if (shortcuts.isQuitedZ()) DWIN_QuitMove_Z();
+    }
+  #endif
 
   void CrealityDWINClass::Viewmesh() {
     Clear_Screen(4);
@@ -3151,7 +3181,6 @@
               else
                 Draw_Menu(Control, CONTROL_FWRETRACT);
             }
-              //Draw_Menu(Control, CONTROL_FWRETRACT);
             break;
           case FWR_RET_LENGTH:
             if (draw) {
@@ -3598,7 +3627,7 @@
             }
             else {
               flag_shortcut = false;
-              Modify_Option(shortcut0, shortcut_list, 6);
+              Modify_Option(shortcut0, shortcut_list, NB_Shortcuts);
             }
             break;
           case VISUAL_SHORTCUT1:
@@ -3609,9 +3638,9 @@
             }
             else {
               flag_shortcut = true;
-              Modify_Option(shortcut1, shortcut_list, 6);
+              Modify_Option(shortcut1, shortcut_list, NB_Shortcuts);
             }
-          break;
+            break;
           #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
             case VISUAL_FILE_TUMBNAILS:
               if (draw) {
@@ -4399,6 +4428,7 @@
         switch (item) {
           case INFO_BACK:
             if (draw) {
+              Update_Status(CUSTOM_MACHINE_NAME);
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
 
               #if ENABLED(PRINTCOUNTER)
@@ -4421,6 +4451,7 @@
               Draw_Menu_Item(INFO_CONTACT, ICON_Contact, F(CORP_WEBSITE1), F(CORP_WEBSITE2), false, true);
             }
             else {
+              Update_Status("");
               if (menu == Info)
                 Draw_Menu(Control, CONTROL_INFO);
               else
@@ -5375,7 +5406,6 @@
               else {
                 flag_tune = true;
                 Draw_Menu(FwRetraction);
-                //Draw_Menu(Tune_FwRetraction);
                 }
               break;
           #endif
@@ -5458,7 +5488,7 @@
                         case CHANGEFIL_LOAD:
                           flag_chg_fil = true;
                           Popup_Handler(FilLoad);
-                          Update_Status(GET_TEXT(MSG_FILAMENTLOAD));
+                          Update_Status(GET_TEXT(MSG_FILAMENTLOAD)); 
                           gcode.process_subcommands_now(F("M701"));
                           planner.synchronize();
                           flag_chg_fil = false;
@@ -5612,7 +5642,6 @@
         case FwRetraction:
               sprintf_P(cmd, PSTR("%s %s"), GET_TEXT(MSG_FWRETRACT), GET_TEXT(MSG_CONFIGURATION));
               return F(cmd);
-        //case Tune_FwRetraction:      return F("Tune FW Retraction");
       #endif
       #if ENABLED(NOZZLE_PARK_FEATURE)
         case Parkmenu:
@@ -5712,7 +5741,6 @@
       case Motion:            return MOTION_TOTAL;
       #if ENABLED(FWRETRACT)
         case FwRetraction:    return FWR_TOTAL;
-        //case Tune_FwRetraction:    return TUNE_FWR_TOTAL;
       #endif
       #if ENABLED(NOZZLE_PARK_FEATURE)
         case Parkmenu:        return PARKMENU_TOTAL;
@@ -6605,7 +6633,7 @@
               if (printing) Popup_Handler(Resuming);
               else {
                 if (flag_chg_fil) Popup_Handler(FilChange, true);
-              else Redraw_Menu(true, true, (active_menu==PreheatHotend));
+                else Redraw_Menu(true, true, (active_menu==PreheatHotend));
               }
             }
             break;
@@ -6682,12 +6710,12 @@
         #if HAS_ES_DIAG
           case endsdiag:
             wait_for_user = false;
-			Redraw_Menu(true, true, false);
+			      Redraw_Menu(true, true, false);
             break;  
         #endif
         case Complete:
           #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
-          file_preview = false;
+            file_preview = false;
           #endif
           queue.inject(F("M84"));
           Popup_Handler(Reprint);
@@ -6972,7 +7000,7 @@
     duration_t printing_time = print_job_timer.duration();
     sprintf_P(cmd, PSTR("%s: %02dh %02dm %02ds"), GET_TEXT(MSG_INFO_PRINT_TIME), (uint8_t)(printing_time.value / 3600), (uint8_t)((printing_time.value / 60) %60), (uint8_t)(printing_time.value %60));
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
-    if (!file_preview) Update_Status(cmd);
+      if (!file_preview) Update_Status(cmd);
     #else
       Update_Status(cmd);
     #endif
@@ -6998,6 +7026,9 @@
       case Confirm:   sd_item_flag = false; Confirm_Control();      break;
       case Keyboard:  sd_item_flag = false; Keyboard_Control();     break;
       case Locked:    sd_item_flag = false; HMI_ScreenLock();       break;
+      #if HAS_SHORTCUTS
+        case Short_cuts : sd_item_flag = false; HMI_Move_Z();       break;
+      #endif
     }
   }
 
@@ -7027,7 +7058,7 @@
           if (printing) Popup_Handler(Resuming);
           else {
             if (flag_chg_fil) Popup_Handler(FilChange, true);
-          else Redraw_Menu(true, true, (active_menu==PreheatHotend));
+            else Redraw_Menu(true, true, (active_menu==PreheatHotend));
           }
         }
       }
@@ -7322,6 +7353,7 @@
 
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
+
     #if ENABLED(BAUD_RATE_GCODE)
       if (BAUDRATE == 250000) HMI_datas.baudratemode = 0;
       else HMI_datas.baudratemode = 1;

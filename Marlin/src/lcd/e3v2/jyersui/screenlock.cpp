@@ -49,11 +49,11 @@ void ScreenLockClass::init() {
 
 void ScreenLockClass::draw() {
   CrealityDWINClass::Clear_Screen(1);
-  CrealityDWINClass::Draw_Title(F("Screen Lock"));
+  CrealityDWINClass::Draw_Title(GET_TEXT(MSG_SCREENLOCK));
   JYERSUI::ClearMenuArea();
   DRAW_IconWB(ICON ,ICON_LOGO, 71, 120);  // CREALITY logo
-  JYERSUI::Draw_CenteredString(Color_White, 180, F("Printer is Locked,"));
-  JYERSUI::Draw_CenteredString(Color_White, 200, F("Scroll to unlock."));
+  JYERSUI::Draw_CenteredString(Color_White, 180, GET_TEXT_F(MSG_PRINTER_LOCKED));
+  JYERSUI::Draw_CenteredString(Color_White, 200, GET_TEXT_F(MSG_UNLOCK));
   JYERSUI::Draw_CenteredString(Color_White, 240, F("-> | <-"));
   DWIN_Draw_Box(1, CrealityDWINClass::GetColor(HMI_datas.progress_bar, BarFill_Color), 0, 260, DWIN_WIDTH, 20);
   DWIN_Draw_VLine(Color_Yellow, lock_pos * DWIN_WIDTH / 255, 260, 20);
