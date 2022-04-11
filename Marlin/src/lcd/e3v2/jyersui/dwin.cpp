@@ -252,7 +252,10 @@
     bool State_runoutenable = false;
     uint8_t rsensormode = 0;
   #endif
-  
+  #if ENABLED(DWIN_ICON_SET)
+    uint8_t iconset = DWIN_ICON_DEF;
+    uint8_t iconset_index = 0;
+  #endif
   uint8_t gridpoint;
   float corner_avg;
   float corner_pos;
@@ -509,6 +512,9 @@
   constexpr const char * const CrealityDWINClass::zoffset_modes[3];
   #if HAS_FILAMENT_SENSOR
     constexpr const char * const CrealityDWINClass::runoutsensor_modes[4];
+  #endif
+  #if ENABLED(DWIN_ICON_SET)
+    constexpr const char * const CrealityDWINClass::icon_set[2];
   #endif
   constexpr const char * const CrealityDWINClass::shortcut_list[NB_Shortcuts + 1];
   constexpr const char * const CrealityDWINClass::_shortcut_list[NB_Shortcuts + 1];
@@ -3563,7 +3569,8 @@
         #define VISUAL_BRIGHTNESS (VISUAL_BACKLIGHT + 1)
         #define VISUAL_FAN_PERCENT (VISUAL_BRIGHTNESS + HAS_FAN)
         #define VISUAL_TIME_FORMAT (VISUAL_FAN_PERCENT + 1)
-        #define VISUAL_COLOR_THEMES (VISUAL_TIME_FORMAT + 1)
+        #define VISUAL_ICON_SET (VISUAL_TIME_FORMAT + ENABLED(DWIN_ICON_SET))
+        #define VISUAL_COLOR_THEMES (VISUAL_ICON_SET + 1)
         #define VISUAL_SHORTCUT0 (VISUAL_COLOR_THEMES + 1)
         #define VISUAL_SHORTCUT1 (VISUAL_SHORTCUT0 + 1)
         #define VISUAL_FILE_TUMBNAILS (VISUAL_SHORTCUT1 + (ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)))
@@ -3613,6 +3620,17 @@
               Draw_Checkbox(row, HMI_datas.time_format_textual);
             }
             break;
+            #if ENABLED(DWIN_ICON_SET) // mmm - ICON setting
+              case VISUAL_ICON_SET:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_Binary, GET_TEXT_F(MSG_ICON_SET));
+                  Draw_Option(iconset_index, icon_set, row);
+                }
+                else {
+                  Modify_Option(iconset_index, icon_set, 2);
+                }
+                break;
+            #endif // mmm end ICON setting
           case VISUAL_COLOR_THEMES:
             if (draw)
               Draw_Menu_Item(row, ICON_MaxSpeed, GET_TEXT_F(MSG_COLORS_SELECT), nullptr, true);
@@ -6109,7 +6127,18 @@
           Redraw_Menu(false);
         }
       #endif  
-
+      #if ENABLED(DWIN_ICON_SET) // mmm
+        else if (valuepointer == &icon_set) {
+          iconset_index = tempvalue;
+          // runout.reset();
+          switch (iconset_index) {
+           case 0: HMI_datas.iconset = 7; break; // custom 
+           case 1: HMI_datas.iconset = 9; break; // stock
+          }
+          // reset lcd with new icons?
+          Redraw_Menu(false);
+        }
+      #endif // mmm
       Draw_Option(tempvalue, static_cast<const char * const *>(valuepointer), selection - scrollpos, false, (valuepointer == &color_names));
       DWIN_UpdateLCD();
       return;
@@ -7268,6 +7297,7 @@
       HMI_datas.host_action_label_2 = Encode_String(action2);
       HMI_datas.host_action_label_3 = Encode_String(action3);
     #endif
+
     #if HAS_MESH
       HMI_datas.leveling_active = planner.leveling_active;
     #endif
@@ -7350,7 +7380,9 @@
     #if HAS_FILAMENT_SENSOR
      rsensormode = runout.mode[0];
     #endif
-
+    #if ENABLED(DWIN_ICON_SET)
+      iconset = DWIN_ICON_DEF;
+    #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
 

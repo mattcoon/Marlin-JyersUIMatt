@@ -834,6 +834,7 @@ namespace Language_en {
   LSTR MSG_RUNOUT_MODE_MOTION             = _UxGT("Motion Encoder");
   LSTR MSG_RUNOUT_MODE_NONE               = _UxGT("No Sensor");
   LSTR MSG_RUNOUT_ENABLE                  = _UxGT("Enable Runout");
+  LSTR MSG_ICON_SET                       = _UxGT("ICON Selection");
   LSTR MSG_FANCHECK                       = _UxGT("Fan Tacho Check");
   LSTR MSG_KILL_HOMING_FAILED             = _UxGT("Homing Failed");
   LSTR MSG_LCD_PROBING_FAILED             = _UxGT("Probing Failed");

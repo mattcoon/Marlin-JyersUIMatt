@@ -33,11 +33,23 @@
 #ifdef ICON
     #undef ICON
 #endif
-#ifndef USE_STOCK_DWIN_SET
-  #define ICON                    0x07  // Default MarlinUI DWIN_SET
-#else 
-  #define ICON                    0x09  // Default Stock DWIN_SET
-  #define ICON_PACK               0x03  // Default MarlinUI DWIN_SET
+// #ifndef USE_STOCK_DWIN_SET
+//   #define ICON                    0x07  // Default MarlinUI DWIN_SET
+// #else 
+//   #define ICON                    0x09  // Default Stock DWIN_SET
+//   #define ICON_PACK               0x03  // Default MarlinUI DWIN_SET
+// #endif
+#define USE_STOCK_DWIN_SET  // Use the Creality stock DWIN_SET instead of Marlin's unified DWIN_SET by The-EG & thinkyhead
+  #ifdef USE_STOCK_DWIN_SET
+    #define DWIN_ICON_DEF 9 // 9.ICO
+  #else
+    #define DWIN_ICON_DEF 7 // 7.ICO
+  #endif
+// #endif
+#if ENABLED(DWIN_ICON_SET)
+    #define ICON HMI_datas.iconset
+#else
+    #define ICON DWIN_ICON_DEF
 #endif
 
 
