@@ -158,6 +158,7 @@ public:
   #endif
   #if ENABLED(DWIN_ICON_SET)
   static constexpr const char * const icon_set[2] = { " Custom" , "  Stock" };
+  static constexpr const uint8_t icon_set_num[2] = {7,9};
   #endif
   static constexpr const char * const shortcut_list[NB_Shortcuts + 1] = { "Preheat" , " Cooldn" , "D. Step" , "HomeXYZ" , "ZOffset" , "M.Tram." , "Chg Fil" , "Move Z", "ScreenL" };
   static constexpr const char * const _shortcut_list[NB_Shortcuts + 1] = { GET_TEXT(MSG_PREHEAT) , GET_TEXT(MSG_COOLDOWN) , GET_TEXT(MSG_DIS_STEPS) , GET_TEXT(MSG_AUTO_HOME) , GET_TEXT(MSG_OFFSET_Z) , GET_TEXT(MSG_M_TRAMMING) , GET_TEXT(MSG_CHGFIL) , GET_TEXT(MSG_MOVE_Z) , GET_TEXT(MSG_SCREENLOCK) };

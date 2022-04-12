@@ -254,7 +254,6 @@
   #endif
   #if ENABLED(DWIN_ICON_SET)
     uint8_t iconset = DWIN_ICON_DEF;
-    uint8_t iconset_index = 0;
   #endif
   uint8_t gridpoint;
   float corner_avg;
@@ -515,6 +514,7 @@
   #endif
   #if ENABLED(DWIN_ICON_SET)
     constexpr const char * const CrealityDWINClass::icon_set[2];
+    constexpr const uint8_t CrealityDWINClass::icon_set_num[2];
   #endif
   constexpr const char * const CrealityDWINClass::shortcut_list[NB_Shortcuts + 1];
   constexpr const char * const CrealityDWINClass::_shortcut_list[NB_Shortcuts + 1];
@@ -3624,10 +3624,10 @@
               case VISUAL_ICON_SET:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_Binary, GET_TEXT_F(MSG_ICON_SET));
-                  Draw_Option(iconset_index, icon_set, row);
+                  Draw_Option(HMI_datas.iconset_index, icon_set, row);
                 }
                 else {
-                  Modify_Option(iconset_index, icon_set, 2);
+                  Modify_Option(HMI_datas.iconset_index, icon_set, 2);
                 }
                 break;
             #endif // mmm end ICON setting
@@ -6129,12 +6129,8 @@
       #endif  
       #if ENABLED(DWIN_ICON_SET) // mmm
         else if (valuepointer == &icon_set) {
-          iconset_index = tempvalue;
-          // runout.reset();
-          switch (iconset_index) {
-           case 0: HMI_datas.iconset = 7; break; // custom 
-           case 1: HMI_datas.iconset = 9; break; // stock
-          }
+          HMI_datas.iconset_index = tempvalue;
+          iconset = icon_set_num[HMI_datas.iconset_index];
           // reset lcd with new icons?
           Redraw_Menu(false);
         }
@@ -7314,6 +7310,9 @@
     corner_pos = HMI_datas.corner_pos / 10.0f;
     #if HAS_FILAMENT_SENSOR
       rsensormode = runout.mode[0];
+    #endif
+    #if ENABLED(DWIN_ICON_SET)
+      iconset = icon_set_num[HMI_datas.iconset_index];
     #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
