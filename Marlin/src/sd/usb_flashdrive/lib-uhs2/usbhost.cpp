@@ -27,19 +27,18 @@
 
 #if ENABLED(USB_FLASH_DRIVE_SUPPORT) && DISABLED(USE_UHS3_USB)
 
+#if !PINS_EXIST(USB_CS, USB_INTR)
+  #error "USB_FLASH_DRIVE_SUPPORT requires USB_CS_PIN and USB_INTR_PIN to be defined."
+#endif
+
 #include "Usb.h"
 #include "usbhost.h"
 
 uint8_t MAX3421e::vbusState = 0;
 
 // constructor
-void MAX3421e::cs() {
-  WRITE(USB_CS_PIN,0);
-}
-
-void MAX3421e::ncs() {
-  WRITE(USB_CS_PIN,1);
-}
+void MAX3421e::cs()  { WRITE(USB_CS_PIN, LOW); }
+void MAX3421e::ncs() { WRITE(USB_CS_PIN, HIGH); }
 
 // write single byte into MAX3421 register
 void MAX3421e::regWr(uint8_t reg, uint8_t data) {

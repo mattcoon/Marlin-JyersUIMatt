@@ -432,6 +432,21 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
 #endif
 
 /**
+ * Print an error and stop()
+ */
+void Probe::probe_error_stop() {
+  SERIAL_ERROR_START();
+  SERIAL_ECHOPGM(STR_STOP_PRE);
+  #if EITHER(Z_PROBE_SLED, Z_PROBE_ALLEN_KEY)
+    SERIAL_ECHOPGM(STR_STOP_UNHOMED);
+  #elif ENABLED(BLTOUCH)
+    SERIAL_ECHOPGM(STR_STOP_BLTOUCH);
+  #endif
+  SERIAL_ECHOLNPGM(STR_STOP_POST);
+  stop();
+}
+
+/**
  * Attempt to deploy or stow the probe
  *
  * Return TRUE if the probe could not be deployed/stowed
@@ -459,8 +474,7 @@ bool Probe::set_deployed(const bool deploy) {
 
   #if EITHER(Z_PROBE_SLED, Z_PROBE_ALLEN_KEY)
     if (homing_needed_error(TERN_(Z_PROBE_SLED, _BV(X_AXIS)))) {
-      SERIAL_ERROR_MSG(STR_STOP_UNHOMED);
-      stop();
+      probe_error_stop();
       return true;
     }
   #endif

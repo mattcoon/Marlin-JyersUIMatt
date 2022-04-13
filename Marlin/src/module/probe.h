@@ -29,10 +29,6 @@
 
 #include "motion.h"
 
-//#if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-//  #include "../lcd/e3v2/jyersui/dwin.h"
-//#endif
-
 #if HAS_BED_PROBE
   enum ProbePtRaise : uint8_t {
     PROBE_PT_NONE,      // No raise or stow after run_z_probe
@@ -81,6 +77,8 @@ public:
     #if EITHER(PREHEAT_BEFORE_PROBING, PREHEAT_BEFORE_LEVELING)
       static void preheat_for_probing(const celsius_t hotend_temp, const celsius_t bed_temp);
     #endif
+
+    static void probe_error_stop();
 
     static bool set_deployed(const bool deploy);
 
@@ -191,8 +189,18 @@ public:
         return printable_radius - _MAX(PROBING_MARGIN, HYPOT(probe_offset_xy.x, probe_offset_xy.y));
       }
     #endif
+
+    /**
+     * The nozzle is only able to move within the physical bounds of the machine.
+     * If the PROBE has an OFFSET Marlin may need to apply additional limits so
+     * the probe can be prevented from going to unreachable points.
+     *
+     * e.g., If the PROBE is to the LEFT of the NOZZLE, it will be limited in how
+     * close it can get the RIGHT edge of the bed (unless the nozzle is able move
+     * far enough past the right edge).
+     */
     
-     #if EXTJYERSUI && HAS_BED_PROBE
+    #if EXTJYERSUI && HAS_BED_PROBE
       static float _min_x(const xy_pos_t &probe_offset_xy = offset_xy);
       static float _max_x(const xy_pos_t &probe_offset_xy = offset_xy);
       static float _min_y(const xy_pos_t &probe_offset_xy = offset_xy);
