@@ -252,9 +252,6 @@
     bool State_runoutenable = false;
     uint8_t rsensormode = 0;
   #endif
-  #if ENABLED(DWIN_ICON_SET)
-    uint8_t iconset = DWIN_ICON_DEF;
-  #endif
   uint8_t gridpoint;
   float corner_avg;
   float corner_pos;
@@ -515,6 +512,7 @@
   #if ENABLED(DWIN_ICON_SET)
     constexpr const char * const CrealityDWINClass::icon_set[2];
     constexpr const uint8_t CrealityDWINClass::icon_set_num[2];
+    uint8_t CrealityDWINClass::iconset_current = DWIN_ICON_DEF;
   #endif
   constexpr const char * const CrealityDWINClass::shortcut_list[NB_Shortcuts + 1];
   constexpr const char * const CrealityDWINClass::_shortcut_list[NB_Shortcuts + 1];
@@ -1239,7 +1237,7 @@
       if ((update_z = axis_should_home(Z_AXIS) && ui.get_blink()))
         DWIN_Draw_String(true, DWIN_FONT_MENU, GetColor(HMI_datas.coordinates_text, Color_White), GetColor(HMI_datas.background, Color_Bg_Black), 205, 459, F("  -?-  "));
       else
-        DWIN_Draw_FloatValue(true, true, 0, DWIN_FONT_MENU, GetColor(HMI_datas.coordinates_text, Color_White), GetColor(HMI_datas.background, Color_Bg_Black), 3, 2, 205, 459, (current_position.z>=0) ? current_position.z : 0);
+        DWIN_Draw_FloatValue(true, true, 0, DWIN_FONT_MENU, GetColor(HMI_datas.coordinates_text, Color_White), GetColor(HMI_datas.background, Color_Bg_Black), 3, 2, 205, 459, (current_position.z>=0) ? ((DISABLED(HAS_BED_PROBE) && printing) ? (current_position.z - zoffsetvalue) : current_position.z) : 0);
     }
     DWIN_UpdateLCD();
   }
@@ -6130,7 +6128,7 @@
       #if ENABLED(DWIN_ICON_SET) // mmm
         else if (valuepointer == &icon_set) {
           HMI_datas.iconset_index = tempvalue;
-          iconset = icon_set_num[HMI_datas.iconset_index];
+          iconset_current = icon_set_num[HMI_datas.iconset_index];
           // reset lcd with new icons?
           Redraw_Menu(false);
         }
@@ -7312,7 +7310,7 @@
       rsensormode = runout.mode[0];
     #endif
     #if ENABLED(DWIN_ICON_SET)
-      iconset = icon_set_num[HMI_datas.iconset_index];
+      iconset_current = icon_set_num[HMI_datas.iconset_index];
     #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
@@ -7380,7 +7378,7 @@
      rsensormode = runout.mode[0];
     #endif
     #if ENABLED(DWIN_ICON_SET)
-      iconset = DWIN_ICON_DEF;
+      iconset_current = DWIN_ICON_DEF;
     #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
@@ -7467,9 +7465,13 @@
 
   void CrealityDWINClass::CPU_type() {
     std::string cputype = CPU_TYPE;
-    std::string find = cputype.substr(9,2);
     std::string search = "RE";
-    strcpy(STM_cpu, (find == search)? "RET6" : "RCT6");
+    std::string find;
+    for (uint8_t f = 0; f <=2; f += 1){
+      find = cputype.substr(f+7,2);
+      if (find == search) { strcpy(STM_cpu, "RET6"); break; }
+      else strcpy(STM_cpu, "RCT6");
+    }
   }
 
   //=============================================================================

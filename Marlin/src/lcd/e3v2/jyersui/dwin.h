@@ -150,6 +150,7 @@ class CrealityDWINClass {
 public:
   
   static bool printing;
+  static uint8_t iconset_current;
   static constexpr const char * const color_names[Custom_Colors + 1] = {"Default","  White","L_White","   Blue"," Yellow"," Orange","    Red","  L_Red","  Green","L_Green","Magenta","L_Magen","   Cyan"," L_Cyan","  Brown","  Black"};
   static constexpr const char * const preheat_modes[3] = { "Both", "Hotend", "Bed" };
   static constexpr const char * const zoffset_modes[3] = { "No Live" , "OnClick", "   Live" };

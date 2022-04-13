@@ -47,7 +47,7 @@
   #endif
 // #endif
 #if ENABLED(DWIN_ICON_SET)
-    #define ICON HMI_datas.iconset_index
+    #define ICON CrealityDWINClass::iconset_current
 #else
     #define ICON DWIN_ICON_DEF
 #endif
