@@ -510,8 +510,8 @@
     constexpr const char * const CrealityDWINClass::runoutsensor_modes[4];
   #endif
   #if ENABLED(DWIN_ICON_SET)
-    constexpr const char * const CrealityDWINClass::icon_set[2];
-    constexpr const uint8_t CrealityDWINClass::icon_set_num[2];
+    // constexpr const char * const CrealityDWINClass::icon_set[2];
+    // constexpr const uint8_t CrealityDWINClass::icon_set_num[2];
     uint8_t CrealityDWINClass::iconset_current = DWIN_ICON_DEF;
   #endif
   constexpr const char * const CrealityDWINClass::shortcut_list[NB_Shortcuts + 1];
@@ -3622,10 +3622,14 @@
               case VISUAL_ICON_SET:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_Binary, GET_TEXT_F(MSG_ICON_SET));
-                  Draw_Option(HMI_datas.iconset_index, icon_set, row);
+                  // Draw_Option(HMI_datas.iconset_index, icon_set, row);
+                  Draw_Float(iconset_current, row, false, 1);
+
                 }
                 else {
-                  Modify_Option(HMI_datas.iconset_index, icon_set, 2);
+                  // Modify_Option(HMI_datas.iconset_index, icon_set, 2);
+                  Modify_Value(iconset_current, 0, 9, 1, MarlinUI::init_lcd);
+
                 }
                 break;
             #endif // mmm end ICON setting
@@ -6125,14 +6129,14 @@
           Redraw_Menu(false);
         }
       #endif  
-      #if ENABLED(DWIN_ICON_SET) // mmm
-        else if (valuepointer == &icon_set) {
-          HMI_datas.iconset_index = tempvalue;
-          iconset_current = icon_set_num[HMI_datas.iconset_index];
-          // reset lcd with new icons?
-          Redraw_Menu(false);
-        }
-      #endif // mmm
+      // #if ENABLED(DWIN_ICON_SET) // mmm
+      //   else if (valuepointer == &icon_set) {
+      //     HMI_datas.iconset_index = tempvalue;
+      //     iconset_current = icon_set_num[HMI_datas.iconset_index];
+      //     // reset lcd with new icons?
+      //     Redraw_Menu(false);
+      //   }
+      // #endif // mmm
       Draw_Option(tempvalue, static_cast<const char * const *>(valuepointer), selection - scrollpos, false, (valuepointer == &color_names));
       DWIN_UpdateLCD();
       return;
@@ -7291,6 +7295,9 @@
       HMI_datas.host_action_label_2 = Encode_String(action2);
       HMI_datas.host_action_label_3 = Encode_String(action3);
     #endif
+    #if ENABLED(DWIN_ICON_SET)
+      HMI_datas.iconset_index = iconset_current;
+    #endif
 
     #if HAS_MESH
       HMI_datas.leveling_active = planner.leveling_active;
@@ -7310,7 +7317,7 @@
       rsensormode = runout.mode[0];
     #endif
     #if ENABLED(DWIN_ICON_SET)
-      iconset_current = icon_set_num[HMI_datas.iconset_index];
+      iconset_current = HMI_datas.iconset_index;
     #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
@@ -7378,7 +7385,7 @@
      rsensormode = runout.mode[0];
     #endif
     #if ENABLED(DWIN_ICON_SET)
-      iconset_current = DWIN_ICON_DEF;
+      HMI_datas.iconset_index = iconset_current = DWIN_ICON_DEF;
     #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
