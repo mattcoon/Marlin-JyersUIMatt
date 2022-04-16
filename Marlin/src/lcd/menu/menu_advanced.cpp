@@ -43,7 +43,6 @@
   #include "../../module/temperature.h"
 #endif
 
-//#if HAS_FILAMENT_RUNOUT_DISTANCE
 #if HAS_FILAMENT_SENSOR
   #include "../../feature/runout.h"
 #endif
@@ -100,22 +99,22 @@ void menu_backlash();
 
 #if HAS_FILAMENT_SENSOR && DISABLED(SLIM_LCD_MENUS)
 
+  void set_runout_mode_none(const uint8_t e)   { runout.mode[e] = RM_NONE; runout.setup(); }
+  void set_runout_mode_high(const uint8_t e)   { runout.mode[e] = RM_OUT_ON_HIGH; runout.setup(); }
+  void set_runout_mode_low(const uint8_t e)    { runout.mode[e] = RM_OUT_ON_LOW; runout.setup(); }
+  void set_runout_mode_motion(const uint8_t e) { runout.mode[e] = RM_MOTION_SENSOR; runout.setup(); }
+
   #define RUNOUT_EDIT_ITEMS(F) do{ \
-    EDIT_ITEM_N(bool, F, MSG_RUNOUT_SENSOR, &runout.enabled[F]); \
-    ACTION_ITEM_N(F, MSG_RUNOUT_MODE_NONE, []{ set_runout_mode_none(F);}); \
-    ACTION_ITEM_N(F, MSG_RUNOUT_MODE_HIGH, []{ set_runout_mode_high(F);}); \
-    ACTION_ITEM_N(F, MSG_RUNOUT_MODE_LOW, []{ set_runout_mode_low(F);}); \
-    ACTION_ITEM_N(F, MSG_RUNOUT_MODE_MOTION, []{ set_runout_mode_motion(F);}); \
+    EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled[F]); \
+    ACTION_ITEM(MSG_RUNOUT_MODE_NONE,   []{ set_runout_mode_none(F);   }); \
+    ACTION_ITEM(MSG_RUNOUT_MODE_HIGH,   []{ set_runout_mode_high(F);   }); \
+    ACTION_ITEM(MSG_RUNOUT_MODE_LOW,    []{ set_runout_mode_low(F);    }); \
+    ACTION_ITEM(MSG_RUNOUT_MODE_MOTION, []{ set_runout_mode_motion(F); }); \
     editable.decimal = runout.runout_distance(F); \
-    EDIT_ITEM_FAST_N(float3, F, MSG_RUNOUT_DISTANCE_MM, &editable.decimal, 1, 999, \
+    EDIT_ITEM_FAST(float3, MSG_RUNOUT_DISTANCE_MM, &editable.decimal, 1, 999, \
       []{ runout.set_runout_distance(editable.decimal, F); }, true \
     ); \
   }while(0)
-
-  void set_runout_mode_none(uint8_t e) { runout.mode[e] = 0; runout.setRunoutState();}
-  void set_runout_mode_high(uint8_t e) { runout.mode[e] = 1; runout.setRunoutState();}
-  void set_runout_mode_low(uint8_t e) { runout.mode[e] = 2; runout.setRunoutState();}
-  void set_runout_mode_motion(uint8_t e) { runout.mode[e] = 7; runout.setRunoutState();}
 
   void menu_runout_config() {
     START_MENU();
@@ -145,6 +144,7 @@ void menu_backlash();
     END_MENU();
   }
 #endif
+
 
 
 #if DISABLED(NO_VOLUMETRICS) || ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -292,7 +292,7 @@ void menu_backlash();
   }
 #endif
 
-#if BOTH(AUTOTEMP, HAS_TEMP_HOTEND) || EITHER(PID_AUTOTUNE_MENU, PID_EDIT_MENU)
+#if BOTH(AUTOTEMP, HAS_TEMP_HOTEND) || ANY(PID_AUTOTUNE_MENU, PID_EDIT_MENU, MPC_AUTOTUNE_MENU, MPC_EDIT_MENU)
   #define SHOW_MENU_ADVANCED_TEMPERATURE 1
 #endif
 
@@ -301,9 +301,20 @@ void menu_backlash();
 //
 #if SHOW_MENU_ADVANCED_TEMPERATURE
 
+  #if ENABLED(MPC_EDIT_MENU)
+    #define MPC_EDIT_DEFS(N) \
+      MPC_t &c = thermalManager.temp_hotend[N].constants; \
+      TERN_(MPC_INCLUDE_FAN, editable.decimal = c.ambient_xfer_coeff_fan0 + c.fan255_adjustment)
+  #endif
+
   void menu_advanced_temperature() {
+    #if ENABLED(MPC_EDIT_MENU) && !HAS_MULTI_HOTEND
+      MPC_EDIT_DEFS(0);
+    #endif
+
     START_MENU();
     BACK_ITEM(MSG_ADVANCED_SETTINGS);
+
     //
     // Autotemp, Min, Max, Fact
     //
@@ -362,7 +373,6 @@ void menu_backlash();
         EDIT_ITEM_FAST_N(float41sign, N, MSG_PID_D_E, &raw_Kd, 1, 9990, []{ copy_and_scalePID_d(N); })
     #endif
 
-    HOTEND_PID_EDIT_MENU_ITEMS(0);
     #if ENABLED(PIDTEMP)
       #if ENABLED(PID_AUTOTUNE_MENU)
         #define HOTEND_PID_EDIT_MENU_ITEMS(N) \
@@ -376,6 +386,45 @@ void menu_backlash();
       #if ENABLED(PID_PARAMS_PER_HOTEND)
         REPEAT_S(1, HOTENDS, HOTEND_PID_EDIT_MENU_ITEMS);
       #endif
+    #endif
+
+    #if ENABLED(MPC_EDIT_MENU)
+
+      #define _MPC_EDIT_ITEMS(N) \
+        EDIT_ITEM_FAST_N(float31sign, N, MSG_MPC_POWER_E, &c.heater_power, 1, 200); \
+        EDIT_ITEM_FAST_N(float31sign, N, MSG_MPC_BLOCK_HEAT_CAPACITY_E, &c.block_heat_capacity, 0, 40); \
+        EDIT_ITEM_FAST_N(float43, N, MSG_SENSOR_RESPONSIVENESS_E, &c.sensor_responsiveness, 0, 1); \
+        EDIT_ITEM_FAST_N(float43, N, MSG_MPC_AMBIENT_XFER_COEFF_E, &c.ambient_xfer_coeff_fan0, 0, 1)
+
+      #if ENABLED(MPC_INCLUDE_FAN)
+        #define MPC_EDIT_ITEMS(N) \
+          _MPC_EDIT_ITEMS(N); \
+          EDIT_ITEM_FAST_N(float43, N, MSG_MPC_AMBIENT_XFER_COEFF_FAN255_E, &editable.decimal, 0, 1, []{ \
+            c.fan255_adjustment = editable.decimal - c.ambient_xfer_coeff_fan0; \
+          })
+      #else
+        #define MPC_EDIT_ITEMS _MPC_EDIT_ITEMS
+      #endif
+
+      #if HAS_MULTI_HOTEND
+        auto mpc_edit_hotend = [&](const uint8_t e) {
+          MPC_EDIT_DEFS(e);
+          START_MENU();
+          BACK_ITEM(MSG_TEMPERATURE);
+          MPC_EDIT_ITEMS(e);
+          END_MENU();
+        };
+        #define MPC_ENTRY(N) SUBMENU_N(N, MSG_MPC_EDIT, []{ mpc_edit_hotend(MenuItemBase::itemIndex); });
+      #else
+        #define MPC_ENTRY MPC_EDIT_ITEMS
+      #endif
+
+      REPEAT(HOTENDS, MPC_ENTRY);
+
+    #endif // MPC_EDIT_MENU
+
+    #if ENABLED(MPC_AUTOTUNE_MENU)
+      ACTION_ITEM(MSG_MPC_AUTOTUNE, []{ queue.inject(F("M306 T")); ui.return_to_status(); });
     #endif
 
     #if ENABLED(PIDTEMPBED)

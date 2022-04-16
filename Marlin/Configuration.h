@@ -41,8 +41,13 @@
 //============================= Getting Started =============================
 //===========================================================================
 
-// TODO: Dynamic icon load
-// TODO: Host action start on 
+// TODO: quick home - TURBO_BACK_MENU_ITEM
+// TODO: LCD sleep M255 in bug fix
+// TODO: get MPC working
+// TODO: add MPC menues
+
+// In test
+// TODO: print again on SD only
 
 /**
  * Here are some useful links to help get your machine configured and calibrated:
@@ -2181,7 +2186,7 @@
  *
  * View the current statistics with M78.
  */
-//#define PRINTCOUNTER
+#define PRINTCOUNTER
 #if ENABLED(PRINTCOUNTER)
   #define PRINTCOUNTER_SAVE_INTERVAL 60 // (minutes) EEPROM save interval during print
 #endif

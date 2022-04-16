@@ -433,8 +433,12 @@ G29_TYPE GcodeSuite::G29() {
       remember_feedrate_scaling_off();
 
       #if ENABLED(PREHEAT_BEFORE_LEVELING)
-        if (!abl.dryrun) probe.preheat_for_probing(LEVELING_NOZZLE_TEMP, LEVELING_BED_TEMP);
-      #endif
+        if (!abl.dryrun) 
+        #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+          probe.preheat_for_probing(HMI_datas.LevelingTemp_hotend, HMI_datas.LevelingTemp_bed);
+        #else
+          probe.preheat_for_probing(LEVELING_NOZZLE_TEMP, LEVELING_BED_TEMP);
+        #endif
     }
 
     // Position bed horizontally and Z probe vertically.

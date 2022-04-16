@@ -32,6 +32,7 @@
 #include "../MarlinCore.h"
 
 //#define DEBUG_TOOL_CHANGE
+//#define DEBUG_TOOLCHANGE_FILAMENT_SWAP
 
 #define DEBUG_OUT ENABLED(DEBUG_TOOL_CHANGE)
 #include "../core/debug_out.h"
@@ -149,6 +150,7 @@
 
 #endif // SWITCHING_NOZZLE
 
+// Move to position routines
 void _line_to_current(const AxisEnum fr_axis, const float fscale=1) {
   line_to_current_position(planner.settings.max_feedrate_mm_s[fr_axis] * fscale);
 }
@@ -1022,8 +1024,8 @@ void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_axis, 0.
    * Sequence to Prime the currently selected extruder
    * Raise Z, move the ToolChange_Park if enabled, prime the extruder, move back.
    */
-
   void tool_change_prime() {
+
     FS_DEBUG(">>> tool_change_prime()");
 
     if (!too_cold(active_extruder)) {
@@ -1057,7 +1059,7 @@ void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_axis, 0.
               current_position.k = toolchange_settings.change_point.k,
               current_position.u = toolchange_settings.change_point.u,
               current_position.v = toolchange_settings.change_point.v,
-              current_position.w = toolchange_settings.change_point.w,
+              current_position.w = toolchange_settings.change_point.w
             );
           #endif
           planner.buffer_line(current_position, MMM_TO_MMS(TOOLCHANGE_PARK_XY_FEEDRATE), active_extruder);
@@ -1081,7 +1083,7 @@ void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_axis, 0.
 
       extruder_cutting_recover(destination.e); // Cutting recover
     }
-  
+
     FS_DEBUG("<<< tool_change_prime");
 
   }
@@ -1164,7 +1166,6 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
     #if ENABLED(TOOLCHANGE_FS_PRIME_FIRST_USED)
       if (enable_first_prime && old_tool == 0 && new_tool == 0 && !extruder_was_primed[0]) {
         tool_change_prime();
-        // TERN_(TOOLCHANGE_FS_INIT_BEFORE_SWAP, toolchange_extruder_ready[old_tool] = true); // Primed and initialized
         TERN_(TOOLCHANGE_FS_INIT_BEFORE_SWAP, toolchange_extruder_ready.set(old_tool)); // Primed and initialized
       }
     #endif
@@ -1243,7 +1244,7 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
               current_position.k = toolchange_settings.change_point.k,
               current_position.u = toolchange_settings.change_point.u,
               current_position.v = toolchange_settings.change_point.v,
-              current_position.w = toolchange_settings.change_point.w,
+              current_position.w = toolchange_settings.change_point.w
             );
           #endif
           planner.buffer_line(current_position, MMM_TO_MMS(TOOLCHANGE_PARK_XY_FEEDRATE), old_tool);

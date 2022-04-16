@@ -36,7 +36,7 @@
  */
 
 // Change EEPROM version if the structure changes
-#define EEPROM_VERSION "V86"
+#define EEPROM_VERSION "V87"
 #define EEPROM_OFFSET 100
 
 // Check the integrity of data offsets.
@@ -112,9 +112,6 @@
 
 #if HAS_FILAMENT_SENSOR
   #include "../feature/runout.h"
-  #define NRS NUM_RUNOUT_SENSORS
-#else
-  #define NRS 1
 #endif
 
 #if ENABLED(EXTRA_LIN_ADVANCE_K)
@@ -211,7 +208,7 @@ typedef struct SettingsDataStruct {
   //
   // DISTINCT_E_FACTORS
   //
-  uint8_t e_factors;                                    // DISTINCT_AXES - NUM_AXES
+  uint8_t e_factors;                                    // DISTINCT_AXES - LINEAR_AXES
 
   //
   // Planner settings
@@ -237,9 +234,11 @@ typedef struct SettingsDataStruct {
   // FILAMENT_RUNOUT_SENSOR
   //
   //add
-  bool runout_enabled[NRS];                             // M591 S
-  float runout_distance_mm[NRS];                        // M591 D
-  uint8_t runout_mode[NRS];                             // M591 P
+  #if HAS_FILAMENT_SENSOR
+    bool runout_enabled[NUM_RUNOUT_SENSORS];            // M591 S
+    float runout_distance_mm[NUM_RUNOUT_SENSORS];       // M591 D
+    uint8_t runout_mode[NUM_RUNOUT_SENSORS];            // M591 P
+  #endif
   //
 
   //
@@ -400,12 +399,14 @@ typedef struct SettingsDataStruct {
   // HAS_LCD_BRIGHTNESS
   //
   uint8_t lcd_brightness;                               // M256 B
-
+  
   //
   // LCD_BACKLIGHT_TIMEOUT
   //
   #if LCD_BACKLIGHT_TIMEOUT
     uint16_t lcd_backlight_timeout;                     // (G-code needed)
+  #elif HAS_DISPLAY_SLEEP
+    uint8_t sleep_timeout_minutes;                      // M255 S
   #endif
 
   //
@@ -434,10 +435,15 @@ typedef struct SettingsDataStruct {
   //
   // HAS_TRINAMIC_CONFIG
   //
-  per_stepper_uint16_t tmc_stepper_current;             // M906 X Y Z I J K U V W X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
-  per_stepper_uint32_t tmc_hybrid_threshold;            // M913 X Y Z I J K U V W X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
-  mot_stepper_int16_t tmc_sgt;                          // M914 X Y Z I J K U V W X2 Y2 Z2 Z3 Z4
-  per_stepper_bool_t tmc_stealth_enabled;               // M569 X Y Z I J K U V W X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
+  // tmc_stepper_current_t tmc_stepper_current;            // M906 X Y Z X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
+  // tmc_hybrid_threshold_t tmc_hybrid_threshold;          // M913 X Y Z X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
+  // tmc_sgt_t tmc_sgt;                                    // M914 X Y Z X2 Y2 Z2 Z3 Z4
+  // tmc_stealth_enabled_t tmc_stealth_enabled;            // M569 X Y Z X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
+
+  per_stepper_uint16_t tmc_stepper_current;            // M906 X Y Z X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
+  per_stepper_uint32_t tmc_hybrid_threshold;          // M913 X Y Z X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
+  mot_stepper_int16_t tmc_sgt;                                    // M914 X Y Z X2 Y2 Z2 Z3 Z4
+  per_stepper_bool_t tmc_stealth_enabled;            // M569 X Y Z X2 Y2 Z2 Z3 Z4 E0 E1 E2 E3 E4 E5
 
   //
   // LIN_ADVANCE
@@ -634,6 +640,8 @@ void MarlinSettings::postprocess() {
 
   #if LCD_BACKLIGHT_TIMEOUT
     ui.refresh_backlight_timeout();
+  #elif HAS_DISPLAY_SLEEP
+    ui.refresh_screen_timeout();
   #endif
 }
 
@@ -804,20 +812,14 @@ void MarlinSettings::postprocess() {
     //
     // Filament Runout Sensor
     //
+    #if HAS_FILAMENT_SENSOR
     {
       _FIELD_TEST(runout_enabled);
-      #if HAS_FILAMENT_SENSOR
-      //add
-        LOOP_L_N(e, NRS) EEPROM_WRITE(runout.enabled[e]);
-        LOOP_L_N(e, NRS) EEPROM_WRITE(runout.runout_distance(e));
-        LOOP_L_N(e, NRS) EEPROM_WRITE(runout.mode[e]);
-      #else
-        EEPROM_WRITE((int8_t)-1);
-        EEPROM_WRITE((float)-0.0f);
-        EEPROM_WRITE((uint8_t)0);
-      #endif
-      //
+      LOOP_L_N(e, NUM_RUNOUT_SENSORS) EEPROM_WRITE(runout.enabled[e]);
+      LOOP_L_N(e, NUM_RUNOUT_SENSORS) EEPROM_WRITE(runout.runout_distance(e));
+      LOOP_L_N(e, NUM_RUNOUT_SENSORS) EEPROM_WRITE(runout.mode[e]);
     }
+    #endif
 
     //
     // Global Leveling
@@ -1147,6 +1149,8 @@ void MarlinSettings::postprocess() {
     //
     #if LCD_BACKLIGHT_TIMEOUT
       EEPROM_WRITE(ui.lcd_backlight_timeout);
+    #elif HAS_DISPLAY_SLEEP
+      EEPROM_WRITE(ui.sleep_timeout_minutes);
     #endif
 
     //
@@ -1157,7 +1161,7 @@ void MarlinSettings::postprocess() {
       #if ENABLED(USE_CONTROLLER_FAN)
         const controllerFan_settings_t &cfs = controllerFan.settings;
       #else
-        constexpr controllerFan_settings_t cfs = controllerFan_defaults;
+        controllerFan_settings_t cfs = controllerFan_defaults;
       #endif
       EEPROM_WRITE(cfs);
     }
@@ -1752,31 +1756,29 @@ void MarlinSettings::postprocess() {
       //
       // Filament Runout Sensor
       //
+      #if HAS_FILAMENT_SENSOR
       {
         _FIELD_TEST(runout_enabled);
 
-        int8_t runout_enabled[NRS];
-        float runout_distance_mm[NRS];
-        uint8_t runout_mode[NRS];
+        bool runout_enabled[NUM_RUNOUT_SENSORS];
+        float runout_distance_mm[NUM_RUNOUT_SENSORS];
+        RunoutMode runout_mode[NUM_RUNOUT_SENSORS];
 
-        LOOP_S_L_N(e, 0, NRS) EEPROM_READ(runout_enabled[e]);
-        LOOP_S_L_N(e, 0, NRS) EEPROM_READ(runout_distance_mm[e]);
-        LOOP_S_L_N(e, 0, NRS) EEPROM_READ(runout_mode[e]);
-        //
-        #if HAS_FILAMENT_SENSOR
-          if (!validating) {
-            LOOP_S_L_N(e, 0, NRS) {
-              if (runout_enabled[e] >= 0) {
-                runout.enabled[e] = (runout_enabled[e] > 0);
-                runout.set_runout_distance(runout_distance_mm[e], e);
-                runout.mode[e] = runout_mode[e];
-              }
-            }
-            runout.reset();
+        EEPROM_READ(runout_enabled);
+        EEPROM_READ(runout_distance_mm);
+        EEPROM_READ(runout_mode);
+
+        if (!validating) {
+          LOOP_S_L_N(e, 0, NUM_RUNOUT_SENSORS) {
+            runout.enabled[e] = runout_enabled[e];
+            runout.set_runout_distance(runout_distance_mm[e], e);
+            runout.mode[e] = runout_mode[e];
           }
-        #endif
+          runout.reset();
+        }
       }
-
+      #endif
+ 
       //
       // Global Leveling
       //
@@ -2105,6 +2107,8 @@ void MarlinSettings::postprocess() {
       //
       #if LCD_BACKLIGHT_TIMEOUT
         EEPROM_READ(ui.lcd_backlight_timeout);
+      #elif HAS_DISPLAY_SLEEP
+        EEPROM_READ(ui.sleep_timeout_minutes);
       #endif
 
       //
@@ -2879,12 +2883,12 @@ void MarlinSettings::reset() {
     constexpr bool fred[] = FIL_RUNOUT_ENABLED;
     constexpr uint8_t frm[] = FIL_RUNOUT_MODE;
     constexpr float frd[] = FIL_RUNOUT_DISTANCE_MM;
-    static_assert(COUNT(fred) == NRS, "FIL_RUNOUT_ENABLED must have NUM_RUNOUT_SENSORS values.");
-    static_assert(COUNT(frm) == NRS, "FIL_RUNOUT_MODE must have NUM_RUNOUT_SENSORS values.");
-    static_assert(COUNT(frd) == NRS, "FIL_RUNOUT_DISTANCE_MM must have NUM_RUNOUT_SENSORS values.");
+    static_assert(COUNT(fred) == NUM_RUNOUT_SENSORS, "FIL_RUNOUT_ENABLED must have NUM_RUNOUT_SENSORS values.");
+    static_assert(COUNT(frm) == NUM_RUNOUT_SENSORS, "FIL_RUNOUT_MODE must have NUM_RUNOUT_SENSORS values.");
+    static_assert(COUNT(frd) == NUM_RUNOUT_SENSORS, "FIL_RUNOUT_DISTANCE_MM must have NUM_RUNOUT_SENSORS values.");
     COPY(runout.enabled, fred);
     COPY(runout.mode, frm);
-    LOOP_L_N(e, NRS) runout.set_runout_distance(frd[e], e);
+    LOOP_L_N(e, NUM_RUNOUT_SENSORS) runout.set_runout_distance(frd[e], e);
     runout.reset();
   #endif
 
@@ -3190,6 +3194,8 @@ void MarlinSettings::reset() {
   //
   #if LCD_BACKLIGHT_TIMEOUT
     ui.lcd_backlight_timeout = LCD_BACKLIGHT_TIMEOUT;
+  #elif HAS_DISPLAY_SLEEP
+    ui.sleep_timeout_minutes = DISPLAY_SLEEP_MINUTES;
   #endif
 
   //
@@ -3521,6 +3527,7 @@ void MarlinSettings::reset() {
     TERN_(HAS_LCD_CONTRAST, gcode.M250_report(forReplay));
 
     //
+    TERN_(HAS_GCODE_M255, gcode.M255_report(forReplay));
     // LCD Brightness
     //
     TERN_(HAS_LCD_BRIGHTNESS, gcode.M256_report(forReplay));

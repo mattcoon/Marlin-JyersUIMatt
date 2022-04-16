@@ -53,8 +53,9 @@
     #include "../../../feature/pause.h"
   #endif
 
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+  #if HAS_FILAMENT_SENSOR
     #include "../../../feature/runout.h"
+    float editable_distance;
   #endif
 
   #if ENABLED(HOST_ACTION_COMMANDS)
@@ -161,10 +162,9 @@
   #endif
 
   #if HAS_HEATED_BED
-    #define MAX_BED_TEMP  BED_MAXTEMP
+    #define MAX_BED_TEMP  (BED_MAXTEMP - BED_OVERSHOOT)
     #define MIN_BED_TEMP  0
   #endif
-
 
   #define KEY_WIDTH 26
   #define KEY_HEIGHT 30
@@ -252,6 +252,7 @@
     bool State_runoutenable = false;
     uint8_t rsensormode = 0;
   #endif
+  
   uint8_t gridpoint;
   float corner_avg;
   float corner_pos;
@@ -283,6 +284,10 @@
 
   #if HAS_LEVELING
     static bool level_state;
+  #endif
+
+  #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+    uint16_t NPrinted = 0;
   #endif
 
   //struct
@@ -589,7 +594,7 @@
 
   void CrealityDWINClass::Apply_shortcut(uint8_t shortcut) {
     switch (shortcut){
-      case Preheat_menu: Draw_Menu(Preheat); break;
+      case Preheat_menu: flag_shortcut = true; Draw_Menu(Preheat); break;
       case Cooldown: thermalManager.cooldown(); break;
       case Disable_stepper: queue.inject(F("M84")); break;
       case Autohome: Popup_Handler(Home); gcode.home_all_axes(true); Draw_Main_Menu(1); break;
@@ -605,6 +610,7 @@
         #if !HAS_BED_PROBE
           gcode.process_subcommands_now(F("M211 S0"));
         #endif
+        flag_shortcut = true;
         Draw_Menu(ZOffset);
         break;
       case M_Tramming_menu:
@@ -616,11 +622,13 @@
           level_state = planner.leveling_active;
           set_bed_leveling_enabled(false);
           #endif
+          flag_shortcut = true;
           Draw_Menu(ManualLevel);
           break;
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
         case Change_Fil:
           #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
+            flag_shortcut = true;
             Draw_Menu(ChangeFilament);
           #else
             Draw_Menu(Prepare, PREPARE_CHANGEFIL);
@@ -1885,7 +1893,8 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else {
               TERN_(HAS_LEVELING, set_bed_leveling_enabled(level_state));
-              Draw_Menu(Prepare, PREPARE_MANUALLEVEL);
+              if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
+              else Draw_Menu(Prepare, PREPARE_MANUALLEVEL);
             }
             break;
           #if HAS_BED_PROBE
@@ -2074,7 +2083,8 @@
                 //liveadjust = false;
                 //adjustonclick = false;
                 TERN_(HAS_LEVELING, set_bed_leveling_enabled(level_state));
-                Draw_Menu(Prepare, PREPARE_ZOFFSET);
+                if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
+                else Draw_Menu(Prepare, PREPARE_ZOFFSET);
               }
               break;
             case ZOFFSET_HOME:
@@ -2182,8 +2192,9 @@
             case PREHEAT_BACK:
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
-              else
-                Draw_Menu(Prepare, PREPARE_PREHEAT);
+              else {
+                if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
+                   else Draw_Menu(Prepare, PREPARE_PREHEAT); }
               break;
             case PREHEAT_MODE:
               if (draw) {
@@ -2261,8 +2272,10 @@
             case CHANGEFIL_BACK:
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
-              else
-                Draw_Menu(Prepare, PREPARE_CHANGEFIL);
+              else {
+                if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
+                else Draw_Menu(Prepare, PREPARE_CHANGEFIL);
+              }
               break;
             case CHANGEFIL_PARKHEAD:
               if (draw)
@@ -2316,6 +2329,7 @@
                   gcode.process_subcommands_now(F("M702"));
                   planner.synchronize();
                   Draw_Menu(ChangeFilament, CHANGEFIL_UNLOAD);
+                  //Redraw_Menu(true, true);
                 }
               }
               break;
@@ -4319,13 +4333,13 @@
       case Filmenu:
 
         #define FIL_BACK 0
-        #define FIL_SENSORENABLED (FIL_BACK + ENABLED(FILAMENT_RUNOUT_SENSOR))
-        #define FIL_RUNOUTACTIVE (FIL_SENSORENABLED + (ENABLED(FILAMENT_RUNOUT_SENSOR) && EXTJYERSUI))
+        #define FIL_SENSORENABLED (FIL_BACK + HAS_FILAMENT_SENSOR)
+        #define FIL_RUNOUTACTIVE (FIL_SENSORENABLED + (BOTH(HAS_FILAMENT_SENSOR, EXTJYERSUI)))
         #define FIL_SENSORDISTANCE (FIL_RUNOUTACTIVE + 1)
         #define FIL_LOAD (FIL_SENSORDISTANCE + ENABLED(ADVANCED_PAUSE_FEATURE))
         #define FIL_UNLOAD (FIL_LOAD + ENABLED(ADVANCED_PAUSE_FEATURE))
-        #define FIL_UNLOAD_FEEDRATE (FIL_UNLOAD + (ENABLED(ADVANCED_PAUSE_FEATURE) && EXTJYERSUI))
-        #define FIL_FAST_LOAD_FEEDRATE (FIL_UNLOAD_FEEDRATE + (ENABLED(ADVANCED_PAUSE_FEATURE) && EXTJYERSUI))
+        #define FIL_UNLOAD_FEEDRATE (FIL_UNLOAD + (BOTH(ADVANCED_PAUSE_FEATURE, EXTJYERSUI)))
+        #define FIL_FAST_LOAD_FEEDRATE (FIL_UNLOAD_FEEDRATE + (BOTH(ADVANCED_PAUSE_FEATURE, EXTJYERSUI)))
         #define FIL_COLD_EXTRUDE  (FIL_FAST_LOAD_FEEDRATE + ENABLED(PREVENT_COLD_EXTRUSION))
         #define FIL_TOTAL FIL_COLD_EXTRUDE
 
@@ -4337,20 +4351,20 @@
               Draw_Menu(Advanced, ADVANCED_FILMENU);
             break;
 
-          #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+          #if HAS_FILAMENT_SENSOR
             case FIL_SENSORENABLED:
               if (draw) {
                 Draw_Menu_Item(row, ICON_Extruder, GET_TEXT_F(MSG_RUNOUT_SENSOR));
-                if (runout.mode[0] == 0) runout.enabled[0] = false;
+                if (runout.mode[0] == RM_NONE) runout.enabled[0] = false;
                 Draw_Checkbox(row, runout.enabled[0]);
               }
               else {
-                if (runout.mode[0] == 0) runout.enabled[0] = false;
+                if (runout.mode[0] == RM_NONE) runout.enabled[0] = false;
                 else runout.enabled[0] = !runout.enabled[0];
                 Draw_Checkbox(row, runout.enabled[0]);
               }
               break;
-            #if EXTJYERSUI // A modifier...
+            #if EXTJYERSUI 
               case FIL_RUNOUTACTIVE:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_FilSet, GET_TEXT_F(MSG_RUNOUT_ENABLE));
@@ -4367,11 +4381,12 @@
             //#if ENABLED(HAS_FILAMENT_RUNOUT_DISTANCE)
               case FIL_SENSORDISTANCE:
                 if (draw) {
+                  editable_distance = runout.runout_distance();
                   Draw_Menu_Item(row, ICON_MaxAccE, GET_TEXT_F(MSG_RUNOUT_DISTANCE_MM));
-                  Draw_Float(runout.runout_distance(), row, false, 10);
+                  Draw_Float(editable_distance, row, false, 10);
                 }
                 else
-                  Modify_Value(runout.runout_distance(), 0, 999, 10);
+                  Modify_Value(editable_distance, 0, 999, 10);
                 break;
             //#endif
           #endif
@@ -4545,18 +4560,7 @@
                     break;
                   }
                   #if EITHER(PREHEAT_BEFORE_LEVELING, PREHEAT_BEFORE_LEVELING_PROBE_MANUALLY)
-                    Popup_Handler(Heating);
-                    Update_Status(GET_TEXT(MSG_HEATING));
-                    #if HAS_HOTEND
-                      if (thermalManager.degTargetHotend(0) < LEVELING_NOZZLE_TEMP)
-                        thermalManager.setTargetHotend(LEVELING_NOZZLE_TEMP, 0);
-                    #endif
-                    #if HAS_HEATED_BED
-                      if (thermalManager.degTargetBed() < LEVELING_BED_TEMP)
-                        thermalManager.setTargetBed(LEVELING_BED_TEMP);
-                    #endif
-                    TERN_(HAS_HOTEND, thermalManager.wait_for_hotend(0));
-                    TERN_(HAS_HEATED_BED, thermalManager.wait_for_bed_heating());
+                    HeatBeforeLeveling();
                   #endif
                   Update_Status("");
                   Popup_Handler(Home);
@@ -4584,18 +4588,7 @@
                     }
                 #endif             
                 #if EITHER(PREHEAT_BEFORE_LEVELING, PREHEAT_BEFORE_LEVELING_PROBE_MANUALLY)
-                  Popup_Handler(Heating);
-                  Update_Status(GET_TEXT(MSG_HEATING));
-                  #if HAS_HOTEND
-                    if (thermalManager.degTargetHotend(0) < LEVELING_NOZZLE_TEMP)
-                      thermalManager.setTargetHotend(LEVELING_NOZZLE_TEMP, 0);
-                  #endif
-                  #if HAS_HEATED_BED
-                    if (thermalManager.degTargetBed() < LEVELING_BED_TEMP)
-                      thermalManager.setTargetBed(LEVELING_BED_TEMP);
-                  #endif
-                  TERN_(HAS_HOTEND, thermalManager.wait_for_hotend(0));
-                  TERN_(HAS_HEATED_BED, thermalManager.wait_for_bed_heating());
+                  HeatBeforeLeveling();
                 #endif
                 Update_Status("");
                 Popup_Handler(Home);
@@ -4665,18 +4658,7 @@
                   }
                 #endif
                 #if EITHER(PREHEAT_BEFORE_LEVELING, PREHEAT_BEFORE_LEVELING_PROBE_MANUALLY)
-                  Popup_Handler(Heating);
-                  Update_Status(GET_TEXT(MSG_HEATING));
-                  #if HAS_HOTEND
-                    if (thermalManager.degTargetHotend(0) < LEVELING_NOZZLE_TEMP)
-                      thermalManager.setTargetHotend(LEVELING_NOZZLE_TEMP, 0);
-                  #endif
-                  #if HAS_HEATED_BED
-                    if (thermalManager.degTargetBed() < LEVELING_BED_TEMP)
-                      thermalManager.setTargetBed(LEVELING_BED_TEMP);
-                  #endif
-                  TERN_(HAS_HOTEND, thermalManager.wait_for_hotend(0));
-                  TERN_(HAS_HEATED_BED, thermalManager.wait_for_bed_heating());
+                  HeatBeforeLeveling();
                 #endif
                 Update_Status("");
                 if (axes_should_home()) {
@@ -4797,9 +4779,14 @@
         case LevelSettings:
 
           #define LEVELING_SETTINGS_BACK 0
-          #define LEVELING_SETTINGS_FADE (LEVELING_SETTINGS_BACK + 1)
+          #define LEVELING_SETTINGS_HOTENDTEMP_ENA (LEVELING_SETTINGS_BACK + ENABLED(HAS_LEVELING_HEAT))
+          #define LEVELING_SETTINGS_HOTENDTEMP (LEVELING_SETTINGS_HOTENDTEMP_ENA + ENABLED(HAS_LEVELING_HEAT))
+          #define LEVELING_SETTINGS_BEDTEMP_ENA (LEVELING_SETTINGS_HOTENDTEMP  + ENABLED(HAS_LEVELING_HEAT))
+          #define LEVELING_SETTINGS_BEDTEMP (LEVELING_SETTINGS_BEDTEMP_ENA + ENABLED(HAS_LEVELING_HEAT))
+          #define LEVELING_SETTINGS_FADE (LEVELING_SETTINGS_BEDTEMP + 1)
           #define LEVELING_SETTINGS_TILT (LEVELING_SETTINGS_FADE + ENABLED(AUTO_BED_LEVELING_UBL))
-          #define LEVELING_SETTINGS_PLANE (LEVELING_SETTINGS_TILT + ENABLED(AUTO_BED_LEVELING_UBL))
+          #define LEVELING_SETTINGS_TILT_AFTER_N_PRINTS (LEVELING_SETTINGS_TILT + ENABLED(AUTO_BED_LEVELING_UBL))
+          #define LEVELING_SETTINGS_PLANE (LEVELING_SETTINGS_TILT_AFTER_N_PRINTS + ENABLED(AUTO_BED_LEVELING_UBL))
           #define LEVELING_SETTINGS_ZERO (LEVELING_SETTINGS_PLANE + ENABLED(AUTO_BED_LEVELING_UBL))
           #define LEVELING_SETTINGS_UNDEF (LEVELING_SETTINGS_ZERO + ENABLED(AUTO_BED_LEVELING_UBL))
           #define LEVELING_SETTINGS_TOTAL LEVELING_SETTINGS_UNDEF
@@ -4811,6 +4798,44 @@
               else
                 Draw_Menu(Leveling, LEVELING_SETTINGS);
               break;
+            #if HAS_LEVELING_HEAT
+              case LEVELING_SETTINGS_HOTENDTEMP_ENA:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_SetEndTemp, GET_TEXT_F(MSG_HOTEND_TEMPERATURE));
+                  Draw_Checkbox(row, HMI_datas.ena_LevelingTemp_hotend);
+                }
+                else {
+                  HMI_datas.ena_LevelingTemp_hotend = !HMI_datas.ena_LevelingTemp_hotend;
+                  Draw_Checkbox(row, HMI_datas.ena_LevelingTemp_hotend);
+                }
+                break;
+              case LEVELING_SETTINGS_HOTENDTEMP:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_SetEndTemp, GET_TEXT_F(MSG_HOTEND_TEMPERATURE));
+                  Draw_Float(HMI_datas.LevelingTemp_hotend, row, false, 1);
+                }
+                else
+                  Modify_Value(HMI_datas.LevelingTemp_hotend, MIN_E_TEMP, MAX_E_TEMP, 1);
+                break;
+              case LEVELING_SETTINGS_BEDTEMP_ENA:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_SetBedTemp, GET_TEXT_F(MSG_BED_TEMPERATURE));
+                  Draw_Checkbox(row, HMI_datas.ena_LevelingTemp_bed);
+                }
+                else {
+                  HMI_datas.ena_LevelingTemp_bed = !HMI_datas.ena_LevelingTemp_bed;
+                  Draw_Checkbox(row, HMI_datas.ena_LevelingTemp_bed);
+                }
+                break;
+              case LEVELING_SETTINGS_BEDTEMP:
+                if (draw) {
+                Draw_Menu_Item(row, ICON_SetBedTemp, GET_TEXT_F(MSG_BED_TEMPERATURE));
+                Draw_Float(HMI_datas.LevelingTemp_bed, row, false, 1);
+              }
+              else
+                Modify_Value(HMI_datas.LevelingTemp_bed, MIN_BED_TEMP, MAX_BED_TEMP, 1);
+              break;
+            #endif
             case LEVELING_SETTINGS_FADE:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_Fade, GET_TEXT_F(MSG_Z_FADE_HEIGHT));
@@ -4832,13 +4857,21 @@
                 else
                   Modify_Value(mesh_conf.tilt_grid, 1, 8, 1);
                 break;
+              case LEVELING_SETTINGS_TILT_AFTER_N_PRINTS:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_Tilt, GET_TEXT_F(MSG_UBL_AUTOTILT_AFTER_N_PRINTS));
+                  Draw_Float(NPrinted, row, false, 1);
+                }
+                else 
+                  Modify_Value(NPrinted, 0, 200, 1);
+                break;
               case LEVELING_SETTINGS_PLANE:
                 if (draw)
                   Draw_Menu_Item(row, ICON_ResumeEEPROM, GET_TEXT_F(MSG_MESH_TO_PLANE));
                 else {
                   if (mesh_conf.create_plane_from_mesh()) {
                     Confirm_Handler(NocreatePlane);
-                    break;
+                  break;
                 }
                   gcode.process_subcommands_now(F("M420 S1"));
                   planner.synchronize();
@@ -5308,8 +5341,9 @@
         #define TUNE_ZDOWN (TUNE_ZUP + ENABLED(HAS_ZOFFSET_ITEM))
         #define TUNE_FWRETRACT (TUNE_ZDOWN + ENABLED(FWRETRACT))
         #define TUNE_CHANGEFIL (TUNE_FWRETRACT + ENABLED(FILAMENT_LOAD_UNLOAD_GCODES))
-        #define TUNE_FILSENSORENABLED (TUNE_CHANGEFIL + ENABLED(FILAMENT_RUNOUT_SENSOR))
-        #define TUNE_SCREENLOCK (TUNE_FILSENSORENABLED + 1)     
+        #define TUNE_FILSENSORENABLED (TUNE_CHANGEFIL + HAS_FILAMENT_SENSOR)
+        #define TUNE_FILSENSORDISTANCE (TUNE_FILSENSORENABLED + HAS_FILAMENT_SENSOR)
+        #define TUNE_SCREENLOCK (TUNE_FILSENSORDISTANCE + 1)     
         #define TUNE_TOTAL TUNE_SCREENLOCK
 
         switch (item) {
@@ -5442,7 +5476,7 @@
               break;
           #endif
 
-          #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+          #if HAS_FILAMENT_SENSOR
             case TUNE_FILSENSORENABLED:
               if (draw) {
                 Draw_Menu_Item(row, ICON_Extruder, GET_TEXT_F(MSG_RUNOUT_SENSOR));
@@ -5452,6 +5486,15 @@
                 runout.enabled[0] = !runout.enabled[0];
                 Draw_Checkbox(row, runout.enabled[0]);
               }
+              break;
+            case TUNE_FILSENSORDISTANCE:
+              if (draw) {
+                  editable_distance = runout.runout_distance();
+                  Draw_Menu_Item(row, ICON_MaxAccE, GET_TEXT_F(MSG_RUNOUT_DISTANCE_MM));
+                  Draw_Float(editable_distance, row, false, 10);
+                }
+                else
+                  Modify_Value(editable_distance, 0, 999, 10);
               break;
           #endif
           case TUNE_SCREENLOCK:
@@ -5980,6 +6023,10 @@
       }
       if (valuepointer == &planner.flow_percentage[0])
         planner.refresh_e_factor(0);
+      #if HAS_FILAMENT_SENSOR
+        if (valuepointer == &editable_distance)
+          runout.set_runout_distance(editable_distance, 0);
+      #endif
       if (funcpointer) funcpointer();
       return;
     }
@@ -6118,25 +6165,18 @@
           rsensormode = tempvalue;
           runout.reset();
           switch (rsensormode) {
-           case 0: runout.mode[0] = 0; break; // None 
-           case 1: runout.mode[0] = 1; break; // mode HIGH
-           case 2: runout.mode[0] = 2; break; // mode LOW
-           case 3: runout.mode[0] = 7; break; // mode MOTION
+           case 0: runout.mode[0] = RM_NONE; break; // None 
+           case 1: runout.mode[0] = RM_OUT_ON_HIGH; break; // mode HIGH
+           case 2: runout.mode[0] = RM_OUT_ON_LOW; break; // mode LOW
+           case 3: runout.mode[0] = RM_MOTION_SENSOR; break; // mode MOTION
           }
-          if (runout.mode[0] !=0) runout.setRunoutState();
+          runout.setup();
           runout.reset();
           runout.enabled[0] = State_runoutenable;
           Redraw_Menu(false);
         }
       #endif  
-      // #if ENABLED(DWIN_ICON_SET) // mmm
-      //   else if (valuepointer == &icon_set) {
-      //     HMI_datas.iconset_index = tempvalue;
-      //     iconset_current = icon_set_num[HMI_datas.iconset_index];
-      //     // reset lcd with new icons?
-      //     Redraw_Menu(false);
-      //   }
-      // #endif // mmm
+
       Draw_Option(tempvalue, static_cast<const char * const *>(valuepointer), selection - scrollpos, false, (valuepointer == &color_names));
       DWIN_UpdateLCD();
       return;
@@ -6468,6 +6508,9 @@
         #else
           gcode.process_subcommands_now(F("M220 S100\nM221 S100"));  // Initialize Flow and Feerate to 100%
           strcpy(reprint_filename, card.filename);
+          #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+              CrealityDWIN.Autotilt_AfterNPrint(NPrinted);
+          #endif
           card.openAndPrintFile(card.filename);
         #endif
         }
@@ -6667,6 +6710,9 @@
         #endif // ADVANCED_PAUSE_FEATURE
         case ConfirmStartPrint:
           if (selection==0) {
+            #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+              CrealityDWIN.Autotilt_AfterNPrint(NPrinted);
+            #endif
             gcode.process_subcommands_now(F("M220 S100\nM221 S100"));  // Initialize Flow and Feerate to 100%
             strcpy(reprint_filename, card.filename);
             card.openAndPrintFile(card.filename);}
@@ -6677,6 +6723,9 @@
 
         case Reprint:
           if (selection==0) {
+            #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+              CrealityDWIN.Autotilt_AfterNPrint(NPrinted);
+            #endif
             #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW) && DISABLED(DACAI_DISPLAY)
               file_preview = true;
             #endif
@@ -6732,6 +6781,7 @@
           Update_Status(GET_TEXT(MSG_PROBING_CANCELLED));
           wait_for_user = false;
           Redraw_Menu(true, true, false);
+          queue.inject(F("M84"));
           break;
         #endif
         #if HAS_ES_DIAG
@@ -6745,7 +6795,12 @@
             file_preview = false;
           #endif
           queue.inject(F("M84"));
-          Popup_Handler(Reprint);
+          if (sdprint) { // mmm need to fix
+            sdprint = false;
+            Popup_Handler(Reprint);
+          }
+          else
+            Draw_Main_Menu();
           break;
         case FilInsert:
           Popup_Handler(FilChange);
@@ -7022,7 +7077,7 @@
 
   void CrealityDWINClass::Stop_Print() {
     printing = false;
-    sdprint = false;
+    // sdprint = false; mmm
     thermalManager.cooldown();
     duration_t printing_time = print_job_timer.duration();
     sprintf_P(cmd, PSTR("%s: %02dh %02dm %02ds"), GET_TEXT(MSG_INFO_PRINT_TIME), (uint8_t)(printing_time.value / 3600), (uint8_t)((printing_time.value / 60) %60), (uint8_t)(printing_time.value %60));
@@ -7090,7 +7145,7 @@
         }
       }
     #endif
-    #if ENABLED(FILAMENT_RUNOUT_SENSOR)
+    #if HAS_FILAMENT_SENSOR
       static bool ranout = false;
       if (runout.filament_ran_out != ranout) {
         ranout = runout.filament_ran_out;
@@ -7271,6 +7326,25 @@
       Update_Status(success ? GET_TEXT(MSG_SUCCESS) : GET_TEXT(MSG_FAILED));
   }
 
+
+
+  #if HAS_LEVELING_HEAT
+      void CrealityDWINClass::HeatBeforeLeveling() {
+        Popup_Handler(Heating);
+        Update_Status(GET_TEXT(MSG_HEATING));
+        #if HAS_HOTEND 
+          if ((thermalManager.degTargetHotend(0) < HMI_datas.LevelingTemp_hotend) && (HMI_datas.ena_LevelingTemp_hotend))
+                thermalManager.setTargetHotend(HMI_datas.LevelingTemp_hotend, 0);
+        #endif
+        #if HAS_HEATED_BED
+          if ((thermalManager.degTargetBed() < HMI_datas.LevelingTemp_bed) && (HMI_datas.ena_LevelingTemp_bed))
+                thermalManager.setTargetBed(HMI_datas.LevelingTemp_bed);
+        #endif
+        if (HMI_datas.ena_LevelingTemp_hotend) TERN_(HAS_HOTEND, thermalManager.wait_for_hotend(0));
+        if (HMI_datas.ena_LevelingTemp_bed) TERN_(HAS_HEATED_BED, thermalManager.wait_for_bed_heating());
+      }
+  #endif
+
   #if HAS_PID_HEATING
       void CrealityDWINClass::PidTuning(const pidresult_t pidresult) {
         switch (pidresult) {
@@ -7287,6 +7361,9 @@
 
   void CrealityDWINClass::Save_Settings(char *buff) {
     TERN_(AUTO_BED_LEVELING_UBL, HMI_datas.tilt_grid_size = mesh_conf.tilt_grid - 1);
+    #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+      HMI_datas.N_Printed = NPrinted;
+    #endif
     HMI_datas.corner_pos = corner_pos * 10;
     HMI_datas.shortcut_0 = shortcut0;
     HMI_datas.shortcut_1 = shortcut1;
@@ -7311,10 +7388,13 @@
       if(HMI_datas.leveling_active) set_bed_leveling_enabled(HMI_datas.leveling_active);
     #endif
     TERN_(AUTO_BED_LEVELING_UBL, mesh_conf.tilt_grid = HMI_datas.tilt_grid_size + 1);
+    #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+      NPrinted = HMI_datas.N_Printed;
+    #endif
     if (HMI_datas.corner_pos == 0) HMI_datas.corner_pos = 325;
     corner_pos = HMI_datas.corner_pos / 10.0f;
     #if HAS_FILAMENT_SENSOR
-      rsensormode = runout.mode[0];
+      Get_Rsensormode(runout.mode[0]);
     #endif
     #if ENABLED(DWIN_ICON_SET)
       iconset_current = HMI_datas.iconset_index;
@@ -7381,8 +7461,12 @@
     corner_pos = HMI_datas.corner_pos / 10.0f;
     TERN_(SOUND_MENU_ITEM, ui.buzzer_enabled = true);
     
+    #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+      NPrinted = 0;
+    #endif
+
     #if HAS_FILAMENT_SENSOR
-     rsensormode = runout.mode[0];
+      Get_Rsensormode(runout.mode[0]);
     #endif
     #if ENABLED(DWIN_ICON_SET)
       HMI_datas.iconset_index = iconset_current = DWIN_ICON_DEF;
@@ -7395,6 +7479,13 @@
       else HMI_datas.baudratemode = 1;
       sprintf_P(cmd, PSTR("M575 P%i B%i"), BAUD_PORT, HMI_datas.baudratemode ? 115 : 250);
       gcode.process_subcommands_now(cmd);
+    #endif
+
+    #if HAS_LEVELING_HEAT
+      HMI_datas.ena_LevelingTemp_hotend = true;
+      HMI_datas.ena_LevelingTemp_bed = true;
+      HMI_datas.LevelingTemp_hotend = LEVELING_NOZZLE_TEMP;
+      HMI_datas.LevelingTemp_bed = LEVELING_BED_TEMP;
     #endif
 
     #if EXTJYERSUI   
@@ -7432,6 +7523,19 @@
   #if HAS_FILAMENT_SENSOR
     // Filament Runout process
     void CrealityDWINClass::DWIN_Filament_Runout(const uint8_t extruder) { LCD_MESSAGE(MSG_RUNOUT_SENSOR); }
+
+    void CrealityDWINClass::Get_Rsensormode(RunoutMode Rsmode) {
+      switch (Rsmode) {
+           case RM_NONE: rsensormode = 0; break; // None 
+           case RM_OUT_ON_HIGH: rsensormode = 1; break; // mode HIGH
+           case RM_OUT_ON_LOW: rsensormode = 2; break; // mode LOW
+           case RM_RESERVED3: break;
+           case RM_RESERVED4: break;
+           case RM_RESERVED5: break;
+           case RM_RESERVED6: break;
+           case RM_MOTION_SENSOR: rsensormode = 3; break; // mode MOTION
+          }
+    }
   #endif
 
   void CrealityDWINClass::RebootPrinter() {                   
@@ -7462,6 +7566,36 @@
     DWIN_UpdateLCD();
     delay(500);
   }
+
+  #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+    void CrealityDWINClass::Autotilt_AfterNPrint(uint16_t NPrints) {
+      printStatistics prdatas = print_job_timer.getStats();
+      uint16_t _NPrints = prdatas.totalPrints;
+      if ((NPrints > 0) && ( _NPrints >= NPrints)) {
+          if (ubl.storage_slot < 0) { Popup_Handler(MeshSlot); return; }
+          else {
+            #if EITHER(PREHEAT_BEFORE_LEVELING, PREHEAT_BEFORE_LEVELING_PROBE_MANUALLY)
+              HeatBeforeLeveling();
+            #endif
+            Update_Status("");
+            Popup_Handler(Home);
+            gcode.home_all_axes(true);
+            Popup_Handler(Level);
+            if (mesh_conf.tilt_grid > 1) {
+                sprintf_P(cmd, PSTR("G29 J%i"), mesh_conf.tilt_grid);
+                gcode.process_subcommands_now(cmd);
+            }
+            else  gcode.process_subcommands_now(F("G29 J"));
+            planner.synchronize();
+            #if ENABLED(EEPROM_SETTINGS)
+              gcode.process_subcommands_now(F("G29 S"));
+              AudioFeedback();  
+              planner.synchronize();
+            #endif
+          }
+        }  
+      }
+  #endif
 
   void CrealityDWINClass::DWIN_Init_diag_endstops() {
     last_process = process;

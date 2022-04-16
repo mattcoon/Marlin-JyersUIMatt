@@ -406,27 +406,48 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
 
     #if ENABLED(WAIT_FOR_NOZZLE_HEAT)
       const celsius_t hotendPreheat = hotend_temp > thermalManager.degTargetHotend(0) ? hotend_temp : 0;
-      if (hotendPreheat) {
-        DEBUG_ECHOPGM("hotend (", hotendPreheat, ")");
-        thermalManager.setTargetHotend(hotendPreheat, 0);
-      }
+      #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+          if (HMI_datas.ena_LevelingTemp_hotend) {
+      #endif
+            if (hotendPreheat) {
+              DEBUG_ECHOPGM("hotend (", hotendPreheat, ")");
+              thermalManager.setTargetHotend(hotendPreheat, 0);
+            }
+      #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+        }
+        else thermalManager.setTargetHotend(0, 0);
+      #endif        
     #elif ENABLED(WAIT_FOR_BED_HEAT)
       constexpr celsius_t hotendPreheat = 0;
     #endif
 
     #if ENABLED(WAIT_FOR_BED_HEAT)
       const celsius_t bedPreheat = bed_temp > thermalManager.degTargetBed() ? bed_temp : 0;
-      if (bedPreheat) {
-        if (hotendPreheat) DEBUG_ECHOPGM(" and ");
-        DEBUG_ECHOPGM("bed (", bedPreheat, ")");
-        thermalManager.setTargetBed(bedPreheat);
-      }
+      #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+          if (HMI_datas.ena_LevelingTemp_bed) {
+      #endif
+          if (bedPreheat) {
+            if (hotendPreheat) DEBUG_ECHOPGM(" and ");
+            DEBUG_ECHOPGM("bed (", bedPreheat, ")");
+            thermalManager.setTargetBed(bedPreheat);
+          }
+      #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+        }
+        else thermalManager.setTargetBed(0);
+      #endif
+
     #endif
 
     DEBUG_EOL();
 
-    TERN_(WAIT_FOR_NOZZLE_HEAT, if (hotend_temp > thermalManager.wholeDegHotend(0) + (TEMP_WINDOW)) thermalManager.wait_for_hotend(0));
-    TERN_(WAIT_FOR_BED_HEAT,    if (bed_temp    > thermalManager.wholeDegBed() + (TEMP_BED_WINDOW)) thermalManager.wait_for_bed_heating());
+    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+      if (HMI_datas.ena_LevelingTemp_hotend) 
+    #endif
+        TERN_(WAIT_FOR_NOZZLE_HEAT, if (hotend_temp > thermalManager.wholeDegHotend(0) + (TEMP_WINDOW)) thermalManager.wait_for_hotend(0));
+    #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+      if (HMI_datas.ena_LevelingTemp_bed) 
+    #endif
+        TERN_(WAIT_FOR_BED_HEAT,    if (bed_temp    > thermalManager.wholeDegBed() + (TEMP_BED_WINDOW)) thermalManager.wait_for_bed_heating());
   }
 
 #endif

@@ -363,6 +363,14 @@ namespace Language_en {
     LSTR MSG_PID_TEMP_TOO_HIGH              = _UxGT("Autotune failed. Temperature too high.");
     LSTR MSG_PID_TIMEOUT                    = _UxGT("Autotune failed! Timeout.");
   #endif
+  LSTR MSG_MPC_MEASURING_AMBIENT          = _UxGT("Testing heat loss");
+  LSTR MSG_MPC_AUTOTUNE                   = _UxGT("MPC Autotune");
+  LSTR MSG_MPC_EDIT                       = _UxGT("Edit * MPC");
+  LSTR MSG_MPC_POWER_E                    = _UxGT("Power *");
+  LSTR MSG_MPC_BLOCK_HEAT_CAPACITY_E      = _UxGT("Block C *");
+  LSTR MSG_SENSOR_RESPONSIVENESS_E        = _UxGT("Sensor res *");
+  LSTR MSG_MPC_AMBIENT_XFER_COEFF_E       = _UxGT("Ambient h *");
+  LSTR MSG_MPC_AMBIENT_XFER_COEFF_FAN255_E= _UxGT("Amb. h fan *");
   LSTR MSG_SELECT                         = _UxGT("Select");
   LSTR MSG_SELECT_E                       = _UxGT("Select *");
   LSTR MSG_ACC                            = _UxGT("Accel");
@@ -435,6 +443,7 @@ namespace Language_en {
   LSTR MSG_CONTRAST                       = _UxGT("LCD Contrast");
   LSTR MSG_BRIGHTNESS                     = _UxGT("LCD Brightness");
   LSTR MSG_LCD_TIMEOUT_SEC                = _UxGT("LCD Timeout (s)");
+  LSTR MSG_SCREEN_TIMEOUT                 = _UxGT("LCD Timeout (m)");
   LSTR MSG_BRIGHTNESS_OFF                 = _UxGT("Backlight Off");
   LSTR MSG_STORE_EEPROM                   = _UxGT("Store Settings");
   LSTR MSG_LOAD_EEPROM                    = _UxGT("Load Settings");
@@ -659,7 +668,7 @@ namespace Language_en {
     LSTR MSG_MEDIA_NOT_INSERTED           = _UxGT("No media inserted.");
     LSTR MSG_PLEASE_WAIT_REBOOT           = _UxGT("Please wait until reboot. ");
     LSTR MSG_PLEASE_PREHEAT               = _UxGT("Please preheat the hot end.");
-    LSTR MSG_INFO_PRINT_COUNT_RESET       = _UxGT("Reset Print Counter");
+    LSTR MSG_INFO_PRINT_COUNT_RESET       = _UxGT("Reset Print Count");
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
       LSTR MSG_INFO_PRINT_COUNT             = _UxGT("Prints");
       LSTR MSG_INFO_PRINT_TIME              = _UxGT("Printed");
@@ -698,6 +707,7 @@ namespace Language_en {
 
   // Extra strings for JyersUI
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+    LSTR MSG_UBL_AUTOTILT_AFTER_N_PRINTS    = _UxGT("Tilt after N Prints");
     LSTR MSG_LIVEMOVE_Z                     = _UxGT("Live Move Z:");
     LSTR MSG_UNLOCK                         = _UxGT("Scroll to unlock.");
     LSTR MSG_PRINTER_LOCKED                 = _UxGT("Printer is Locked,");
@@ -706,7 +716,7 @@ namespace Language_en {
     LSTR MSG_CHGFIL                         = _UxGT("Change Fil");
     LSTR MSG_M_TRAMMING                     = _UxGT("M. Tramming");
     LSTR MSG_DIS_STEPS                      = _UxGT("Dis Steps M"); 
-    LSTR MSG_MAIN_SHORTCUT                  = _UxGT("Main Shortcut"); 
+  LSTR MSG_MAIN_SHORTCUT                  = _UxGT("Main Shortcut"); 
     LSTR MSG_LEVEL_BED_CLEAR_POINT          = _UxGT("Clear Point Value");
     LSTR MSG_UBL_AUTOTILT                   = _UxGT("Autotilt Current Mesh");
     LSTR MSG_VISUAL_SETTINGS                = _UxGT("Visual Settings");

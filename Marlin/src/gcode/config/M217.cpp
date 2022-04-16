@@ -186,13 +186,13 @@ void GcodeSuite::M217_report(const bool forReplay/*=true*/) {
           , SP_Y_STR, LINEAR_UNIT(toolchange_settings.change_point.y)
         #endif
         #if SECONDARY_AXES >= 1
-          , LIST_N(DOUBLE(SECONDARY_AXES),
-              PSTR(" I"), I_AXIS_UNIT(toolchange_settings.change_point.i),
-              PSTR(" J"), J_AXIS_UNIT(toolchange_settings.change_point.j),
-              PSTR(" K"), K_AXIS_UNIT(toolchange_settings.change_point.k),
-              SP_C_STR,   U_AXIS_UNIT(toolchange_settings.change_point.u),
-              PSTR(" H"), V_AXIS_UNIT(toolchange_settings.change_point.v),
-              PSTR(" O"), W_AXIS_UNIT(toolchange_settings.change_point.w),
+          , LIST_N(DOUBLE(SECONDARY_AXES)
+              , SP_I_STR,   I_AXIS_UNIT(toolchange_settings.change_point.i)
+              , SP_J_STR,   J_AXIS_UNIT(toolchange_settings.change_point.j)
+              , SP_K_STR,   K_AXIS_UNIT(toolchange_settings.change_point.k)
+              , SP_C_STR,   U_AXIS_UNIT(toolchange_settings.change_point.u)
+              , PSTR(" H"), V_AXIS_UNIT(toolchange_settings.change_point.v)
+              , PSTR(" O"), W_AXIS_UNIT(toolchange_settings.change_point.w)
             )
         #endif
       );

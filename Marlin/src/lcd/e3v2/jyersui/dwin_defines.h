@@ -51,6 +51,10 @@
   #define SOUND_MENU_ITEM
 #endif
 
+#if EITHER(PREHEAT_BEFORE_LEVELING, PREHEAT_BEFORE_LEVELING_PROBE_MANUALLY) && HAS_MESH
+    #define HAS_LEVELING_HEAT 1
+#endif
+
 #define HAS_ES_DIAG 1
 
 #define HAS_SHORTCUTS 1
@@ -126,7 +130,6 @@
 
 //#define BOOTPERSO
 
-
 typedef struct { 
 
   #if EXTJYERSUI && HAS_LEVELING
@@ -186,6 +189,11 @@ typedef struct {
       uint64_t host_action_label_2 : 48;
       uint64_t host_action_label_3 : 48;
     #endif
+    
+    #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
+      uint16_t N_Printed : 8;
+    #endif
+
     uint8_t shortcut_0 = 0;
     uint8_t shortcut_1 = 1;
 
@@ -201,7 +209,14 @@ typedef struct {
     #if ENABLED(BAUD_RATE_GCODE)
       bool baudratemode : 1;
     #endif
-    
+
+    #if HAS_LEVELING_HEAT
+      bool ena_LevelingTemp_hotend : 1;
+      bool ena_LevelingTemp_bed : 1;
+      celsius_t LevelingTemp_hotend = LEVELING_NOZZLE_TEMP;
+      celsius_t LevelingTemp_bed = LEVELING_BED_TEMP;
+    #endif
+
     #if EXTJYERSUI
       #if ENABLED(NOZZLE_PARK_FEATURE)
           xyz_int_t Park_point = DEF_NOZZLE_PARK_POINT;
@@ -216,6 +231,7 @@ typedef struct {
           uint8_t fil_fast_load_feedrate = DEF_FILAMENT_CHANGE_FAST_LOAD_FEEDRATE;
       #endif
     #endif
+    
 
   } HMI_datas_t;
 
