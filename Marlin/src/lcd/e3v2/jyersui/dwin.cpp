@@ -2411,7 +2411,7 @@
               Draw_Menu_Item(row, ICON_File, "Shutdown");
             }
             else {
-              hostui.shutdown();
+              hostui.shutdown(); 
             }
             break;
           #endif
