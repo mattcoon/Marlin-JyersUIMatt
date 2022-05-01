@@ -252,7 +252,7 @@
     bool State_runoutenable = false;
     uint8_t rsensormode = 0;
   #endif
-  
+
   uint8_t gridpoint;
   float corner_avg;
   float corner_pos;
@@ -643,6 +643,12 @@
       case ScreenL:
         DWIN_ScreenLock();
         break;
+      #if HAS_FILAMENT_SENSOR
+        case FilSenSToggle:
+          runout.enabled[0] = !runout.enabled[0];
+          Main_Menu_Icons();
+          break;
+      #endif
       default : break;
     }
   }
@@ -819,40 +825,39 @@
     if (selection == 0) {
       DRAW_IconWB(ICON, ICON_Print_1, 17, 68);
       DWIN_Draw_Rectangle(0, GetColor(HMI_datas.highlight_box, Color_White), 17, 68, 126, 167);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 52, 138, GET_TEXT_F(MSG_BUTTON_PRINT));
     }
     else {
       DRAW_IconWB(ICON, ICON_Print_0, 17, 68);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 52, 138, GET_TEXT_F(MSG_BUTTON_PRINT));
     }
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 52, 138, GET_TEXT_F(MSG_BUTTON_PRINT));
+
     if (selection == 1) {
       DRAW_IconWB(ICON, ICON_Prepare_1, 145, 68);
       DWIN_Draw_Rectangle(0, GetColor(HMI_datas.highlight_box, Color_White), 145, 68, 254, 167);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 170, 138, GET_TEXT_F(MSG_PREPARE));
     }
     else {
       DRAW_IconWB(ICON, ICON_Prepare_0, 145, 68);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 170, 138, GET_TEXT_F(MSG_PREPARE));
     }
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 170, 138, GET_TEXT_F(MSG_PREPARE));
+
     if (selection == 2) {
       DRAW_IconWB(ICON, ICON_Control_1, 17, 184);
       DWIN_Draw_Rectangle(0, GetColor(HMI_datas.highlight_box, Color_White), 17, 184, 126, 283);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 43, 255, GET_TEXT_F(MSG_CONTROL));
     }
     else {
       DRAW_IconWB(ICON, ICON_Control_0, 17, 184);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 43, 255, GET_TEXT_F(MSG_CONTROL));
     }
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 43, 255, GET_TEXT_F(MSG_CONTROL));
+
     #if HAS_ABL_OR_UBL
       if (selection == 3) {
         DRAW_IconWB(ICON, ICON_Leveling_1, 145, 184);
         DWIN_Draw_Rectangle(0, GetColor(HMI_datas.highlight_box, Color_White), 145, 184, 254, 283);
-        DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 179, 255, GET_TEXT_F(MSG_BUTTON_LEVEL));
       }
       else {
         DRAW_IconWB(ICON, ICON_Leveling_0, 145, 184);
-        DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 179, 255, GET_TEXT_F(MSG_BUTTON_LEVEL));
       }
+      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 179, 255, GET_TEXT_F(MSG_BUTTON_LEVEL));
     #else
       if (selection == 3) {
         DRAW_IconWB(ICON, ICON_Info_1, 145, 184);
@@ -864,24 +869,37 @@
         DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 181, 255, GET_TEXT_F(MSG_BUTTON_INFO));
       }
     #endif
+    const char * shortcut_text = _shortcut_list[shortcut0];
     if (selection == 4) {
       DWIN_Draw_Rectangle(1, Color_Shortcut_1, 17, 300, 126, 347);
       DWIN_Draw_Rectangle(0, GetColor(HMI_datas.highlight_box, Color_White), 17, 300, 126, 347);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 17 + ((109 - strlen(_shortcut_list[shortcut0]) * MENU_CHR_W) / 2), 316, F(_shortcut_list[shortcut0]));
     }
     else {
       DWIN_Draw_Rectangle(1, Color_Shortcut_0, 17, 300, 126, 347);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 17 + ((109 - strlen(_shortcut_list[shortcut0]) * MENU_CHR_W) / 2), 316, F(_shortcut_list[shortcut0]));
     }
+    if (shortcut0 == FilSenSToggle) {
+      if (runout.enabled[0])
+        shortcut_text = "Fil Enabled";
+      else 
+        shortcut_text = "Fil Disabled";
+    }
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 17 + ((109 - strlen(shortcut_text) * MENU_CHR_W) / 2), 316, F(shortcut_text));
+
+    shortcut_text = _shortcut_list[shortcut1];
     if (selection == 5) {
       DWIN_Draw_Rectangle(1, Color_Shortcut_1, 145, 300, 254, 347);
       DWIN_Draw_Rectangle(0, GetColor(HMI_datas.highlight_box, Color_White), 145, 300, 254, 347);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 145 + ((109 - strlen(_shortcut_list[shortcut1]) * MENU_CHR_W) / 2), 316, F(_shortcut_list[shortcut1]));
     }
     else {
       DWIN_Draw_Rectangle(1, Color_Shortcut_0, 145, 300, 254, 347);
-      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 145 + ((109 - strlen(_shortcut_list[shortcut1]) * MENU_CHR_W) / 2), 316, F(_shortcut_list[shortcut1]));
     }
+    if (shortcut1 == FilSenSToggle) {
+      if (runout.enabled[0])
+        shortcut_text = "Fil Enabled";
+      else 
+        shortcut_text = "Fil Disabled";
+    }
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 145 + ((109 - strlen(shortcut_text) * MENU_CHR_W) / 2), 316, F(shortcut_text));
   }
 
   void CrealityDWINClass::Draw_Main_Menu(uint8_t select/*=0*/) {
@@ -3579,7 +3597,8 @@
         #define VISUAL_BACK 0
         #define VISUAL_BACKLIGHT (VISUAL_BACK + 1)
         #define VISUAL_BRIGHTNESS (VISUAL_BACKLIGHT + 1)
-        #define VISUAL_FAN_PERCENT (VISUAL_BRIGHTNESS + HAS_FAN)
+        #define VISUAL_AUTOOFF (VISUAL_BRIGHTNESS + HAS_LCD_TIMEOUT)
+        #define VISUAL_FAN_PERCENT (VISUAL_AUTOOFF + HAS_FAN)
         #define VISUAL_TIME_FORMAT (VISUAL_FAN_PERCENT + 1)
         #define VISUAL_ICON_SET (VISUAL_TIME_FORMAT + ENABLED(DWIN_ICON_SET))
         #define VISUAL_COLOR_THEMES (VISUAL_ICON_SET + 1)
@@ -3609,6 +3628,17 @@
             else
               Modify_Value(ui.brightness, LCD_BRIGHTNESS_MIN, LCD_BRIGHTNESS_MAX, 1, ui.refresh_brightness);
             break;
+          #if LCD_BACKLIGHT_TIMEOUT 
+            case VISUAL_AUTOOFF:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_Brightness, GET_TEXT_F(MSG_LCD_TIMEOUT_SEC));
+                  Draw_Float(ui.lcd_backlight_timeout, row, false, 1);
+                }
+                else {
+                  Modify_Value(ui.lcd_backlight_timeout, LCD_BKL_TIMEOUT_MIN, LCD_BKL_TIMEOUT_MAX, 1, ui.refresh_backlight_timeout);
+                }
+              break;
+          #endif  
           #if HAS_FAN
             case VISUAL_FAN_PERCENT:
               if (draw) {
@@ -3636,14 +3666,11 @@
               case VISUAL_ICON_SET:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_Binary, GET_TEXT_F(MSG_ICON_SET));
-                  // Draw_Option(HMI_datas.iconset_index, icon_set, row);
                   Draw_Float(iconset_current, row, false, 1);
 
                 }
                 else {
-                  // Modify_Option(HMI_datas.iconset_index, icon_set, 2);
                   Modify_Value(iconset_current, 0, 9, 1, MarlinUI::init_lcd);
-
                 }
                 break;
             #endif // mmm end ICON setting
@@ -7154,8 +7181,17 @@
     #endif
   }
 
+
   void CrealityDWINClass::Screen_Update() {
-    //const millis_t ms = millis();
+
+    #if LCD_BACKLIGHT_TIMEOUT
+      if (ui.backlight_off_ms && ELAPSED(millis(), ui.backlight_off_ms)) {
+        ui.backlight = false;
+        ui.set_brightness(0);
+        ui.backlight_off_ms = 0;
+      }
+    #endif
+
     static millis_t scrltime = 0;
     if (ELAPSED(millis(), scrltime)) {
       scrltime = millis() + 200;
@@ -7418,7 +7454,7 @@
 
   void CrealityDWINClass::Reset_Settings() {
     HMI_datas.time_format_textual = false;
-    HMI_datas.fan_percent = false;
+    HMI_datas.fan_percent = FAN_SPEED_PERCENT_DEF;
     TERN_(AUTO_BED_LEVELING_UBL, HMI_datas.tilt_grid_size = 0);
     HMI_datas.corner_pos = 325;
     HMI_datas.cursor_color = TERN(Ext_Config_JyersUI, Def_cursor_color, 0);

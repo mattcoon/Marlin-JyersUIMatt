@@ -89,7 +89,7 @@
   #endif
 #elif MB(CREALITY_V423)
   #define PRINTERNAME "Ender-2 Pro"
-#elif (MB(CREALITY_V24S1_301) || MB(CREALITY_V24S1))
+#elif (MB(CREALITY_V24S1_301) || MB(CREALITY_V24S1_F401RC))
   #define PRINTERNAME "Ender-3 S1"
 #endif
 

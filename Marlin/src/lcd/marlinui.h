@@ -276,19 +276,12 @@ public:
   #endif
 
   #if LCD_BACKLIGHT_TIMEOUT
-    #define LCD_BKL_TIMEOUT_MIN 1
+    #define HAS_LCD_TIMEOUT 1
+    #define LCD_BKL_TIMEOUT_MIN 0
     #define LCD_BKL_TIMEOUT_MAX (60*60*18) // 18 hours max within uint16_t
     static uint16_t lcd_backlight_timeout;
     static millis_t backlight_off_ms;
     static void refresh_backlight_timeout();
-  #elif HAS_DISPLAY_SLEEP
-    #define SLEEP_TIMEOUT_MIN 0
-    #define SLEEP_TIMEOUT_MAX 99
-    static uint8_t sleep_timeout_minutes;
-    static millis_t screen_timeout_millis;
-    static void refresh_screen_timeout();
-    static void sleep_on();
-    static void sleep_off();
   #endif
 
   #if HAS_DWIN_E3V2_BASIC

@@ -113,7 +113,7 @@ enum colorID : uint8_t {
 };
 
 enum shortcutID : uint8_t {
-  Preheat_menu, Cooldown, Disable_stepper, Autohome, ZOffsetmenu , M_Tramming_menu, Change_Fil, Move_rel_Z, ScreenL
+  Preheat_menu, Cooldown, Disable_stepper, Autohome, ZOffsetmenu , M_Tramming_menu, Change_Fil, Move_rel_Z, ScreenL,FilSenSToggle
 };
 
 
@@ -121,7 +121,7 @@ extern char Hostfilename[66];
 
 #define Color_Shortcut_0    0x10E4
 #define Color_Shortcut_1    0x29A6
-#define NB_Shortcuts        8
+#define NB_Shortcuts        9
 
 #define Custom_Colors_no_Black 14
 #define Custom_Colors       15
@@ -162,12 +162,9 @@ public:
   #if HAS_FILAMENT_SENSOR
    static constexpr const char * const runoutsensor_modes[4] = { "   NONE" , "   HIGH" , "    LOW", " MOTION" };
   #endif
-  // #if ENABLED(DWIN_ICON_SET)
-  // static constexpr const char * const icon_set[2] = { " Custom" , "  Stock" };
-  // static constexpr const uint8_t icon_set_num[2] = {7,9};
-  // #endif
-  static constexpr const char * const shortcut_list[NB_Shortcuts + 1] = { "Preheat" , " Cooldn" , "D. Step" , "HomeXYZ" , "ZOffset" , "M.Tram." , "Chg Fil" , "Move Z", "ScreenL" };
-  static constexpr const char * const _shortcut_list[NB_Shortcuts + 1] = { GET_TEXT(MSG_PREHEAT) , GET_TEXT(MSG_COOLDOWN) , GET_TEXT(MSG_DIS_STEPS) , GET_TEXT(MSG_AUTO_HOME) , GET_TEXT(MSG_OFFSET_Z) , GET_TEXT(MSG_M_TRAMMING) , GET_TEXT(MSG_CHGFIL) , GET_TEXT(MSG_MOVE_Z) , GET_TEXT(MSG_SCREENLOCK) };
+
+  static constexpr const char * const shortcut_list[NB_Shortcuts + 1] = { "Preheat" , " Coold." , "D. Step" , "HomeXYZ" , "ZOffset" , "M.Tram." , "Chg Fil" , "Move Z", "ScreenL", "FilSns"};
+  static constexpr const char * const _shortcut_list[NB_Shortcuts + 1] = { GET_TEXT(MSG_PREHEAT) , GET_TEXT(MSG_COOLDOWN) , GET_TEXT(MSG_DIS_STEPS) , GET_TEXT(MSG_AUTO_HOME) , GET_TEXT(MSG_OFFSET_Z) , GET_TEXT(MSG_M_TRAMMING) , GET_TEXT(MSG_CHGFIL) , GET_TEXT(MSG_MOVE_Z) , GET_TEXT(MSG_SCREENLOCK), GET_TEXT(MSG_FILAMENT) };
 
   static void Clear_Screen(uint8_t e=3);
   static void Draw_Float(float value, uint8_t row, bool selected=false, uint8_t minunit=10);

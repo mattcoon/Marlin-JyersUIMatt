@@ -103,6 +103,7 @@ EncoderState Encoder_ReceiveAnalyze() {
           return was_waiting ? ENCODER_DIFF_NO : ENCODER_DIFF_ENTER;
         #endif
       }
+      ui.refresh_backlight_timeout();
     }
     else return ENCODER_DIFF_NO;
   }
