@@ -41,13 +41,12 @@
 //============================= Getting Started =============================
 //===========================================================================
 
-// TODO: quick home - TURBO_BACK_MENU_ITEM
-// TODO: LCD sleep M255 in bug fix
-// TODO: get MPC working
+// TODO: quick home - TURBO_BACK_MENU_ITEM// TODO: get MPC working
 // TODO: add MPC menues
+// TODO: UBL flex mesh
+// TODO: cooldown after filament change
 
 // In test
-// TODO: print again on SD only
 
 /**
  * Here are some useful links to help get your machine configured and calibrated:
@@ -700,6 +699,7 @@
   #define MPC_STEADYSTATE 0.5f                        // (K/s) Temperature change rate for steady state logic to be enforced.
 
   #define MPC_TUNING_POS { X_CENTER, Y_CENTER, 1.0f } // (mm) M306 Autotuning position, ideally bed center just above the surface.
+  #define MPC_TUNING_END_Z 10.0f                      // (mm) M306 Autotuning final Z position.
 #endif
 
 //===========================================================================
