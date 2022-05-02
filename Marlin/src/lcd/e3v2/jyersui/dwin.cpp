@@ -1724,7 +1724,8 @@
       case HomeMenu:
 
         #define HOME_BACK  0
-        #define HOME_ALL   (HOME_BACK + 1)
+        #define HOME_MAIN (HOME_BACK + 1)
+        #define HOME_ALL   (HOME_MAIN + 1)
         #define HOME_X     (HOME_ALL + 1)
         #define HOME_Y     (HOME_X + 1)
         #define HOME_Z     (HOME_Y + 1)
@@ -1737,6 +1738,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Prepare, PREPARE_HOME);
+            break;
+          case HOME_MAIN:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case HOME_ALL:
             if (draw)
@@ -1893,7 +1901,8 @@
       case ManualLevel:
 
         #define MLEVEL_BACK 0
-        #define MLEVEL_PROBE (MLEVEL_BACK + ENABLED(HAS_BED_PROBE))
+        #define MLEVEL_HOME  (MLEVEL_BACK + 1) // mmm
+        #define MLEVEL_PROBE (MLEVEL_HOME + ENABLED(HAS_BED_PROBE))
         #define MLEVEL_BL (MLEVEL_PROBE + 1)
         #define MLEVEL_TL (MLEVEL_BL + 1)
         #define MLEVEL_TR (MLEVEL_TL + 1)
@@ -1913,6 +1922,13 @@
               TERN_(HAS_LEVELING, set_bed_leveling_enabled(level_state));
               if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
               else Draw_Menu(Prepare, PREPARE_MANUALLEVEL);
+            }
+            break;
+          case MLEVEL_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
             }
             break;
           #if HAS_BED_PROBE
@@ -2081,7 +2097,8 @@
         case ZOffset:
 
           #define ZOFFSET_BACK 0
-          #define ZOFFSET_HOME (ZOFFSET_BACK + 1)
+          #define ZOFFSET_MAIN (ZOFFSET_BACK + 1) // mmm 
+          #define ZOFFSET_HOME (ZOFFSET_MAIN + 1)
           #define ZOFFSET_MODE (ZOFFSET_HOME + 1)
           #define ZOFFSET_OFFSET (ZOFFSET_MODE + 1)
           #define ZOFFSET_UP (ZOFFSET_OFFSET + 1)
@@ -2103,6 +2120,13 @@
                 TERN_(HAS_LEVELING, set_bed_leveling_enabled(level_state));
                 if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
                 else Draw_Menu(Prepare, PREPARE_ZOFFSET);
+              }
+              break;
+            case ZOFFSET_MAIN:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
               }
               break;
             case ZOFFSET_HOME:
@@ -2192,7 +2216,8 @@
         case Preheat: {
         
           #define PREHEAT_BACK 0
-          #define PREHEAT_MODE (PREHEAT_BACK + 1)
+          #define PREHEAT_HOME (PREHEAT_BACK + 1)
+          #define PREHEAT_MODE (PREHEAT_HOME + 1)
           #define PREHEAT_1 (PREHEAT_MODE + 1)
           #define PREHEAT_2 (PREHEAT_1 + (PREHEAT_COUNT >= 2))
           #define PREHEAT_3 (PREHEAT_2 + (PREHEAT_COUNT >= 3))
@@ -2213,6 +2238,13 @@
               else {
                 if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
                    else Draw_Menu(Prepare, PREPARE_PREHEAT); }
+              break;
+            case PREHEAT_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             case PREHEAT_MODE:
               if (draw) {
@@ -2280,7 +2312,8 @@
         case ChangeFilament:
 
           #define CHANGEFIL_BACK 0
-          #define CHANGEFIL_PARKHEAD (CHANGEFIL_BACK + 1)
+          #define CHANGEFIL_HOME (CHANGEFIL_BACK + 1)
+          #define CHANGEFIL_PARKHEAD (CHANGEFIL_HOME + 1)
           #define CHANGEFIL_LOAD (CHANGEFIL_PARKHEAD + 1)
           #define CHANGEFIL_UNLOAD (CHANGEFIL_LOAD + 1)
           #define CHANGEFIL_CHANGE (CHANGEFIL_UNLOAD + 1)
@@ -2293,6 +2326,13 @@
               else {
                 if (flag_shortcut) { flag_shortcut = false; Draw_Main_Menu(1); }
                 else Draw_Menu(Prepare, PREPARE_CHANGEFIL);
+              }
+              break;
+            case CHANGEFIL_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
               }
               break;
             case CHANGEFIL_PARKHEAD:
@@ -2382,7 +2422,8 @@
         case HostActions:
 
           #define HOSTACTIONS_BACK 0
-          #define HOSTACTIONS_1 (HOSTACTIONS_BACK + 1)
+          #define HOSTACTIONS_HOME (HOSTACTIONS_BACK + 1)
+          #define HOSTACTIONS_1 (HOSTACTIONS_HOME + 1)
           #define HOSTACTIONS_2 (HOSTACTIONS_1 + 1)
           #define HOSTACTIONS_3 (HOSTACTIONS_2 + 1)
           #define HOSTACTIONS_4 (HOSTACTIONS_3 + ENABLED(HOST_SHUTDOWN_MENU_ITEM))
@@ -2394,6 +2435,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(Prepare, PREPARE_ACTIONCOMMANDS);
+              break;
+            case HOSTACTIONS_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             case HOSTACTIONS_1:
               if (draw) {
@@ -2548,7 +2596,8 @@
       case TempMenu:
 
         #define TEMP_BACK 0
-        #define TEMP_HOTEND (TEMP_BACK + ENABLED(HAS_HOTEND))
+        #define TEMP_HOME (TEMP_BACK + 1)
+        #define TEMP_HOTEND (TEMP_HOME + ENABLED(HAS_HOTEND))
         #define TEMP_BED (TEMP_HOTEND + ENABLED(HAS_HEATED_BED))
         #define TEMP_FAN (TEMP_BED + ENABLED(HAS_FAN))
         #define TEMP_PID (TEMP_FAN + (ANY(HAS_HOTEND, HAS_HEATED_BED) && ANY(PIDTEMP, PIDTEMPBED)))
@@ -2566,6 +2615,13 @@
             else
               Draw_Menu(Control, CONTROL_TEMP);
             break;
+            case TEMP_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
+              break;
           #if HAS_HOTEND
             case TEMP_HOTEND:
               if (draw) {
@@ -2652,7 +2708,8 @@
         case PID:
 
           #define PID_BACK 0
-          #define PID_HOTEND (PID_BACK + (HAS_HOTEND && ENABLED(PIDTEMP)))
+          #define PID_HOME (PID_BACK + 1)
+          #define PID_HOTEND (PID_HOME + (HAS_HOTEND && ENABLED(PIDTEMP)))
           #define PID_BED (PID_HOTEND + (HAS_HEATED_BED && ENABLED(PIDTEMPBED)))
           #define PID_CYCLES (PID_BED + 1)
           #define PID_SAVE (PID_CYCLES +1)
@@ -2666,6 +2723,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(TempMenu, TEMP_PID);
+              break;
+            case PID_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_HOTEND && ENABLED(PIDTEMP)
               case PID_HOTEND:
@@ -2707,7 +2771,8 @@
         case HotendPID:
 
           #define HOTENDPID_BACK 0
-          #define HOTENDPID_TUNE (HOTENDPID_BACK + 1)
+          #define HOTENDPID_HOME (HOTENDPID_BACK + 1)
+          #define HOTENDPID_TUNE (HOTENDPID_HOME + 1)
           #define HOTENDPID_TEMP (HOTENDPID_TUNE + 1)
           #define HOTENDPID_FAN (HOTENDPID_TEMP + 1)
           #define HOTENDPID_KP (HOTENDPID_FAN + 1)
@@ -2723,6 +2788,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(PID, PID_HOTEND);
+              break;
+            case HOTENDPID_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             case HOTENDPID_TUNE:
               if (draw)
@@ -2789,7 +2861,8 @@
         case BedPID:
 
           #define BEDPID_BACK 0
-          #define BEDPID_TUNE (BEDPID_BACK + 1)
+          #define BEDPID_HOME (BEDPID_BACK + 1)
+          #define BEDPID_TUNE (BEDPID_HOME + 1)
           #define BEDPID_TEMP (BEDPID_TUNE + 1)
           #define BEDPID_KP (BEDPID_TEMP + 1)
           #define BEDPID_KI (BEDPID_KP + 1)
@@ -2804,6 +2877,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(PID, PID_BED);
+              break;
+            case BEDPID_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             case BEDPID_TUNE:
               if (draw)
@@ -2860,7 +2940,8 @@
         case Preheat1:
 
           #define PREHEAT1_BACK 0
-          #define PREHEAT1_HOTEND (PREHEAT1_BACK + ENABLED(HAS_HOTEND))
+          #define PREHEAT1_HOME (PREHEAT1_BACK + 1)
+          #define PREHEAT1_HOTEND (PREHEAT1_HOME + ENABLED(HAS_HOTEND))
           #define PREHEAT1_BED (PREHEAT1_HOTEND + ENABLED(HAS_HEATED_BED))
           #define PREHEAT1_FAN (PREHEAT1_BED + ENABLED(HAS_FAN))
           #define PREHEAT1_TOTAL PREHEAT1_FAN
@@ -2871,6 +2952,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(TempMenu, TEMP_PREHEAT1);
+              break;
+            case PREHEAT1_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_HOTEND
               case PREHEAT1_HOTEND:
@@ -2910,7 +2998,8 @@
         case Preheat2:
 
           #define PREHEAT2_BACK 0
-          #define PREHEAT2_HOTEND (PREHEAT2_BACK + ENABLED(HAS_HOTEND))
+          #define PREHEAT2_HOME (PREHEAT2_BACK + 1)
+          #define PREHEAT2_HOTEND (PREHEAT2_HOME + ENABLED(HAS_HOTEND))
           #define PREHEAT2_BED (PREHEAT2_HOTEND + ENABLED(HAS_HEATED_BED))
           #define PREHEAT2_FAN (PREHEAT2_BED + ENABLED(HAS_FAN))
           #define PREHEAT2_TOTAL PREHEAT2_FAN
@@ -2921,6 +3010,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(TempMenu, TEMP_PREHEAT2);
+              break;
+            case PREHEAT2_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_HOTEND
               case PREHEAT2_HOTEND:
@@ -2960,7 +3056,8 @@
         case Preheat3:
 
           #define PREHEAT3_BACK 0
-          #define PREHEAT3_HOTEND (PREHEAT3_BACK + ENABLED(HAS_HOTEND))
+          #define PREHEAT3_HOME (PREHEAT3_BACK + 1)
+          #define PREHEAT3_HOTEND (PREHEAT3_HOME + ENABLED(HAS_HOTEND))
           #define PREHEAT3_BED (PREHEAT3_HOTEND + ENABLED(HAS_HEATED_BED))
           #define PREHEAT3_FAN (PREHEAT3_BED + ENABLED(HAS_FAN))
           #define PREHEAT3_TOTAL PREHEAT3_FAN
@@ -2971,6 +3068,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(TempMenu, TEMP_PREHEAT3);
+              break;
+            case PREHEAT3_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_HOTEND
               case PREHEAT3_HOTEND:
@@ -3010,7 +3114,8 @@
         case Preheat4:
 
           #define PREHEAT4_BACK 0
-          #define PREHEAT4_HOTEND (PREHEAT4_BACK + ENABLED(HAS_HOTEND))
+          #define PREHEAT4_HOME (PREHEAT4_BACK + 1)
+          #define PREHEAT4_HOTEND (PREHEAT4_HOME + ENABLED(HAS_HOTEND))
           #define PREHEAT4_BED (PREHEAT4_HOTEND + ENABLED(HAS_HEATED_BED))
           #define PREHEAT4_FAN (PREHEAT4_BED + ENABLED(HAS_FAN))
           #define PREHEAT4_TOTAL PREHEAT4_FAN
@@ -3021,6 +3126,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(TempMenu, TEMP_PREHEAT4);
+              break;
+            case PREHEAT4_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_HOTEND
               case PREHEAT4_HOTEND:
@@ -3060,7 +3172,8 @@
         case Preheat5:
 
           #define PREHEAT5_BACK 0
-          #define PREHEAT5_HOTEND (PREHEAT5_BACK + ENABLED(HAS_HOTEND))
+          #define PREHEAT5_HOME (PREHEAT5_BACK + 1)
+          #define PREHEAT5_HOTEND (PREHEAT5_HOME + ENABLED(HAS_HOTEND))
           #define PREHEAT5_BED (PREHEAT5_HOTEND + ENABLED(HAS_HEATED_BED))
           #define PREHEAT5_FAN (PREHEAT5_BED + ENABLED(HAS_FAN))
           #define PREHEAT5_TOTAL PREHEAT5_FAN
@@ -3071,6 +3184,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(TempMenu, TEMP_PREHEAT5);
+              break;
+            case PREHEAT5_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_HOTEND
               case PREHEAT5_HOTEND:
@@ -3109,7 +3229,8 @@
       case Motion:
 
         #define MOTION_BACK 0
-        #define MOTION_HOMEOFFSETS (MOTION_BACK + 1)
+        #define MOTION_HOME (MOTION_BACK + 1)
+        #define MOTION_HOMEOFFSETS (MOTION_HOME + 1)
         #define MOTION_SPEED (MOTION_HOMEOFFSETS + 1)
         #define MOTION_ACCEL (MOTION_SPEED + 1)
         #define MOTION_JERK (MOTION_ACCEL + ENABLED(HAS_CLASSIC_JERK))
@@ -3125,6 +3246,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Control, CONTROL_MOTION);
+            break;
+          case MOTION_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case MOTION_HOMEOFFSETS:
             if (draw)
@@ -3196,7 +3324,8 @@
         case FwRetraction:
 
           #define FWR_BACK 0
-          #define FWR_RET_LENGTH (FWR_BACK + 1)
+          #define FWR_HOME ( FWR_BACK+ 1)
+          #define FWR_RET_LENGTH (FWR_HOME + 1)
           #define FWR_RET_SPEED (FWR_RET_LENGTH + 1)
           #define FWR_ZLIFT (FWR_RET_SPEED + 1)
           #define FWR_REC_EXT_LENGTH (FWR_ZLIFT + 1)
@@ -3216,6 +3345,13 @@
               }
               else
                 Draw_Menu(Control, CONTROL_FWRETRACT);
+            }
+            break;
+          case FWR_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
             }
             break;
           case FWR_RET_LENGTH:
@@ -3274,7 +3410,8 @@
         case Parkmenu:
 
           #define PARKMENU_BACK 0
-          #define PARKMENU_POSX (PARKMENU_BACK + 1)
+          #define PARKMENU_HOME (PARKMENU_BACK + 1)
+          #define PARKMENU_POSX (PARKMENU_HOME + 1)
           #define PARKMENU_POSY (PARKMENU_POSX + 1)
           #define PARKMENU_POSZ (PARKMENU_POSY + 1)
           #define PARKMENU_TOTAL PARKMENU_POSZ
@@ -3286,6 +3423,12 @@
               else
                 Draw_Menu(Control, CONTROL_PARKMENU);
               break;
+            case PARKMENU_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
             case PARKMENU_POSX:
               if (draw) {
                 Draw_Menu_Item(row, ICON_ParkPosX, GET_TEXT_F(MSG_FILAMENT_PARK_X));
@@ -3317,7 +3460,8 @@
       case HomeOffsets:
 
         #define HOMEOFFSETS_BACK 0
-        #define HOMEOFFSETS_XOFFSET (HOMEOFFSETS_BACK + 1)
+        #define HOMEOFFSETS_HOME (HOMEOFFSETS_BACK + 1)
+        #define HOMEOFFSETS_XOFFSET (HOMEOFFSETS_HOME + 1)
         #define HOMEOFFSETS_YOFFSET (HOMEOFFSETS_XOFFSET + 1)
         #define HOMEOFFSETS_TOTAL HOMEOFFSETS_YOFFSET
 
@@ -3327,6 +3471,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Motion, MOTION_HOMEOFFSETS);
+            break;
+          case HOMEOFFSETS_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case HOMEOFFSETS_XOFFSET:
             if (draw) {
@@ -3349,7 +3500,8 @@
       case MaxSpeed:
 
         #define SPEED_BACK 0
-        #define SPEED_X (SPEED_BACK + 1)
+        #define SPEED_HOME (SPEED_BACK + 1)
+        #define SPEED_X (SPEED_HOME + 1)
         #define SPEED_Y (SPEED_X + 1)
         #define SPEED_Z (SPEED_Y + 1)
         #define SPEED_E (SPEED_Z + ENABLED(HAS_HOTEND))
@@ -3361,6 +3513,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Motion, MOTION_SPEED);
+            break;
+          case SPEED_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case SPEED_X:
             if (draw) {
@@ -3409,7 +3568,8 @@
       case MaxAcceleration:
 
         #define ACCEL_BACK 0
-        #define ACCEL_X (ACCEL_BACK + 1)
+        #define ACCEL_HOME (ACCEL_BACK + 1)
+        #define ACCEL_X (ACCEL_HOME + 1)
         #define ACCEL_Y (ACCEL_X + 1)
         #define ACCEL_Z (ACCEL_Y + 1)
         #define ACCEL_E (ACCEL_Z + ENABLED(HAS_HOTEND))
@@ -3421,6 +3581,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Motion, MOTION_ACCEL);
+            break;
+          case ACCEL_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case ACCEL_X:
             if (draw) {
@@ -3462,7 +3629,8 @@
         case MaxJerk:
 
           #define JERK_BACK 0
-          #define JERK_X (JERK_BACK + 1)
+          #define JERK_HOME (JERK_BACK + 1)
+          #define JERK_X (JERK_HOME + 1)
           #define JERK_Y (JERK_X + 1)
           #define JERK_Z (JERK_Y + 1)
           #define JERK_E (JERK_Z + ENABLED(HAS_HOTEND))
@@ -3474,6 +3642,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(Motion, MOTION_JERK);
+              break;
+            case JERK_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             case JERK_X:
               if (draw) {
@@ -3542,7 +3717,8 @@
       case Steps:
 
         #define STEPS_BACK 0
-        #define STEPS_X (STEPS_BACK + 1)
+        #define STEPS_HOME (STEPS_BACK + 1)
+        #define STEPS_X (STEPS_HOME + 1)
         #define STEPS_Y (STEPS_X + 1)
         #define STEPS_Z (STEPS_Y + 1)
         #define STEPS_E (STEPS_Z + ENABLED(HAS_HOTEND))
@@ -3554,6 +3730,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Motion, MOTION_STEPS);
+            break;
+          case STEPS_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case STEPS_X:
             if (draw) {
@@ -3595,7 +3778,8 @@
       case Visual:
 
         #define VISUAL_BACK 0
-        #define VISUAL_BACKLIGHT (VISUAL_BACK + 1)
+        #define VISUAL_HOME (VISUAL_BACK + 1)
+        #define VISUAL_BACKLIGHT (VISUAL_HOME + 1)
         #define VISUAL_BRIGHTNESS (VISUAL_BACKLIGHT + 1)
         #define VISUAL_AUTOOFF (VISUAL_BRIGHTNESS + HAS_LCD_TIMEOUT)
         #define VISUAL_FAN_PERCENT (VISUAL_AUTOOFF + HAS_FAN)
@@ -3613,6 +3797,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Control, CONTROL_VISUAL);
+            break;
+          case VISUAL_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case VISUAL_BACKLIGHT:
             if (draw)
@@ -3721,7 +3912,8 @@
       case ColorSettings:
 
         #define COLORSETTINGS_BACK 0
-        #define COLORSETTINGS_CURSOR (COLORSETTINGS_BACK + 1)
+        #define COLORSETTINGS_HOME (COLORSETTINGS_BACK + 1)
+        #define COLORSETTINGS_CURSOR (COLORSETTINGS_HOME + 1)
         #define COLORSETTINGS_SPLIT_LINE (COLORSETTINGS_CURSOR + 1)
         #define COLORSETTINGS_ITEMS_MENU_TEXT (COLORSETTINGS_SPLIT_LINE + 1)
         #define COLORSETTINGS_ICONS_MENU_TEXT (COLORSETTINGS_ITEMS_MENU_TEXT + 1)
@@ -3759,6 +3951,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Visual, VISUAL_COLOR_THEMES);
+            break;
+          case COLORSETTINGS_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case COLORSETTINGS_CURSOR:
             if (draw) {
@@ -4022,7 +4221,8 @@
       case HostSettings:
 
         #define HOSTSETTINGS_BACK 0
-        #define HOSTSETTINGS_ACTIONCOMMANDS (HOSTSETTINGS_BACK + ENABLED(HOST_ACTION_COMMANDS))
+        #define HOSTSETTINGS_HOME  (HOSTSETTINGS_BACK + 1)
+        #define HOSTSETTINGS_ACTIONCOMMANDS (HOSTSETTINGS_HOME + ENABLED(HOST_ACTION_COMMANDS))
         #define HOSTSETTINGS_TOTAL HOSTSETTINGS_ACTIONCOMMANDS
 
         switch (item) {
@@ -4031,6 +4231,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Menu(Control, CONTROL_HOSTSETTINGS);
+            break;
+          case HOSTSETTINGS_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           #if ENABLED(HOST_ACTION_COMMANDS)
             case HOSTSETTINGS_ACTIONCOMMANDS:
@@ -4050,7 +4257,8 @@
       case ActionCommands:
 
         #define ACTIONCOMMANDS_BACK 0
-        #define ACTIONCOMMANDS_1 (ACTIONCOMMANDS_BACK + 1)
+        #define ACTIONCOMMANDS_HOME (ACTIONCOMMANDS_BACK + 1)
+        #define ACTIONCOMMANDS_1 (ACTIONCOMMANDS_HOME + 1)
         #define ACTIONCOMMANDS_2 (ACTIONCOMMANDS_1 + 1)
         #define ACTIONCOMMANDS_3 (ACTIONCOMMANDS_2 + 1)
         #define ACTIONCOMMANDS_TOTAL ACTIONCOMMANDS_3
@@ -4062,6 +4270,13 @@
             }
             else {
               Draw_Menu(HostSettings, HOSTSETTINGS_ACTIONCOMMANDS);
+            }
+            break;
+          case ACTIONCOMMANDS_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
             }
             break;
           case ACTIONCOMMANDS_1:
@@ -4101,7 +4316,8 @@
       case Advanced:
 
         #define ADVANCED_BACK 0
-        #define ADVANCED_BEEPER (ADVANCED_BACK + ENABLED(SOUND_MENU_ITEM))
+        #define ADVANCED_HOME (ADVANCED_BACK + 1)
+        #define ADVANCED_BEEPER (ADVANCED_HOME + ENABLED(SOUND_MENU_ITEM))
         #define ADVANCED_PROBE (ADVANCED_BEEPER + ENABLED(HAS_BED_PROBE))
         #define ADVANCED_CORNER (ADVANCED_PROBE + 1)
         #define ADVANCED_LA (ADVANCED_CORNER + ENABLED(LIN_ADVANCE))
@@ -4120,6 +4336,13 @@
               Draw_Menu(Control, CONTROL_ADVANCED);
             break;
 
+          case ADVANCED_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
+            break;
           #if ENABLED(SOUND_MENU_ITEM)
             case ADVANCED_BEEPER:
               if (draw) {
@@ -4220,7 +4443,8 @@
         case ProbeMenu:
 
           #define PROBE_BACK 0
-          #define PROBE_XOFFSET (PROBE_BACK + 1)
+          #define PROBE_HOME (PROBE_BACK + 1)
+          #define PROBE_XOFFSET (PROBE_HOME + 1)
           #define PROBE_YOFFSET (PROBE_XOFFSET + 1)
           #define PROBE_ZOFFSET (PROBE_YOFFSET + 1)
           #define PROBE_PMARGIN (PROBE_ZOFFSET + EXTJYERSUI)
@@ -4243,6 +4467,13 @@
                 else
                   Draw_Menu(Advanced, ADVANCED_PROBE);
                 break;
+            case PROBE_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
+              break;
               case PROBE_XOFFSET:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_StepX, GET_TEXT_F(MSG_ZPROBE_XOFFSET));
@@ -4360,7 +4591,8 @@
       case Filmenu:
 
         #define FIL_BACK 0
-        #define FIL_SENSORENABLED (FIL_BACK + HAS_FILAMENT_SENSOR)
+        #define FIL_HOME (FIL_BACK + 1)
+        #define FIL_SENSORENABLED (FIL_HOME + ENABLED(HAS_FILAMENT_SENSOR))
         #define FIL_RUNOUTACTIVE (FIL_SENSORENABLED + (BOTH(HAS_FILAMENT_SENSOR, EXTJYERSUI)))
         #define FIL_SENSORDISTANCE (FIL_RUNOUTACTIVE + 1)
         #define FIL_LOAD (FIL_SENSORDISTANCE + ENABLED(ADVANCED_PAUSE_FEATURE))
@@ -4377,7 +4609,13 @@
             else
               Draw_Menu(Advanced, ADVANCED_FILMENU);
             break;
-
+          case FIL_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
+            break;
           #if HAS_FILAMENT_SENSOR
             case FIL_SENSORENABLED:
               if (draw) {
@@ -4762,7 +5000,8 @@
         case LevelView:
 
           #define LEVELING_VIEW_BACK 0
-          #define LEVELING_VIEW_MESH (LEVELING_VIEW_BACK + 1)
+          #define LEVELING_VIEW_HOME (LEVELING_VIEW_BACK + 1)
+          #define LEVELING_VIEW_MESH (LEVELING_VIEW_HOME + 1)
           #define LEVELING_VIEW_TEXT (LEVELING_VIEW_MESH + 1)
           #define LEVELING_VIEW_ASYMMETRIC (LEVELING_VIEW_TEXT + 1)
           #define LEVELING_VIEW_TOTAL LEVELING_VIEW_ASYMMETRIC
@@ -4773,6 +5012,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(Leveling, LEVELING_VIEW);
+              break;
+            case LEVELING_VIEW_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             case LEVELING_VIEW_MESH:
               if (draw)
@@ -4806,7 +5052,8 @@
         case LevelSettings:
 
           #define LEVELING_SETTINGS_BACK 0
-          #define LEVELING_SETTINGS_HOTENDTEMP_ENA (LEVELING_SETTINGS_BACK + ENABLED(HAS_LEVELING_HEAT))
+          #define LEVELING_SETTINGS_HOME (LEVELING_SETTINGS_BACK + 1)
+          #define LEVELING_SETTINGS_HOTENDTEMP_ENA (LEVELING_SETTINGS_HOME + ENABLED(HAS_LEVELING_HEAT))
           #define LEVELING_SETTINGS_HOTENDTEMP (LEVELING_SETTINGS_HOTENDTEMP_ENA + ENABLED(HAS_LEVELING_HEAT))
           #define LEVELING_SETTINGS_BEDTEMP_ENA (LEVELING_SETTINGS_HOTENDTEMP  + ENABLED(HAS_LEVELING_HEAT))
           #define LEVELING_SETTINGS_BEDTEMP (LEVELING_SETTINGS_BEDTEMP_ENA + ENABLED(HAS_LEVELING_HEAT))
@@ -4824,6 +5071,13 @@
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else
                 Draw_Menu(Leveling, LEVELING_SETTINGS);
+              break;
+            case LEVELING_SETTINGS_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
               break;
             #if HAS_LEVELING_HEAT
               case LEVELING_SETTINGS_HOTENDTEMP_ENA:
@@ -4941,7 +5195,8 @@
         case LevelManual:
 
           #define LEVELING_M_BACK 0
-          #define LEVELING_M_MODELIVE (LEVELING_M_BACK + 1)
+          #define LEVELING_M_HOME (LEVELING_M_BACK + 1)
+          #define LEVELING_M_MODELIVE (LEVELING_M_HOME + 1)
           #define LEVELING_M_X (LEVELING_M_MODELIVE + 1)
           #define LEVELING_M_Y (LEVELING_M_X + 1)
           #define LEVELING_M_NEXT (LEVELING_M_Y + 1)
@@ -4964,6 +5219,13 @@
                 set_bed_leveling_enabled(level_state);
                 TERN_(AUTO_BED_LEVELING_BILINEAR, bbl.refresh_bed_level());
                 Popup_Handler(SaveLevel, true);
+              }
+              break;
+            case LEVELING_M_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
               }
               break;
             case LEVELING_M_MODELIVE:
@@ -5356,7 +5618,8 @@
       case Tune:
 
         #define TUNE_BACK 0
-        #define TUNE_BACKLIGHT_OFF (TUNE_BACK + 1)
+        #define TUNE_HOME (TUNE_BACK + 1)
+        #define TUNE_BACKLIGHT_OFF (TUNE_HOME + 1)
         #define TUNE_BACKLIGHT (TUNE_BACKLIGHT_OFF + 1)
         #define TUNE_SPEED (TUNE_BACKLIGHT + 1)
         #define TUNE_FLOW (TUNE_SPEED + ENABLED(HAS_HOTEND))
@@ -5379,6 +5642,13 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Print_Screen();
+            break;
+          case TUNE_HOME:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+            else {
+              Draw_Main_Menu();
+            }
             break;
           case TUNE_SPEED:
             if (draw) {
@@ -5537,7 +5807,8 @@
       case PreheatHotend:
 
           #define PREHEATHOTEND_BACK 0
-          #define PREHEATHOTEND_CONTINUE (PREHEATHOTEND_BACK + 1)
+          #define PREHEATHOTEND_HOME (PREHEATHOTEND_BACK + 1)
+          #define PREHEATHOTEND_CONTINUE (PREHEATHOTEND_HOME + 1)
           #define PREHEATHOTEND_1 (PREHEATHOTEND_CONTINUE + (PREHEAT_COUNT >= 1))
           #define PREHEATHOTEND_2 (PREHEATHOTEND_1 + (PREHEAT_COUNT >= 2))
           #define PREHEATHOTEND_3 (PREHEATHOTEND_2 + (PREHEAT_COUNT >= 3))
@@ -5554,6 +5825,13 @@
                 thermalManager.setTargetHotend(0, 0);
                 thermalManager.set_fan_speed(0, 0);
                 Redraw_Menu(false, true, true, true);
+              }
+              break;
+            case PREHEATHOTEND_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
               }
               break;
             case PREHEATHOTEND_CONTINUE:
