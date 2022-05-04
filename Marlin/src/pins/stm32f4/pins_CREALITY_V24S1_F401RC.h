@@ -20,25 +20,12 @@
  *
  */
 
-#include "../../inc/MarlinConfig.h"
-
-#if ENABLED(SDSUPPORT)
-
-#include "../gcode.h"
-#include "../../sd/cardreader.h"
-
 /**
- * M30 <filename>: Delete SD Card file
+ * Creality S1 V24S1_F401RC (STM32F403RCT6) board pin assignments
  */
-void GcodeSuite::M30() {
-  if (card.isMounted()) {
-    card.closefile();
-    if (strlen(parser.string_arg) == 1 && parser.string_arg[0] == 'B') {
-      card.purgeBinFiles();
-    } else {      
-    card.removeFile(parser.string_arg);
-    }
-  }
-}
+#include "env_validate.h"
 
-#endif // SDSUPPORT
+#define __STM32F1__
+#include "../stm32f1/pins_CREALITY_V24S1_301.h"
+#undef DISABLE_DEBUG // DISABLE_(DEBUG|JTAG) is not supported for STM32F4.
+#undef __STM32F1__

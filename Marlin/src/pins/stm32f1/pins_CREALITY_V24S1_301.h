@@ -35,8 +35,12 @@
   #error "Disable Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN when using BLTOUCH with Creality V24S1-301."
 #endif
 
+#ifndef BOARD_INFO_NAME
 #define BOARD_INFO_NAME      "Creality V24S1-301"
+#endif
+#ifndef DEFAULT_MACHINE_NAME
 #define DEFAULT_MACHINE_NAME "Ender 3 S1"
+#endif
 
 //
 // Servos

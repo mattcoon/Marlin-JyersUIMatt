@@ -766,16 +766,22 @@
       // DRAW_IconWTB(ICON, (value ? ICON_Checkbox_T : ICON_Checkbox_F), 226, MBASE(row) - 3);
       DRAW_IconWB(ICON, (value ? ICON_Checkbox_T : ICON_Checkbox_F), 226, MBASE(row) - 3);
     #else                                         // Draw a basic checkbox using rectangles and lines
+      #if ENABLED(DACAI_DISPLAY)
+        DWIN_Draw_Rectangle(1, Color_Bg_Black, 226, MBASE(row), 226 + 17, MBASE(row) + 17);
+        DWIN_Draw_Rectangle(0, Color_White, 226, MBASE(row), 226 + 17, MBASE(row) + 17);
+        DWIN_Draw_String(true, DWIN_FONT_MENU, Check_Color, Color_Bg_Black, 226 + 2, MBASE(row) - 1, value ? F("x") : F(" "));
+      #else
       DWIN_Draw_Rectangle(1, Color_Bg_Black, 226, MBASE(row) - 3, 226 + 20, MBASE(row) - 3 + 20);
       DWIN_Draw_Rectangle(0, Color_White, 226, MBASE(row) - 3, 226 + 20, MBASE(row) - 3 + 20);
       if (value) {
-        DWIN_Draw_Line(Check_Color, 227, MBASE(row) - 3 + 11, 226 + 8, MBASE(row) - 3 + 17);
-        DWIN_Draw_Line(Check_Color, 227 + 8, MBASE(row) - 3 + 17, 226 + 19, MBASE(row) - 3 + 1);
-        DWIN_Draw_Line(Check_Color, 227, MBASE(row) - 3 + 12, 226 + 8, MBASE(row) - 3 + 18);
-        DWIN_Draw_Line(Check_Color, 227 + 8, MBASE(row) - 3 + 18, 226 + 19, MBASE(row) - 3 + 2);
-        DWIN_Draw_Line(Check_Color, 227, MBASE(row) - 3 + 13, 226 + 8, MBASE(row) - 3 + 19);
-        DWIN_Draw_Line(Check_Color, 227 + 8, MBASE(row) - 3 + 19, 226 + 19, MBASE(row) - 3 + 3);
+          DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227, MBASE(row) - 3 + 11, 226 + 8, MBASE(row) - 3 + 17);
+          DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227 + 8, MBASE(row) - 3 + 17, 226 + 19, MBASE(row) - 3 + 1);
+          DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227, MBASE(row) - 3 + 12, 226 + 8, MBASE(row) - 3 + 18);
+          DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227 + 8, MBASE(row) - 3 + 18, 226 + 19, MBASE(row) - 3 + 2);
+          DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227, MBASE(row) - 3 + 13, 226 + 8, MBASE(row) - 3 + 19);
+          DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227 + 8, MBASE(row) - 3 + 19, 226 + 19, MBASE(row) - 3 + 3);
       }
+      #endif
     #endif
   }
 
@@ -2606,7 +2612,8 @@
         #define TEMP_PREHEAT3 (TEMP_PREHEAT2 + (PREHEAT_COUNT >= 3))
         #define TEMP_PREHEAT4 (TEMP_PREHEAT3 + (PREHEAT_COUNT >= 4))
         #define TEMP_PREHEAT5 (TEMP_PREHEAT4 + (PREHEAT_COUNT >= 5))
-        #define TEMP_TOTAL TEMP_PREHEAT5
+        #define TEMP_ALLOWCOLD (TEMP_PREHEAT5 + ENABLED(PREVENT_COLD_EXTRUSION))
+        #define TEMP_TOTAL TEMP_ALLOWCOLD
 
         switch (item) {
           case TEMP_BACK:
@@ -2701,6 +2708,19 @@
                 Draw_Menu(Preheat5);
               break;
           #endif
+          #if ENABLED(PREVENT_COLD_EXTRUSION)
+          case TEMP_ALLOWCOLD:
+            if (draw) {
+              Draw_Menu_Item(row, ICON_Extruder, GET_TEXT_F(MSG_RUNOUT_SENSOR));
+              Draw_Checkbox(row, thermalManager.allow_cold_extrude);
+            }
+            else {
+              thermalManager.allow_cold_extrude = !thermalManager.allow_cold_extrude;
+              Draw_Checkbox(row, thermalManager.allow_cold_extrude);
+            }
+            break;
+          #endif
+
         }
         break;
 
@@ -2904,6 +2924,7 @@
               else
                 Modify_Value(PID_bed_temp, MIN_BED_TEMP, MAX_BED_TEMP, 1);
               break;
+            #if ENABLED(PIDTEMP)
             case BEDPID_KP:
               if (draw) {
                 sprintf_P(cmd, PSTR("%s %s: "), GET_TEXT(MSG_PID_P), GET_TEXT(MSG_PID_VALUE));
@@ -2932,6 +2953,7 @@
               else
                 Modify_Value(thermalManager.temp_bed.pid.Kd, 0, 5000, 100, thermalManager.updatePID);
               break;
+            #endif // PIDTEMP
           }
           break;
       #endif // HAS_HEATED_BED
@@ -5058,8 +5080,8 @@
           #define LEVELING_SETTINGS_BEDTEMP_ENA (LEVELING_SETTINGS_HOTENDTEMP  + ENABLED(HAS_LEVELING_HEAT))
           #define LEVELING_SETTINGS_BEDTEMP (LEVELING_SETTINGS_BEDTEMP_ENA + ENABLED(HAS_LEVELING_HEAT))
           #define LEVELING_SETTINGS_FADE (LEVELING_SETTINGS_BEDTEMP + 1)
-          #define LEVELING_SETTINGS_TILT (LEVELING_SETTINGS_FADE + ENABLED(AUTO_BED_LEVELING_UBL))
-          #define LEVELING_SETTINGS_TILT_AFTER_N_PRINTS (LEVELING_SETTINGS_TILT + ENABLED(AUTO_BED_LEVELING_UBL))
+          #define LEVELING_SETTINGS_TILT (LEVELING_SETTINGS_FADE + BOTH(AUTO_BED_LEVELING_UBL, HAS_BED_PROBE))
+          #define LEVELING_SETTINGS_TILT_AFTER_N_PRINTS (LEVELING_SETTINGS_TILT + BOTH(AUTO_BED_LEVELING_UBL, HAS_BED_PROBE))
           #define LEVELING_SETTINGS_PLANE (LEVELING_SETTINGS_TILT_AFTER_N_PRINTS + ENABLED(AUTO_BED_LEVELING_UBL))
           #define LEVELING_SETTINGS_ZERO (LEVELING_SETTINGS_PLANE + ENABLED(AUTO_BED_LEVELING_UBL))
           #define LEVELING_SETTINGS_UNDEF (LEVELING_SETTINGS_ZERO + ENABLED(AUTO_BED_LEVELING_UBL))
@@ -5130,6 +5152,7 @@
                 break;
 
             #if ENABLED(AUTO_BED_LEVELING_UBL)
+              #if HAS_BED_PROBE
               case LEVELING_SETTINGS_TILT:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_Tilt, GET_TEXT_F(MSG_LCD_TILTING_GRID_SIZE));
@@ -5146,6 +5169,7 @@
                 else 
                   Modify_Value(NPrinted, 0, 200, 1);
                 break;
+              #endif
               case LEVELING_SETTINGS_PLANE:
                 if (draw)
                   Draw_Menu_Item(row, ICON_ResumeEEPROM, GET_TEXT_F(MSG_MESH_TO_PLANE));
@@ -5631,8 +5655,8 @@
         #define TUNE_ZDOWN (TUNE_ZUP + ENABLED(HAS_ZOFFSET_ITEM))
         #define TUNE_FWRETRACT (TUNE_ZDOWN + ENABLED(FWRETRACT))
         #define TUNE_CHANGEFIL (TUNE_FWRETRACT + ENABLED(FILAMENT_LOAD_UNLOAD_GCODES))
-        #define TUNE_FILSENSORENABLED (TUNE_CHANGEFIL + HAS_FILAMENT_SENSOR)
-        #define TUNE_FILSENSORDISTANCE (TUNE_FILSENSORENABLED + HAS_FILAMENT_SENSOR)
+        #define TUNE_FILSENSORENABLED (TUNE_CHANGEFIL + ENABLED(HAS_FILAMENT_SENSOR))
+        #define TUNE_FILSENSORDISTANCE (TUNE_FILSENSORENABLED + ENABLED(HAS_FILAMENT_SENSOR))
         #define TUNE_SCREENLOCK (TUNE_FILSENSORDISTANCE + 1)     
         #define TUNE_TOTAL TUNE_SCREENLOCK
 
@@ -5968,7 +5992,7 @@
               sprintf_P(cmd, PSTR("%s %s"), GET_TEXT(MSG_PID), GET_TEXT(MSG_CONFIGURATION));
               return F(cmd);
       #endif
-      #if HAS_HOTEND
+      #if BOTH(HAS_HOTEND,PIDTEMP)
         case HotendPID:       
               sprintf_P(cmd, PSTR("%s %s"), GET_TEXT(MSG_HOTEND_TEMPERATURE), GET_TEXT(MSG_PID));
               return F(cmd);
@@ -6085,7 +6109,7 @@
       #if HAS_HOTEND || HAS_HEATED_BED
         case PID:             return PID_TOTAL;
       #endif
-      #if HAS_HOTEND
+      #if HAS_HOTEND && ENABLED(PIDTEMP)
         case HotendPID:       return HOTENDPID_TOTAL;
       #endif
       #if HAS_HEATED_BED

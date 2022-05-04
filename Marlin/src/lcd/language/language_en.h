@@ -668,7 +668,7 @@ namespace Language_en {
     LSTR MSG_MEDIA_NOT_INSERTED           = _UxGT("No media inserted.");
     LSTR MSG_PLEASE_WAIT_REBOOT           = _UxGT("Please wait until reboot. ");
     LSTR MSG_PLEASE_PREHEAT               = _UxGT("Please preheat the hot end.");
-    LSTR MSG_INFO_PRINT_COUNT_RESET       = _UxGT("Reset Print Count");
+    LSTR MSG_INFO_PRINT_COUNT_RESET       = _UxGT("Reset Print Counter");
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
       LSTR MSG_INFO_PRINT_COUNT             = _UxGT("Prints");
       LSTR MSG_INFO_PRINT_TIME              = _UxGT("Printed");

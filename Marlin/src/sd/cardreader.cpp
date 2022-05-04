@@ -320,7 +320,7 @@ void CardReader::printListing(
         return;
       }
     }
-    else if (is_visible_entity(p OPTARG(CUSTOM_FIRMWARE_UPLOAD, onlyBin))) {
+    else if (is_visible_entity(p OPTARG(CUSTOM_FIRMWARE_UPLOAD, onlyBin)) || parser.seen('A')) {
       if (prepend) { SERIAL_ECHO(prepend); SERIAL_CHAR('/'); }
       SERIAL_ECHO(createFilename(filename, p));
       SERIAL_CHAR(' ');
@@ -351,6 +351,35 @@ void CardReader::ls(
     root.rewind();
     printListing(root, nullptr OPTARG(CUSTOM_FIRMWARE_UPLOAD, onlyBin) OPTARG(LONG_FILENAME_HOST_SUPPORT, includeLongNames));
   }
+}
+
+void CardReader::clearBinFiles(SdFile parent){
+
+  dir_t p;
+  
+  while (parent.readDir(&p, longFilename) > 0) {
+  
+	if (!DIR_IS_SUBDIR(&p)) {
+		//skip folders, bin files are only in root of SD
+		//test file extension for 'BIN'
+		
+		//easy way
+		if (p.name[8] == 'B' && p.name[9] == 'I' && p.name[10] == 'N'){
+			removeFile(createFilename(filename,p));
+		}
+
+		
+	}	
+  
+  }
+
+}
+
+void CardReader::purgeBinFiles(){
+	if (flag.mounted) {
+      root.rewind();
+      clearBinFiles(root);
+    }
 }
 
 #if ENABLED(LONG_FILENAME_HOST_SUPPORT)

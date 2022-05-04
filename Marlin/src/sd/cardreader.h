@@ -140,6 +140,7 @@ public:
   static void closefile(const bool store_location=false);
   static bool fileExists(const char * const name);
   static void removeFile(const char * const name);
+  static void clearBinFiles(SdFile parent);
 
   static char* longest_filename() { return longFilename[0] ? longFilename : filename; }
   #if ENABLED(LONG_FILENAME_HOST_SUPPORT)
@@ -214,6 +215,7 @@ public:
     #endif
     TERN_(LONG_FILENAME_HOST_SUPPORT, const bool includeLongNames=false)
   );
+  static void purgeBinFiles();
 
   #if ENABLED(POWER_LOSS_RECOVERY)
     static bool jobRecoverFileExists();

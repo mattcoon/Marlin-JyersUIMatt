@@ -429,6 +429,14 @@ class Temperature {
       static uint8_t soft_pwm_controller_speed;
     #endif
 
+    #if BOTH(HAS_MARLINUI_MENU, PREVENT_COLD_EXTRUSION) && E_MANUAL > 0
+      static bool allow_cold_extrude_override;
+      static void set_menu_cold_override(const bool allow) { allow_cold_extrude_override = allow; }
+    #else
+      static constexpr bool allow_cold_extrude_override = false;
+      static void set_menu_cold_override(const bool) {}
+    #endif
+
     #if ENABLED(PREVENT_COLD_EXTRUSION)
       static bool allow_cold_extrude;
       static celsius_t extrude_min_temp;
