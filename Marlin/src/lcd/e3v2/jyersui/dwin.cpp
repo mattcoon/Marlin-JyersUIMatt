@@ -260,7 +260,7 @@
     bool State_runoutenable = false;
     uint8_t rsensormode = 0;
   #endif
-
+  
   uint8_t gridpoint;
   float corner_avg;
   float corner_pos;
@@ -309,10 +309,6 @@
   CrealityDWINClass CrealityDWIN;
 
   bool CrealityDWINClass::printing = false;
-
-  
-
-  
 
   #if HAS_MESH
 
@@ -778,22 +774,22 @@
       // DWIN_Draw_Rectangle(1, GetColor(HMI_datas.background, Color_Bg_Black), 226, MBASE(row) - 3, 226 + 40, MBASE(row) - 3 + 20);
       // DRAW_IconWTB(ICON, (value ? ICON_Checkbox_T : ICON_Checkbox_F), 226, MBASE(row) - 3);
       DRAW_IconWB(ICON, (value ? ICON_Checkbox_T : ICON_Checkbox_F), 226, MBASE(row) - 3);
-    #else                                         // Draw a basic checkbox using rectangles and lines
+    #else // Draw a basic checkbox using rectangles and lines
       #if ENABLED(DACAI_DISPLAY)
         DWIN_Draw_Rectangle(1, Color_Bg_Black, 226, MBASE(row), 226 + 17, MBASE(row) + 17);
         DWIN_Draw_Rectangle(0, Color_White, 226, MBASE(row), 226 + 17, MBASE(row) + 17);
         DWIN_Draw_String(true, DWIN_FONT_MENU, Check_Color, Color_Bg_Black, 226 + 2, MBASE(row) - 1, value ? F("x") : F(" "));
       #else
-      DWIN_Draw_Rectangle(1, Color_Bg_Black, 226, MBASE(row) - 3, 226 + 20, MBASE(row) - 3 + 20);
-      DWIN_Draw_Rectangle(0, Color_White, 226, MBASE(row) - 3, 226 + 20, MBASE(row) - 3 + 20);
-      if (value) {
+        DWIN_Draw_Rectangle(1, Color_Bg_Black, 226, MBASE(row) - 3, 226 + 20, MBASE(row) - 3 + 20);
+        DWIN_Draw_Rectangle(0, Color_White, 226, MBASE(row) - 3, 226 + 20, MBASE(row) - 3 + 20);
+        if (value) {
           DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227, MBASE(row) - 3 + 11, 226 + 8, MBASE(row) - 3 + 17);
           DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227 + 8, MBASE(row) - 3 + 17, 226 + 19, MBASE(row) - 3 + 1);
           DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227, MBASE(row) - 3 + 12, 226 + 8, MBASE(row) - 3 + 18);
           DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227 + 8, MBASE(row) - 3 + 18, 226 + 19, MBASE(row) - 3 + 2);
           DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227, MBASE(row) - 3 + 13, 226 + 8, MBASE(row) - 3 + 19);
           DWIN_Draw_Line(TERN(AQUILA_DISPLAY, Color_Red, Check_Color), 227 + 8, MBASE(row) - 3 + 19, 226 + 19, MBASE(row) - 3 + 3);
-      }
+        }
       #endif
     #endif
   }
@@ -2579,7 +2575,7 @@
                 Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_LEDS), nullptr, true);
               else
                 Draw_Menu(Ledsmenu);
-            break;
+              break;
           #endif
           case CONTROL_VISUAL:
             if (draw)
@@ -4438,6 +4434,8 @@
           } // switch (item)
         break;
 
+      
+
       case HostSettings:
 
         #define HOSTSETTINGS_BACK 0
@@ -5369,22 +5367,22 @@
 
             #if ENABLED(AUTO_BED_LEVELING_UBL)
               #if HAS_BED_PROBE
-              case LEVELING_SETTINGS_TILT:
-                if (draw) {
-                  Draw_Menu_Item(row, ICON_Tilt, GET_TEXT_F(MSG_LCD_TILTING_GRID_SIZE));
-                  Draw_Float(mesh_conf.tilt_grid, row, false, 1);
-                }
-                else
-                  Modify_Value(mesh_conf.tilt_grid, 1, 8, 1);
-                break;
-              case LEVELING_SETTINGS_TILT_AFTER_N_PRINTS:
-                if (draw) {
-                  Draw_Menu_Item(row, ICON_Tilt, GET_TEXT_F(MSG_UBL_AUTOTILT_AFTER_N_PRINTS));
-                  Draw_Float(NPrinted, row, false, 1);
-                }
-                else 
-                  Modify_Value(NPrinted, 0, 200, 1);
-                break;
+                case LEVELING_SETTINGS_TILT:
+                  if (draw) {
+                    Draw_Menu_Item(row, ICON_Tilt, GET_TEXT_F(MSG_LCD_TILTING_GRID_SIZE));
+                    Draw_Float(mesh_conf.tilt_grid, row, false, 1);
+                  }
+                  else
+                    Modify_Value(mesh_conf.tilt_grid, 1, 8, 1);
+                  break;
+                case LEVELING_SETTINGS_TILT_AFTER_N_PRINTS:
+                  if (draw) {
+                    Draw_Menu_Item(row, ICON_Tilt, GET_TEXT_F(MSG_UBL_AUTOTILT_AFTER_N_PRINTS));
+                    Draw_Float(NPrinted, row, false, 1);
+                  }
+                  else 
+                    Modify_Value(NPrinted, 0, 200, 1);
+                  break;
               #endif
               case LEVELING_SETTINGS_PLANE:
                 if (draw)
@@ -7412,7 +7410,7 @@
             file_preview = false;
           #endif
           queue.inject(F("M84"));
-            Popup_Handler(Reprint);
+          Popup_Handler(Reprint);
           break;
         case FilInsert:
           Popup_Handler(FilChange);
@@ -7766,7 +7764,6 @@
     #endif
   }
 
-
   void CrealityDWINClass::Screen_Update() {
 
     #if LCD_BACKLIGHT_TIMEOUT
@@ -8033,14 +8030,16 @@
     #endif
 
     #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
-      leds.color.b = ((HMI_data.LEDColor >>  0) & 0xFF);
-      leds.color.g = ((HMI_data.LEDColor >>  8) & 0xFF);
-      leds.color.r = ((HMI_data.LEDColor >> 16) & 0xFF);
-      TERN_(HAS_WHITE_LED, leds.color.w = ((HMI_data.LEDColor >> 24) & 0xFF));
+      leds.color.b = ((HMI_datas.LEDColor >>  0) & 0xFF);
+      leds.color.g = ((HMI_datas.LEDColor >>  8) & 0xFF);
+      leds.color.r = ((HMI_datas.LEDColor >> 16) & 0xFF);
+      TERN_(HAS_WHITE_LED, leds.color.w = ((HMI_datas.LEDColor >> 24) & 0xFF));
       leds.update();
     #endif
+
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
+
     #if ENABLED(HOST_ACTION_COMMANDS)
       Decode_String(HMI_datas.host_action_label_1, action1);
       Decode_String(HMI_datas.host_action_label_2, action2);
@@ -8113,6 +8112,7 @@
       leds.set_default();
       ApplyLEDColor();
     #endif
+
     #if HAS_FILAMENT_SENSOR
       Get_Rsensormode(runout.mode[0]);
     #endif

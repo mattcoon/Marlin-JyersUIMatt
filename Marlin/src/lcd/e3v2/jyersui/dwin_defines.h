@@ -27,6 +27,10 @@
 #include "../../../core/types.h"
 #include "../common/dwin_color.h"
 
+#if ENABLED(LED_CONTROL_MENU)
+  #include "../../../feature/leds/leds.h"
+#endif
+
 
 #if EXTJYERSUI
   #include "extjyersui.h"
@@ -146,6 +150,12 @@ typedef struct {
 
 extern HMI_flags_t HMI_flags;
 
+#if ENABLED(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+  #define Def_Leds_Color      {255}
+#endif
+#if ENABLED(CASELIGHT_USES_BRIGHTNESS)
+  #define Def_CaseLight_Brightness 255
+#endif
   
 typedef struct { 
     bool time_format_textual = false;
@@ -222,6 +232,7 @@ typedef struct {
     #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
       bool sdsort_alpha : 1;
     #endif
+
     #if EXTJYERSUI
       #if ENABLED(NOZZLE_PARK_FEATURE)
           xyz_int_t Park_point = DEF_NOZZLE_PARK_POINT;
@@ -237,11 +248,19 @@ typedef struct {
       #endif
     #endif
     
+    #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+      uint32_t LEDColor = Def_Leds_Color;
+    #endif
 
   } HMI_datas_t;
 
-  static constexpr size_t eeprom_data_size = 112;
+  #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+    static constexpr size_t eeprom_data_size = 156;
+  #else
+    static constexpr size_t eeprom_data_size = 124;
+  #endif
   extern HMI_datas_t HMI_datas;
+
 
 //
 // Undef :

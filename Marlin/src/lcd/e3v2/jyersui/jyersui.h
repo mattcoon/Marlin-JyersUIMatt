@@ -173,6 +173,8 @@
 #define ICON_SetBaudRate          ICON_Setspeed
 #define ICON_SetCustomPreheat     ICON_SetEndTemp
 #define ICON_Sound                ICON_Cool
+#define ICON_CaseLight            ICON_Motion
+#define ICON_LedControl           ICON_Motion
 
 // Buttons
 #define BTN_Continue          85

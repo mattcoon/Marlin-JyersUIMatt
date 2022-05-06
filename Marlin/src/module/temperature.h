@@ -716,7 +716,7 @@ class Temperature {
     /**
      * Call periodically to manage heaters
      */
-    static void manage_heater() _O2; // Added _O2 to work around a compiler error
+    static void manage_heater() __O2; // Added __O2 to work around a compiler error
 
     /**
      * Preheating hotends
