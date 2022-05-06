@@ -72,11 +72,10 @@ enum menuID : uint8_t {
         PID,
           HotendPID,
           BedPID,
-        Preheat1,
-        Preheat2,
-        Preheat3,
-        Preheat4,
-        Preheat5,
+        #if HAS_PREHEAT
+          #define _PREHEAT_ID(N) Preheat##N,
+          REPEAT_1(PREHEAT_COUNT, _PREHEAT_ID)
+        #endif
       Motion,
         HomeOffsets,
         MaxSpeed,
@@ -196,6 +195,7 @@ public:
   static void Draw_Print_confirm();
   static void Draw_SD_Item(uint8_t item, uint8_t row, bool onlyCachedFileIcon=false);
   static void Draw_SD_List(bool removed=false, uint8_t select=0, uint8_t scroll=0, bool onlyCachedFileIcon=false);
+  static void DWIN_Sort_SD(bool isSDMounted=false);
   static void Draw_Status_Area(bool icons=false);
   static void Draw_Popup(FSTR_P const line1, FSTR_P const line2, FSTR_P const line3, uint8_t mode, uint8_t icon=0);
   static void Popup_Select(bool stflag=false);

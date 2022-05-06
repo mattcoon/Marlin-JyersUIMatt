@@ -34,7 +34,7 @@
   #include "../../../module/tool_change.h"
 #endif
 
-#if ENABLED(HAS_PRUSA_MMU2)
+#if HAS_PRUSA_MMU2
   #include "../../../feature/mmu/mmu2.h"
   #if ENABLED(MMU2_MENUS)
     #include "../../../lcd/menu/menu_mmu2.h"
@@ -94,8 +94,7 @@ void GcodeSuite::M600() {
                                    // In this case, for duplicating modes set DXC_ext to the extruder that ran out.
       #if MULTI_FILAMENT_SENSOR
         if (idex_is_duplicating())
-          DXC_ext = (READ(FIL_RUNOUT2_PIN) == runout.out_state(1)) ? 1 : 0;
-
+          DXC_ext = (READ(FIL_RUNOUT2_PIN) == FIL_RUNOUT2_STATE) ? 1 : 0;
       #else
         DXC_ext = active_extruder;
       #endif
@@ -140,13 +139,9 @@ void GcodeSuite::M600() {
     park_point += hotend_offset[active_extruder];
   #endif
 
-  #if ENABLED(MMU2_MENUS)
-    // For MMU2, when enabled, reset retract value so it doesn't mess with MMU filament handling
-    const float unload_length = standardM600 ? -ABS(parser.axisunitsval('U', E_AXIS, fc_settings[active_extruder].unload_length)) : 0.5f;
-  #else
-    // Unload filament
-    const float unload_length = -ABS(parser.axisunitsval('U', E_AXIS, fc_settings[active_extruder].unload_length));
-  #endif
+  // Unload filament
+  // For MMU2, when enabled, reset retract value so it doesn't mess with MMU filament handling
+  const float unload_length = standardM600 ? -ABS(parser.axisunitsval('U', E_AXIS, fc_settings[active_extruder].unload_length)) : 0.5f;
 
   const int beep_count = parser.intval('B', -1
     #ifdef FILAMENT_CHANGE_ALERT_BEEPS

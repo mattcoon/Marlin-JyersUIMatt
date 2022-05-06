@@ -200,9 +200,11 @@ void menu_backlash();
       #endif
     #endif
 
-    //#if HAS_FILAMENT_RUNOUT_DISTANCE
-    #if HAS_FILAMENT_SENSOR && DISABLED(SLIM_LCD_MENUS)
-      SUBMENU(MSG_RUNOUT_MODE, menu_runout_config);
+    #if HAS_FILAMENT_RUNOUT_DISTANCE
+      editable.decimal = runout.runout_distance();
+      EDIT_ITEM_FAST(float3, MSG_RUNOUT_DISTANCE_MM, &editable.decimal, 1, 999,
+        []{ runout.set_runout_distance(editable.decimal); }, true
+      );
     #endif
 
     END_MENU();
@@ -399,7 +401,8 @@ void menu_backlash();
       #if ENABLED(MPC_INCLUDE_FAN)
         #define MPC_EDIT_ITEMS(N) \
           _MPC_EDIT_ITEMS(N); \
-          EDIT_ITEM_FAST_N(float43, N, MSG_MPC_AMBIENT_XFER_COEFF_FAN255_E, &editable.decimal, 0, 1, []{ \
+          EDIT_ITEM_FAST_N(float43, N, MSG_MPC_AMBIENT_XFER_COEFF_FAN_E, &editable.decimal, 0, 1, []{ \
+            MPC_t &c = thermalManager.temp_hotend[MenuItemBase::itemIndex].constants; \
             c.fan255_adjustment = editable.decimal - c.ambient_xfer_coeff_fan0; \
           })
       #else
@@ -407,7 +410,7 @@ void menu_backlash();
       #endif
 
       #if HAS_MULTI_HOTEND
-        auto mpc_edit_hotend = [&](const uint8_t e) {
+        static auto mpc_edit_hotend = [](const uint8_t e) {
           MPC_EDIT_DEFS(e);
           START_MENU();
           BACK_ITEM(MSG_TEMPERATURE);

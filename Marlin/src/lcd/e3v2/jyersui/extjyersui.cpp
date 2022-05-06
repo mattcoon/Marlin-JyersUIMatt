@@ -34,23 +34,23 @@
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
     void ExtJyersuiClass::C125() {
+        xyz_int_t park_value = HMI_datas.Park_point;
         if (!parser.seen_any()) return CrealityDWIN.DWIN_CError();
-
-        xyz_int_t park_value = { HMI_datas.Park_point.x, HMI_datas.Park_point.y, HMI_datas.Park_point.z };
         if (parser.seenval('X')) {
             park_value.x = static_cast<int>(parser.value_linear_units());
-            if (!WITHIN(park_value.x, 0, X_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            if (!WITHIN(park_value.y, 0, Y_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            else HMI_datas.Park_point.x = park_value.x;
             }
         if (parser.seenval('Y')) {
             park_value.y = static_cast<int>(parser.value_linear_units());
             if (!WITHIN(park_value.y, 0, Y_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            else HMI_datas.Park_point.y = park_value.y;
             }
         if (parser.seenval('Z')) {
             park_value.z = static_cast<int>(parser.value_linear_units());
             if (!WITHIN(park_value.z, MIN_PARK_POINT_Z, Z_MAX_POS)) return CrealityDWIN.DWIN_CError();
+            else HMI_datas.Park_point.z = park_value.z;
             }
-        
-        HMI_datas.Park_point = park_value;
         }    
 #endif  // Set park position
 
@@ -65,25 +65,25 @@ void ExtJyersuiClass::C562() {
 #if HAS_BED_PROBE
     void ExtJyersuiClass::C851() {
         if (!parser.seen_any()) return CrealityDWIN.DWIN_CError();
-        float margin_parser = HMI_datas.probing_margin;
+        int16_t margin_parser;
         uint16_t z_fast_feedrate_parser = HMI_datas.zprobefeedfast ;
         uint16_t z_slow_feedrate_parser = HMI_datas.zprobefeedslow;
 
         if (parser.seenval('M')) {
-            margin_parser = parser.value_linear_units();
+            margin_parser = parser.value_int();
             if (!WITHIN(margin_parser, MIN_PROBE_MARGIN, MAX_PROBE_MARGIN)) return CrealityDWIN.DWIN_CError();
+            else HMI_datas.probing_margin = (float)margin_parser;
             }
         if (parser.seenval('F')) {
             z_fast_feedrate_parser = static_cast<int>(parser.value_linear_units());
             if (!WITHIN(z_fast_feedrate_parser, (MIN_Z_PROBE_FEEDRATE * 2), MAX_Z_PROBE_FEEDRATE)) return CrealityDWIN.DWIN_CError();
+            else HMI_datas.zprobefeedfast = z_fast_feedrate_parser;
             }
         if (parser.seenval('S')) {
             z_slow_feedrate_parser = static_cast<int>(parser.value_linear_units());
             if  (!WITHIN(z_slow_feedrate_parser, MIN_Z_PROBE_FEEDRATE, MAX_Z_PROBE_FEEDRATE)) return CrealityDWIN.DWIN_CError();
+            else HMI_datas.zprobefeedslow = z_slow_feedrate_parser;
             }
-        HMI_datas.probing_margin = margin_parser;
-        HMI_datas.zprobefeedfast = z_fast_feedrate_parser;
-        HMI_datas.zprobefeedslow = z_slow_feedrate_parser;
     }      
 #endif  // Set probing margin and z feed rate of the probe mesh leveling
 

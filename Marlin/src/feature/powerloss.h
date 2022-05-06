@@ -176,7 +176,7 @@ class PrintJobRecovery {
     static void open(const bool read) { card.openJobRecoveryFile(read); }
     static void close() { file.close(); }
 
-    static void check();
+    static bool check();
     static void resume();
     static void purge();
 

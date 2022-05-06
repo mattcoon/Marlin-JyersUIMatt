@@ -103,6 +103,14 @@
     #include "shortcuts.h"
   #endif
 
+  #if ENABLED(CASE_LIGHT_MENU)
+    #include "../../../feature/caselight.h"
+  #endif
+
+#if ENABLED(LED_CONTROL_MENU)
+  #include "../../../feature/leds/leds.h"
+#endif
+
   #include <stdio.h>
   
   bool sd_item_flag = false;
@@ -288,6 +296,11 @@
 
   #if BOTH(HAS_BED_PROBE, AUTO_BED_LEVELING_UBL)
     uint16_t NPrinted = 0;
+  #endif
+
+  #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
+    bool old_sdsort;
+    bool SDremoved = false;
   #endif
 
   //struct
@@ -814,7 +827,7 @@
         break;
       case Main:  Draw_Main_Menu((lastselection) ? last_selection : selection); break;
       case Print: Draw_Print_Screen(); break;
-      case File:  Draw_SD_List(false, (lastselection) ? last_selection : 0, (lastselection) ? scrollpos : 0, true); break;
+      case File:  DWIN_Sort_SD(card.isMounted()); Draw_SD_List(false, (lastselection) ? last_selection : 0, (lastselection) ? scrollpos : 0, true); break;
       default: break;
     }
   }
@@ -1117,6 +1130,9 @@
     else {
       Draw_Menu_Item(0, ICON_Back, GET_TEXT_F(MSG_BACK));
       sd_item_flag = false;
+      #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
+        SDremoved = true;
+      #endif
       DWIN_Draw_Rectangle(1, Color_Bg_Red, 10, MBASE(3) - 10, DWIN_WIDTH - 10, MBASE(4));
       DWIN_Draw_String(false, font16x32, Color_Yellow, Color_Bg_Red, ((DWIN_WIDTH) - 8 * 16) / 2, MBASE(3), GET_TEXT_F(MSG_NO_MEDIA));
     }
@@ -1124,6 +1140,19 @@
         DWIN_Draw_Rectangle(0, GetColor(HMI_datas.items_menu_text, Color_White), 0, MBASE(selection-scrollpos) - 18, 8, MBASE(selection-scrollpos) + 31);
     else
         DWIN_Draw_Rectangle(1, cColor, 0, MBASE(selection-scrollpos) - 18, 8, MBASE(selection-scrollpos) + 31);
+  }
+
+  void CrealityDWINClass::DWIN_Sort_SD(bool isSDMounted/*=false*/) {
+    #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
+    if (isSDMounted) {
+      if ((old_sdsort != HMI_datas.sdsort_alpha) || (SDremoved)) {
+        SDremoved = false;
+        old_sdsort = HMI_datas.sdsort_alpha;
+        card.setSortOn(true);  // To force to clear the RAM!
+        card.setSortOn(HMI_datas.sdsort_alpha);
+        }
+    }   
+    #endif
   }
 
   void CrealityDWINClass::Draw_Status_Area(bool icons/*=false*/) {
@@ -2498,7 +2527,8 @@
         #define CONTROL_MOTION (CONTROL_TEMP + 1)
         #define CONTROL_FWRETRACT (CONTROL_MOTION + ENABLED(FWRETRACT))
         #define CONTROL_PARKMENU (CONTROL_FWRETRACT + ENABLED(NOZZLE_PARK_FEATURE))
-        #define CONTROL_VISUAL (CONTROL_PARKMENU + 1)
+        #define CONTROL_LEDS (CONTROL_PARKMENU + ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU))
+        #define CONTROL_VISUAL (CONTROL_LEDS + 1)
         #define CONTROL_HOSTSETTINGS (CONTROL_VISUAL + 1)
         #define CONTROL_ADVANCED (CONTROL_HOSTSETTINGS + 1)
         #define CONTROL_SAVE (CONTROL_ADVANCED + ENABLED(EEPROM_SETTINGS))
@@ -2541,6 +2571,14 @@
               Draw_Menu_Item(row, ICON_ParkPos, GET_TEXT_F(MSG_FILAMENT_PARK_ENABLED), nullptr, true);
             else
               Draw_Menu(Parkmenu);
+            break;
+          #endif
+          #if ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU)
+            case CONTROL_LEDS
+              if (draw)
+                Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_LEDS), nullptr, true);
+              else
+                Draw_Menu(Ledsmenu);
             break;
           #endif
           case CONTROL_VISUAL:
@@ -3797,6 +3835,166 @@
         }
         break;
 
+      #if ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU)
+        case Ledsmenu:
+
+          #define LEDS_BACK 0
+          #define LEDS_CASELIGHT (LEDS_BACK + ENABLED(CASE_LIGHT_MENU))
+          #define LEDS_LED_CONTROL_MENU (LEDS_CASELIGHT + ENABLED(LED_CONTROL_MENU)
+          #define LEDS_TOTAL LEDS_LED_CONTROL_MENU
+
+          switch (item) {
+          
+          case LEDS_BACK:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
+            else
+              Draw_Menu(Control, CONTROL_LEDS);
+            break;
+          #if ENABLED(CASE_LIGHT_MENU)
+            case LEDS_CASELIGHT:
+              if (draw) {
+                #if ENABLED(CASELIGHT_USES_BRIGHTNESS)
+                  Draw_Menu_Item(row, ICON_CaseLight, GET_TEXT_F(MSG_CASE_LIGHT), nullptr, true); 
+                #else
+                  Draw_Menu_Item(row, ICON_CaseLight, GET_TEXT_F(MSG_CASE_LIGHT));
+                  Draw_Checkbox(row, caselight.on);
+                #endif
+              }
+              else {
+                #if ENABLED(CASELIGHT_USES_BRIGHTNESS)
+                  Draw_Menu(CaseLightmenu);
+                #else
+                  caselight.on = !caselight.on;
+                  light.update_enabled();
+                  Draw_Checkbox(row, caselight.on);
+                  DWIN_UpdateLCD();
+                #endif
+              }
+              break;
+          #endif
+          #if ENABLED(LED_CONTROL_MENU)
+            case LEDS_LED_CONTROL_MENU:
+              if (draw)
+                Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_LED_CONTROL), nullptr, true); 
+              else 
+                Draw_Menu(LedControlmenu);
+              break;
+          #endif
+          }
+        break;
+      #endif
+
+      #if BOTH(CASE_LIGHT_MENU, CASELIGHT_USES_BRIGHTNESS)
+        case CaseLightmenu:
+
+          #define CASE_LIGTH_BACK 0
+          #define CASE_LIGTH_ON (CASE_LIGTH_BACK + 1)
+          #define CASE_LIGHT_USES_BRIGHT (CASE_LIGTH_ON + 1)
+          #define CASE_LIGHT_TOTAL CASE_LIGHT_USES_BRIGHT
+
+          switch (item) {
+          
+            case CASE_LIGTH_BACK:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
+              else
+                Draw_Menu(Ledsmenu, LEDS_CASELIGHT);
+              break;
+            case CASE_LIGTH_ON:
+              if (draw) {
+                  Draw_Menu_Item(row, ICON_CaseLight, GET_TEXT_F(MSG_CASE_LIGHT));
+                  Draw_Checkbox(row, caselight.on);
+              }
+              else {
+                  caselight.on = !caselight.on;
+                  light.update_enabled();
+                  Draw_Checkbox(row, caselight.on);
+                  DWIN_UpdateLCD();
+              }
+              break;
+            case CASE_LIGHT_USES_BRIGHT:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_Brightness, GET_TEXT_F(MSG_CASE_LIGHT_BRIGHTNESS));
+                Draw_Float(caselight.brightness, row);
+              }
+              else
+                Modify_Value(caselight.brightness, 0, 255, 1);
+              break;
+          }
+        break;
+      #endif
+      #if ENABLED(LED_CONTROL_MENU)
+        case LedControlmenu:
+
+          #define LEDCONTROL_BACK 0
+          #define LEDCONTROL_LIGHTON (LEDCONTROL_BACK + !BOTH(CASE_LIGHT_MENU, CASE_LIGHT_USE_NEOPIXEL))
+          #define LEDCONTROL_RED (LEDCONTROL_LIGHTON + ENABLED(HAS_COLOR_LEDS))
+          #define LEDCONTROL_GREEN (LEDCONTROL_RED + ENABLED(HAS_COLOR_LEDS))
+          #define LEDCONTROL_BLUE (LEDCONTROL_GREEN + ENABLED(HAS_COLOR_LEDS))
+          #define LEDCONTROL_WHITE (LEDCONTROL_BLUE + BOTH(HAS_COLOR_LEDS, HAS_WHITE_LED))
+          #define LEDCONTROL_TOTAL LEDCONTROL_WHITE
+
+          switch (item) {
+            case LEDCONTROL_BACK:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
+              else
+                Draw_Menu(Ledsmenu, LEDS_LED_CONTROL_MENU);
+              break;
+            #if !BOTH(CASE_LIGHT_MENU, CASE_LIGHT_USE_NEOPIXEL)
+              case LEDCONTROL_LIGHTON:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_LEDS));
+                  Draw_Checkbox(row, leds.lights_on);
+                }
+                else {
+                  leds.toggle();
+                  Draw_Checkbox(row, leds.lights_on);
+                  DWIN_UpdateLCD();
+                }
+               break; 
+            #endif
+            #if HAS_COLOR_LEDS
+              case LEDCONTROL_RED:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_COLORS_RED));
+                  Draw_Float(leds.color.r, row);
+                }
+                else
+                  Modify_Value(leds.color.r, 0, 255, 1);
+                break;
+              case LEDCONTROL_GREEN:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_COLORS_GREEN));
+                  Draw_Float(leds.color.g, row);
+                }
+                else
+                  Modify_Value(leds.color.g, 0, 255, 1);
+                break;
+              case LEDCONTROL_BLUE:
+                if (draw) {
+                  Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_COLORS_BLUE));
+                  Draw_Float(leds.color.b, row);
+                }
+                else
+                  Modify_Value(leds.color.b, 0, 255, 1);
+                break;
+              #if HAS_WHITE_LED
+                case LEDCONTROL_WHITE:
+                  if (draw) {
+                    Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_COLORS_WHITE));
+                    Draw_Float(leds.color.w, row);
+                  }
+                  else
+                    Modify_Value(leds.color.w, 0, 255, 1);
+                  break;
+              #endif
+            #endif
+          }
+          break;
+      #endif
+
       case Visual:
 
         #define VISUAL_BACK 0
@@ -4344,8 +4542,9 @@
         #define ADVANCED_CORNER (ADVANCED_PROBE + 1)
         #define ADVANCED_LA (ADVANCED_CORNER + ENABLED(LIN_ADVANCE))
         #define ADVANCED_FILMENU (ADVANCED_LA + 1)
-        #define ADVANCED_POWER_LOSS (ADVANCED_FILMENU + ENABLED(POWER_LOSS_RECOVERY))
-        #define ADVANCED_ENDSDIAG (ADVANCED_POWER_LOSS + HAS_ES_DIAG)
+        #define ADVANCED_SORT_SD (ADVANCED_FILMENU + ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE))
+        #define ADVANCED_POWER_LOSS (ADVANCED_SORT_SD + ENABLED(POWER_LOSS_RECOVERY))
+        #define ADVANCED_ENDSDIAG (ADVANCED_POWER_LOSS + ENABLED(HAS_ES_DIAG))
         #define ADVANCED_BAUDRATE_MODE (ADVANCED_ENDSDIAG + ENABLED(BAUD_RATE_GCODE))
         #define ADVANCED_SCREENLOCK (ADVANCED_BAUDRATE_MODE + 1)
         #define ADVANCED_TOTAL ADVANCED_SCREENLOCK
@@ -4413,6 +4612,19 @@
               else
                 Draw_Menu(Filmenu);
               break;
+          #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
+            case ADVANCED_SORT_SD:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_File, GET_TEXT_F(MSG_SORT_SD));
+                Draw_Checkbox(row, HMI_datas.sdsort_alpha);
+              }
+              else {
+                old_sdsort = HMI_datas.sdsort_alpha;
+                HMI_datas.sdsort_alpha = !HMI_datas.sdsort_alpha;
+                Draw_Checkbox(row, HMI_datas.sdsort_alpha);
+              }
+              break;
+          #endif
           #if ENABLED(POWER_LOSS_RECOVERY)
             case ADVANCED_POWER_LOSS:
               if (draw) {
@@ -4881,6 +5093,10 @@
                 Popup_Handler(Home);
                 gcode.home_all_axes(true);
                 #if ENABLED(AUTO_BED_LEVELING_UBL) 
+                  #if ENABLED(PREHEAT_BEFORE_LEVELING)
+                    Popup_Handler(Heating);
+                    probe.preheat_for_probing(LEVELING_NOZZLE_TEMP, LEVELING_BED_TEMP);
+                  #endif
                   #if HAS_BED_PROBE
                     TERN_(EXTJYERSUI, HMI_flags.cancel_ubl = 0);
                     //Popup_Handler(Level);
@@ -5657,7 +5873,9 @@
         #define TUNE_CHANGEFIL (TUNE_FWRETRACT + ENABLED(FILAMENT_LOAD_UNLOAD_GCODES))
         #define TUNE_FILSENSORENABLED (TUNE_CHANGEFIL + ENABLED(HAS_FILAMENT_SENSOR))
         #define TUNE_FILSENSORDISTANCE (TUNE_FILSENSORENABLED + ENABLED(HAS_FILAMENT_SENSOR))
-        #define TUNE_SCREENLOCK (TUNE_FILSENSORDISTANCE + 1)     
+        #define TUNE_CASELIGHT (TUNE_FILSENSORDISTANCE + ENABLED(CASE_LIGHT_MENU))
+        #define TUNE_LEDCONTROL (TUNE_CASELIGHT + (ENABLED(LED_CONTROL_MENU) && DISABLED(CASE_LIGHT_USE_NEOPIXEL)))
+        #define TUNE_SCREENLOCK (TUNE_LEDCONTROL + 1)     
         #define TUNE_TOTAL TUNE_SCREENLOCK
 
         switch (item) {
@@ -5816,6 +6034,31 @@
                 }
                 else
                   Modify_Value(editable_distance, 0, 999, 10);
+              break;
+          #endif
+          #if ENABLED(CASE_LIGHT_MENU)
+            case TUNE_CASELIGHT:
+              if (draw) {
+                  Draw_Menu_Item(row, ICON_CaseLight, GET_TEXT_F(MSG_CASE_LIGHT));
+                  Draw_Checkbox(row, caselight.on);
+              }
+              else {
+                  caselight.on = !caselight.on;
+                  light.update_enabled();
+                  Draw_Checkbox(row, caselight.on);
+              }
+              break;  
+          #endif
+          #if ENABLED(LED_CONTROL_MENU) && DISABLED(CASE_LIGHT_USE_NEOPIXEL)
+            case TUNE_LEDCONTROL:
+              if (draw) {
+                  Draw_Menu_Item(row, ICON_LedControl, GET_TEXT_F(MSG_LEDS));
+                  Draw_Checkbox(row, leds.lights_on);
+              }
+              else {
+                  leds.toggle();
+                  Draw_Checkbox(row, leds.lights_on);
+              }
               break;
           #endif
           case TUNE_SCREENLOCK:
@@ -6040,6 +6283,17 @@
               sprintf_P(cmd, PSTR("%s %s"), GET_TEXT(MSG_FILAMENT_PARK_ENABLED), GET_TEXT(MSG_CONFIGURATION));
               return F(cmd);
       #endif
+      #if ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU)
+        case Ledsmenu: 
+              sprintf_P(cmd, PSTR("%s %s"), GET_TEXT(MSG_LEDS), GET_TEXT(MSG_CONFIGURATION));
+              return F(cmd);
+        #if BOTH(CASE_LIGHT_MENU, CASELIGHT_USES_BRIGHTNESS)
+          case CaseLightmenu : return GET_TEXT_F(MSG_CASE_LIGHT);
+        #endif
+        #if ENABLED(LED_CONTROL_MENU)
+          case LedControlmenu : return GET_TEXT_F(MSG_LED_CONTROL);
+        #endif
+      #endif
       case HomeOffsets:       return GET_TEXT_F(MSG_SET_HOME_OFFSETS);
       case MaxSpeed:          return GET_TEXT_F(MSG_SPEED);
       case MaxAcceleration:   return GET_TEXT_F(MSG_ACCELERATION);
@@ -6136,6 +6390,15 @@
       #endif
       #if ENABLED(NOZZLE_PARK_FEATURE)
         case Parkmenu:        return PARKMENU_TOTAL;
+      #endif
+      #if ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU)
+        case Ledsmenu:         return LEDS_TOTAL;
+        #if BOTH(CASE_LIGHT_MENU, CASELIGHT_USES_BRIGHTNESS)
+          case CaseLightmenu : return CASE_LIGHT_TOTAL;
+        #endif
+        #if ENABLED(LED_CONTROL_MENU)
+          case LedControlmenu : return LEDCONTROL_TOTAL;
+        #endif
       #endif
       case HomeOffsets:       return HOMEOFFSETS_TOTAL;
       case MaxSpeed:          return SPEED_TOTAL;
@@ -6246,7 +6509,7 @@
     }
     else if (encoder_diffState == ENCODER_DIFF_ENTER)
       switch (selection) {
-        case PAGE_PRINT: card.mount(); sd_item_flag = true; Draw_SD_List(); break;
+        case PAGE_PRINT: card.mount(); DWIN_Sort_SD(card.isMounted()); sd_item_flag = true; Draw_SD_List(); break;
         case PAGE_PREPARE: sd_item_flag = false; Draw_Menu(Prepare); break;
         case PAGE_CONTROL: sd_item_flag = false; Draw_Menu(Control); break;
         case PAGE_INFO_LEVELING: sd_item_flag = false; Draw_Menu(TERN(HAS_MESH, Leveling, InfoMain)); break;
@@ -6356,6 +6619,17 @@
         if (valuepointer == &editable_distance)
           runout.set_runout_distance(editable_distance, 0);
       #endif
+      #if BOTH(CASE_LIGHT_MENU, CASELIGHT_USES_BRIGHTNESS)
+        if (valuepointer == &caselight.brightness)
+          caselight.update_brightness();
+      #endif
+      #if HAS_COLOR_LEDS
+        if ((valuepointer == &leds.color.r) || (valuepointer == &leds.color.g) || (valuepointer == &leds.color.b))
+          ApplyLEDColor();
+          #if HAS_WHITE_LED
+            if (valuepointer == &leds.color.w) ApplyLEDColor();
+          #endif
+      #endif
       if (funcpointer) funcpointer();
       return;
     }
@@ -6413,6 +6687,18 @@
               planner.synchronize();
             }
             break;
+          #if BOTH(CASE_LIGHT_MENU, CASELIGHT_USES_BRIGHTNESS)
+            case CaseLightmenu:
+              *(uint8_t*)valuepointer = tempvalue / valueunit;
+              caselight.update_brightness();
+              break;
+          #endif
+          #if BOTH(LED_CONTROL_MENU, HAS_COLORS_LEDS)
+            case LedControlmenu:
+              *(uint8_t*)valuepointer = tempvalue / valueunit;
+              leds.update();
+              break;
+          #endif
           default: break;   
         }
   }
@@ -6782,11 +7068,13 @@
           Draw_Main_Menu();
         }
         else {
+          DWIN_Sort_SD(card.isMounted());
           card.cdup();
           Draw_SD_List();
         }
       }
       else {
+        DWIN_Sort_SD(card.isMounted());
         card.getfilename_sorted(SD_ORDER(selection - 1, card.get_num_Files())); 
         if (card.flag.filenameIsDir) {
           card.cd(card.filename);
@@ -7124,12 +7412,7 @@
             file_preview = false;
           #endif
           queue.inject(F("M84"));
-          if (sdprint) { // mmm need to fix
-            sdprint = false;
             Popup_Handler(Reprint);
-          }
-          else
-            Draw_Main_Menu();
           break;
         case FilInsert:
           Popup_Handler(FilChange);
@@ -7525,6 +7808,7 @@
       image_cache.clear();
       #endif
       if (process == File) {
+        DWIN_Sort_SD(card.isMounted());
         sd_item_flag = true;
         Draw_SD_List();
       }
@@ -7696,6 +7980,9 @@
       }
     #endif
 
+  #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+    void CrealityDWINClass::ApplyLEDColor() { HMI_datas.LEDColor = TERN0(HAS_WHITE_LED,(leds.color.w << 24)) | (leds.color.r << 16) | (leds.color.g << 8) | (leds.color.b); }
+  #endif
 
   void CrealityDWINClass::Save_Settings(char *buff) {
     TERN_(AUTO_BED_LEVELING_UBL, HMI_datas.tilt_grid_size = mesh_conf.tilt_grid - 1);
@@ -7722,6 +8009,8 @@
 
   void CrealityDWINClass::Load_Settings(const char *buff) {
     memcpy(&HMI_datas, buff, _MIN(sizeof(HMI_datas), eeprom_data_size));
+    JYERSUI::textcolor = GetColor(HMI_datas.items_menu_text, Color_White);
+    JYERSUI::backcolor = GetColor(HMI_datas.background, Color_Bg_Black);
     #if HAS_MESH
       if(HMI_datas.leveling_active) set_bed_leveling_enabled(HMI_datas.leveling_active);
     #endif
@@ -7734,8 +8023,21 @@
     #if HAS_FILAMENT_SENSOR
       Get_Rsensormode(runout.mode[0]);
     #endif
+
     #if ENABLED(DWIN_ICON_SET)
       iconset_current = HMI_datas.iconset_index;
+    #endif
+
+    #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
+      old_sdsort = !HMI_datas.sdsort_alpha;
+    #endif
+
+    #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+      leds.color.b = ((HMI_data.LEDColor >>  0) & 0xFF);
+      leds.color.g = ((HMI_data.LEDColor >>  8) & 0xFF);
+      leds.color.r = ((HMI_data.LEDColor >> 16) & 0xFF);
+      TERN_(HAS_WHITE_LED, leds.color.w = ((HMI_data.LEDColor >> 24) & 0xFF));
+      leds.update();
     #endif
     shortcut0 = HMI_datas.shortcut_0;
     shortcut1 = HMI_datas.shortcut_1;
@@ -7803,6 +8105,14 @@
       NPrinted = 0;
     #endif
 
+    #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
+      HMI_datas.sdsort_alpha = true;
+    #endif
+
+    #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+      leds.set_default();
+      ApplyLEDColor();
+    #endif
     #if HAS_FILAMENT_SENSOR
       Get_Rsensormode(runout.mode[0]);
     #endif

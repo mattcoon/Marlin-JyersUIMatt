@@ -282,6 +282,14 @@ public:
     static uint16_t lcd_backlight_timeout;
     static millis_t backlight_off_ms;
     static void refresh_backlight_timeout();
+  #elif HAS_DISPLAY_SLEEP
+    #define SLEEP_TIMEOUT_MIN 0
+    #define SLEEP_TIMEOUT_MAX 99
+    static uint8_t sleep_timeout_minutes;
+    static millis_t screen_timeout_millis;
+    static void refresh_screen_timeout();
+    static void sleep_on();
+    static void sleep_off();
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
@@ -689,7 +697,7 @@ public:
     #endif
 
     static void update_buttons();
-    
+
     #if HAS_ENCODER_NOISE
       #ifndef ENCODER_SAMPLES
         #define ENCODER_SAMPLES 10
@@ -712,8 +720,6 @@ public:
       static bool hw_button_pressed() { return BUTTON_CLICK(); }
     #endif
 
-    static bool button_pressed() { return hw_button_pressed() || TERN0(TOUCH_SCREEN, touch_pressed()); }
-    
     #if EITHER(AUTO_BED_LEVELING_UBL, G26_MESH_VALIDATION)
       static void wait_for_release();
     #endif
@@ -745,8 +751,11 @@ public:
   #else
 
     static void update_buttons() {}
+    static bool hw_button_pressed() { return false; }
 
   #endif
+
+  static bool button_pressed() { return hw_button_pressed() || TERN0(TOUCH_SCREEN, touch_pressed()); }
 
   #if ENABLED(TOUCH_SCREEN_CALIBRATION)
     static void touch_calibration_screen();

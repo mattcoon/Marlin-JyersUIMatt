@@ -162,6 +162,7 @@ int32_t Backlash::get_applied_steps(const AxisEnum axis) {
 }
 
 class Backlash::StepAdjuster {
+  private:
   xyz_long_t applied_steps;
 public:
   StepAdjuster() {
@@ -172,6 +173,8 @@ public:
     LOOP_NUM_AXES(axis) residual_error[axis] += backlash.get_applied_steps((AxisEnum)axis) - applied_steps[axis];
   }
 };
+
+#if ENABLED(BACKLASH_GCODE)
 
 void Backlash::set_correction_uint8(const uint8_t v) {
   StepAdjuster adjuster;
@@ -188,6 +191,8 @@ void Backlash::set_distance_mm(const AxisEnum axis, const float v) {
     StepAdjuster adjuster;
     smoothing_mm = v;
   }
+#endif
+
 #endif
 
 #if ENABLED(MEASURE_BACKLASH_WHEN_PROBING)

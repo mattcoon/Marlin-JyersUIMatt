@@ -944,7 +944,7 @@
               #undef HOME_Z_FIRST
               #undef HOMING_Z_WITH_PROBE
               #undef ENABLE_LEVELING_FADE_HEIGHT
-              #undef NUM_Z_STEPPER_DRIVERS
+              #undef NUM_Z_STEPPERS
               #undef CNC_WORKSPACE_PLANES
               #if NUM_AXES < 2
                 #undef STEALTHCHOP_Y

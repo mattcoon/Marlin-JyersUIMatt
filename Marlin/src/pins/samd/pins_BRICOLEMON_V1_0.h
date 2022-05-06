@@ -110,7 +110,7 @@
 // This board have the option to use an extra TMC2209 stepper, one of the use could be as a second extruder.
 #if EXTRUDERS < 2
   // TODO: Corregir aquí que cuando tenemos dos extrusores o lo que sea, utiliza los endstop que le sobran, osea los max, no hay Z2_endstop
-  #if NUM_Z_STEPPER_DRIVERS > 1
+  #if NUM_Z_STEPPERS > 1
     #define Z2_STOP_PIN                       14
   #endif
 #else
@@ -490,7 +490,7 @@
 
       #elif ENABLED(FYSETC_MINI_12864)
 
-        // From https://wiki.fysetc.com/Mini12864_Panel/?fbclid=IwAR1FyjuNdVOOy9_xzky3qqo_WeM5h-4gpRnnWhQr_O1Ef3h0AFnFXmCehK8
+        // From https://wiki.fysetc.com/Mini12864_Panel/
 
         // TO TEST
         //#define DOGLCD_A0                   16

@@ -443,7 +443,6 @@ namespace Language_en {
   LSTR MSG_CONTRAST                       = _UxGT("LCD Contrast");
   LSTR MSG_BRIGHTNESS                     = _UxGT("LCD Brightness");
   LSTR MSG_LCD_TIMEOUT_SEC                = _UxGT("LCD Timeout (s)");
-  LSTR MSG_SCREEN_TIMEOUT                 = _UxGT("LCD Timeout (m)");
   LSTR MSG_BRIGHTNESS_OFF                 = _UxGT("Backlight Off");
   LSTR MSG_STORE_EEPROM                   = _UxGT("Store Settings");
   LSTR MSG_LOAD_EEPROM                    = _UxGT("Load Settings");
@@ -707,6 +706,7 @@ namespace Language_en {
 
   // Extra strings for JyersUI
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+    LSTR MSG_SORT_SD                        = _UxGT("Sort Files alpha");
     LSTR MSG_UBL_AUTOTILT_AFTER_N_PRINTS    = _UxGT("Tilt after N Prints");
     LSTR MSG_LIVEMOVE_Z                     = _UxGT("Live Move Z:");
     LSTR MSG_UNLOCK                         = _UxGT("Scroll to unlock.");

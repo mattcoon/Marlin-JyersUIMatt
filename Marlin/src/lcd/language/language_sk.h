@@ -102,7 +102,6 @@ namespace Language_sk {
   LSTR MSG_HOME_OFFSET_J                  = STR_J _UxGT(" Ofset");
   LSTR MSG_HOME_OFFSET_K                  = STR_K _UxGT(" Ofset");
   LSTR MSG_HOME_OFFSETS_APPLIED           = _UxGT("Ofsety nastavené");
-  LSTR MSG_SET_ORIGIN                     = _UxGT("Nastaviť začiatok");
   LSTR MSG_TRAMMING_WIZARD                = _UxGT("Spriev. vyrovn.");
   LSTR MSG_SELECT_ORIGIN                  = _UxGT("Vyberte začiatok");
   LSTR MSG_LAST_VALUE_SP                  = _UxGT("Posl. hodnota ");
@@ -338,17 +337,9 @@ namespace Language_sk {
   LSTR MSG_PID_AUTOTUNE_E                 = _UxGT("Kalibrácia PID *");
   LSTR MSG_PID_CYCLE                      = _UxGT("Cykly PID");
   LSTR MSG_PID_AUTOTUNE_DONE              = _UxGT("Kal. PID dokončená");
-  #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-    LSTR MSG_PID_FAILED                     = _UxGT("Auto-kal. zlyhala");
-    LSTR MSG_PID_BAD_EXTRUDER_NUM           = _UxGT("Zlý extrúder nr");
-    LSTR MSG_PID_TEMP_TOO_HIGH              = _UxGT("Príliš vysoká tepl!");
-    LSTR MSG_PID_TIMEOUT                    = _UxGT("Čas vypršal!");
-  #else
-    LSTR MSG_PID_BAD_EXTRUDER_NUM           = _UxGT("Auto-kal. zlyhala. Zlý extrúder.");
-    LSTR MSG_PID_TEMP_TOO_HIGH              = _UxGT("Auto-kal. zlyhala. Príliš vysoká tepl.");
-    LSTR MSG_PID_TIMEOUT                    = _UxGT("Auto-kal. zlyhala! Čas vypršal.");
-  #endif
-  
+  LSTR MSG_PID_BAD_EXTRUDER_NUM           = _UxGT("Auto-kal. zlyhala. Zlý extrúder.");
+  LSTR MSG_PID_TEMP_TOO_HIGH              = _UxGT("Auto-kal. zlyhala. Príliš vysoká tepl.");
+  LSTR MSG_PID_TIMEOUT                    = _UxGT("Auto-kal. zlyhala! Čas vypršal.");
   LSTR MSG_SELECT                         = _UxGT("Vybrať");
   LSTR MSG_SELECT_E                       = _UxGT("Vybrať *");
   LSTR MSG_ACC                            = _UxGT("Zrýchlenie");
@@ -626,13 +617,6 @@ namespace Language_sk {
     LSTR MSG_INFO_PRINT_TIME              = _UxGT("Čas");
     LSTR MSG_INFO_PRINT_LONGEST           = _UxGT("Najdlhšia");
     LSTR MSG_INFO_PRINT_FILAMENT          = _UxGT("Vytlačené");
-  #endif
-
-  // Extra strings for JyersUI
-  #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-    LSTR MSG_FILE_SELECTION                 = _UxGT("Výber súboru");
-    LSTR MSG_LIVE_ADJUSTMENT                = _UxGT("Živá úprava");
-    LSTR MSG_HOST_ACTIONS                   = _UxGT("Ackie hosta");
   #endif
 
   LSTR MSG_INFO_COMPLETED_PRINTS          = _UxGT("Dokončené");
