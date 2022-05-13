@@ -1141,7 +1141,7 @@
   void CrealityDWINClass::DWIN_Sort_SD(bool isSDMounted/*=false*/) {
     #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
     if (isSDMounted) {
-      if ((old_sdsort != HMI_datas.sdsort_alpha) || (SDremoved)) {
+      if ((old_sdsort != HMI_datas.sdsort_alpha) || (SDremoved) || (!card.flag.workDirIsRoot)) {
         SDremoved = false;
         old_sdsort = HMI_datas.sdsort_alpha;
         card.setSortOn(true);  // To force to clear the RAM!
@@ -1236,8 +1236,8 @@
         static bool _leveling_active = false;
         static bool _printing_leveling_active = false;
         if (printingIsActive()) {
-          _printing_leveling_active = ((planner.leveling_active && planner.leveling_active_at_z(destination.z)) || _leveling_active);   
-          if ((_printing_leveling_active = (planner.leveling_active && planner.leveling_active_at_z(destination.z)) && ui.get_blink()))
+          _printing_leveling_active = ((planner.leveling_active && planner.leveling_active_at_z(current_position.z)) || _printing_leveling_active);   
+          if ((_printing_leveling_active = (planner.leveling_active && planner.leveling_active_at_z(current_position.z)) && ui.get_blink()))
             DWIN_Draw_Rectangle(0, GetColor(HMI_datas.status_area_text, Color_White), 187, 415, 204, 435);
           else 
             DWIN_Draw_Rectangle(0, GetColor(HMI_datas.background, Color_Bg_Black), 187, 415, 204, 435);
@@ -2641,7 +2641,8 @@
         #define TEMP_BED (TEMP_HOTEND + ENABLED(HAS_HEATED_BED))
         #define TEMP_FAN (TEMP_BED + ENABLED(HAS_FAN))
         #define TEMP_PID (TEMP_FAN + (ANY(HAS_HOTEND, HAS_HEATED_BED) && ANY(PIDTEMP, PIDTEMPBED)))
-        #define TEMP_PREHEAT1 (TEMP_PID + (PREHEAT_COUNT >= 1))
+        #define TEMP_MPC (TEMP_PID + ENABLED(MPCTEMP))
+        #define TEMP_PREHEAT1 (TEMP_MPC + (PREHEAT_COUNT >= 1))
         #define TEMP_PREHEAT2 (TEMP_PREHEAT1 + (PREHEAT_COUNT >= 2))
         #define TEMP_PREHEAT3 (TEMP_PREHEAT2 + (PREHEAT_COUNT >= 3))
         #define TEMP_PREHEAT4 (TEMP_PREHEAT3 + (PREHEAT_COUNT >= 4))
@@ -2700,6 +2701,15 @@
                }
               else
                 Draw_Menu(PID);
+              break;
+          #endif
+          #if (HAS_HOTEND && ENABLED(MPCTEMP))
+            case TEMP_MPC:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_Step, GET_TEXT_F(MSG_MPC), nullptr, true);
+               }
+              else
+                Draw_Menu(MPC);
               break;
           #endif
           #if PREHEAT_COUNT >= 1
@@ -2910,6 +2920,92 @@
           }
           break;
       #endif // HAS_HOTEND
+
+      #if HAS_HOTEND && ENABLED(MPCTEMP)
+      case MPC: 
+
+          #define MPC_BACK 0
+          #define MPC_HOME (MPC_BACK + 1)
+          #define MPC_TUNE (MPC_HOME + 1)
+          #define MPC_POWR (MPC_TUNE + 1)
+          #define MPC_HCAP (MPC_POWR + 1)
+          #define MPC_RESP (MPC_HCAP + 1)
+          #define MPC_XFER (MPC_RESP + 1)
+          #define MPC_XFAN (MPC_XFER + 1)
+          #define MPC_TEMP (MPC_XFAN + ENABLED(MPC_INCLUDE_FAN))
+          #define MPC_TOTAL (MPC_TEMP)
+
+          switch (item) {
+            case MPC_BACK:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
+              else
+                Draw_Menu(TempMenu, MPC);
+              break;
+            case MPC_HOME:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
+              else {
+                Draw_Main_Menu();
+              }
+              break;
+            case MPC_TUNE:
+              break;
+            case MPC_POWR:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_Version, GET_TEXT_F(MSG_MPC_POWER_E));
+                Draw_Float(thermalManager.temp_hotend[0].constants.heater_power, row, false, 1);
+              }
+              else {
+                Modify_Value(thermalManager.temp_hotend[0].constants.heater_power, 0, 200, 1);
+              }
+              break;
+            case MPC_HCAP:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_BLOCK_HEAT_CAPACITY_E));
+                Draw_Float(thermalManager.temp_hotend[0].constants.block_heat_capacity, row, false, 1);
+              }
+              else {
+                Modify_Value(thermalManager.temp_hotend[0].constants.block_heat_capacity, 0, 40, 1);
+              }
+              break;
+            case MPC_RESP:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_SENSOR_RESPONSIVENESS_E));
+                Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 1);
+              }
+              else {
+                Modify_Value(thermalManager.temp_hotend[0].constants.sensor_responsiveness, 0, 1, 1);
+              }
+              break;
+            case MPC_XFER:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_AMBIENT_XFER_COEFF_E));
+                Draw_Float(thermalManager.temp_hotend[0].constants.ambient_xfer_coeff_fan0, row, false, 1);
+              }
+              else {
+                Modify_Value(thermalManager.temp_hotend[0].constants.ambient_xfer_coeff_fan0, 0, 1, 1);
+              }
+              break;
+            #if ENABLED(MPC_INCLUDE_FAN)
+            case MPC_XFAN:
+              if (draw) {
+                Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_AMBIENT_XFER_COEFF_FAN_E));
+                Draw_Float(thermalManager.temp_hotend[0].constants.fan255_adjustment, row, false, 1);
+              }
+              else {
+                Modify_Value(thermalManager.temp_hotend[0].constants.fan255_adjustment, 0, 1, 1);
+              }
+              break;
+            #endif
+            case MPC_TEMP:
+              break;
+          }
+
+          break;
+
+
+      #endif
 
       #if HAS_HEATED_BED && ENABLED(PIDTEMPBED)
         case BedPID:
@@ -6361,6 +6457,9 @@
       #if HAS_HOTEND || HAS_HEATED_BED
         case PID:             return PID_TOTAL;
       #endif
+      #if HAS_HOTEND && ENABLED(MPCTEMP)
+        case MPC:             return MPC_TOTAL;
+      #endif
       #if HAS_HOTEND && ENABLED(PIDTEMP)
         case HotendPID:       return HOTENDPID_TOTAL;
       #endif
@@ -6635,6 +6734,11 @@
     NOMORE(tempvalue, (valuemax * valueunit));
     Draw_Float(tempvalue / valueunit, selection - scrollpos, true, valueunit);
     DWIN_UpdateLCD();
+
+    if (valuepointer == &ui.brightness) {
+      *(uint8_t*)valuepointer = tempvalue / valueunit;
+      ui.refresh_brightness();
+    }
 
       switch (active_menu) {
           case Move:
@@ -7066,8 +7170,8 @@
           Draw_Main_Menu();
         }
         else {
-          DWIN_Sort_SD(card.isMounted());
           card.cdup();
+		  DWIN_Sort_SD(card.isMounted());
           Draw_SD_List();
         }
       }
@@ -7076,6 +7180,7 @@
         card.getfilename_sorted(SD_ORDER(selection - 1, card.get_num_Files())); 
         if (card.flag.filenameIsDir) {
           card.cd(card.filename);
+		  DWIN_Sort_SD(card.isMounted());
           Draw_SD_List();
         }
         else {
@@ -7101,6 +7206,7 @@
             {
             str_2[nb+i] = str_1[nb+i];
             }
+            str_2[nb+3] = '\0';
             sprintf_P(header2, GET_TEXT(MSG_HEADER_FILAMENT_USED), str_2);
           }
           bool has_header_layer = find_and_decode_gcode_header(card.filename, Header_Layer);

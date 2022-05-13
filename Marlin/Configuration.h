@@ -636,8 +636,11 @@
 
 // Enable PIDTEMP for PID control or MPCTEMP for Predictive Model.
 // temperature control. Disable both for bang-bang heating.
-#define PIDTEMP          // See the PID Tuning Guide at https://reprap.org/wiki/PID_Tuning
-//#define MPCTEMP        // ** EXPERIMENTAL **
+#ifdef MPCCTRL
+  #define MPCTEMP        // ** EXPERIMENTAL **
+#else
+  #define PIDTEMP          // See the PID Tuning Guide at https://reprap.org/wiki/PID_Tuning
+#endif
 
 #define BANG_MAX 255     // Limits current to nozzle while in bang-bang mode; 255=full current
 #define PID_MAX BANG_MAX // Limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
@@ -657,9 +660,9 @@
     #define DEFAULT_Kd_LIST {  78.81,  78.81 }
   #else
     // Ender 3 v2
-    #define DEFAULT_Kp  28.72   // Ender3v2 Configs
-    #define DEFAULT_Ki   2.62   // Ender3v2 Configs
-    #define DEFAULT_Kd  78.81   // Ender3v2 Configs
+    #define DEFAULT_Kp  39.53   // Ender3v2 Configs
+    #define DEFAULT_Ki   4.89   // Ender3v2 Configs
+    #define DEFAULT_Kd  79.84   // Ender3v2 Configs
   #endif
 #endif
 
@@ -736,9 +739,9 @@
   //#define PID_BED_DEBUG // Sends debug data to the serial port.
 
   // Ender 3 V2
-  #define DEFAULT_bedKp 462.10
-  #define DEFAULT_bedKi  85.47
-  #define DEFAULT_bedKd 624.59
+  #define DEFAULT_bedKp 179.00
+  #define DEFAULT_bedKi  31.07
+  #define DEFAULT_bedKd 687.27
 
   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
