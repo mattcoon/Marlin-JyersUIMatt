@@ -72,6 +72,9 @@ enum menuID : uint8_t {
         PID,
           HotendPID,
           BedPID,
+        #if ENABLED(MPCTEMP)
+         MPC,
+        #endif
         #if HAS_PREHEAT
           #define _PREHEAT_ID(N) Preheat##N,
           REPEAT_1(PREHEAT_COUNT, _PREHEAT_ID)
