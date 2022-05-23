@@ -7516,7 +7516,13 @@
             file_preview = false;
           #endif
           queue.inject(F("M84"));
-          Popup_Handler(Reprint);
+          if (sdprint) {
+            Popup_Handler(Reprint);
+          }
+          else {
+            sdprint = false;
+            Draw_Main_Menu();
+          }
           break;
         case FilInsert:
           Popup_Handler(FilChange);
