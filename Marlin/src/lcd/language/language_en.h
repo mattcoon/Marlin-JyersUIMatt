@@ -368,6 +368,7 @@ namespace Language_en {
   LSTR MSG_MPC_EDIT                       = _UxGT("Edit * MPC");
   LSTR MSG_MPC_POWER_E                    = _UxGT("Power *");
   LSTR MSG_MPC_BLOCK_HEAT_CAPACITY_E      = _UxGT("Block C *");
+  LSTR MSG_MPC_FILAMENT_HEAT_CAPACITY_E   = _UxGT("Filament C *");
   LSTR MSG_SENSOR_RESPONSIVENESS_E        = _UxGT("Sensor res *");
   LSTR MSG_MPC_AMBIENT_XFER_COEFF_E       = _UxGT("Ambient h *");
   LSTR MSG_MPC_AMBIENT_XFER_COEFF_FAN_E   = _UxGT("Amb. h fan *");
@@ -795,6 +796,7 @@ namespace Language_en {
     LSTR MSG_INFO_BAUDRATE_CHANGED          = STR_INFO_BAUDRATE _UxGT(" rate now at %i ") STR_INFO_BAUDRATE _UxGT(", please restart Host.");
     LSTR MSG_GCODE_THUMBNAILS               = _UxGT("Show file Thumbnails");
     LSTR MSG_EXTRUDER_INVERT                = _UxGT("Invert E Direction");
+    LSTR MSG_REV_ENCODER_DIR                = _UxGT("Invert Encoder Dir");
     LSTR MSG_HOST_ACTIONS                   = _UxGT("Host Actions");
     LSTR MSG_RESUME_PRINT2                  = _UxGT("Looks like the last");
     LSTR MSG_RESUME_PRINT3                  = _UxGT("print was interrupted.");

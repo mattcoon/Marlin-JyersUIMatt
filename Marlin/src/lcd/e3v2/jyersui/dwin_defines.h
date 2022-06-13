@@ -206,8 +206,8 @@ typedef struct {
       uint16_t N_Printed : 8;
     #endif
 
-    uint8_t shortcut_0 = 0;
-    uint8_t shortcut_1 = 1;
+    uint8_t shortcut_0 = TERN(Ext_Config_JyersUI, Def_Shortcut_0, 0);
+    uint8_t shortcut_1 = TERN(Ext_Config_JyersUI, Def_Shortcut_1, 1);
 
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
       bool show_gcode_thumbnails : 1;
@@ -232,6 +232,8 @@ typedef struct {
     #if ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE)
       bool sdsort_alpha : 1;
     #endif
+    bool rev_encoder_dir : 1;
+    bool reprint_on : 1;
 
     #if EXTJYERSUI
       #if ENABLED(NOZZLE_PARK_FEATURE)

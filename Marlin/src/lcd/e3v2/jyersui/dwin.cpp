@@ -652,6 +652,9 @@
       case ScreenL:
         DWIN_ScreenLock();
         break;
+      case Save_set:
+        AudioFeedback(settings.save());
+        break;
       #if HAS_FILAMENT_SENSOR
         case FilSenSToggle:
           runout.enabled[0] = !runout.enabled[0];
@@ -2348,7 +2351,8 @@
           #define CHANGEFIL_LOAD (CHANGEFIL_PARKHEAD + 1)
           #define CHANGEFIL_UNLOAD (CHANGEFIL_LOAD + 1)
           #define CHANGEFIL_CHANGE (CHANGEFIL_UNLOAD + 1)
-          #define CHANGEFIL_TOTAL CHANGEFIL_CHANGE
+          #define CHANGEFIL_COOL   (CHANGEFIL_CHANGE + 1)
+          #define CHANGEFIL_TOTAL CHANGEFIL_COOL
 
           switch (item) {
             case CHANGEFIL_BACK:
@@ -2445,6 +2449,14 @@
                 }
               }
               break;
+            case CHANGEFIL_COOL:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Cool, GET_TEXT_F(MSG_COOLDOWN));
+              else {
+                thermalManager.cooldown();
+                Update_Status(GET_TEXT(MSG_COOLDOWN));
+              }
+              break;
           }
           break;
       #endif // FILAMENT_LOAD_UNLOAD_GCODES
@@ -2464,8 +2476,14 @@
             case HOSTACTIONS_BACK:
               if (draw) 
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
+              else {
+                if (flag_tune) {
+                  flag_tune = false;
+                  Redraw_Menu(false, true, true);
+                }
               else
                 Draw_Menu(Prepare, PREPARE_ACTIONCOMMANDS);
+              }  
               break;
             case HOSTACTIONS_HOME:
               if (draw)
@@ -2524,7 +2542,8 @@
         #define CONTROL_FWRETRACT (CONTROL_MOTION + ENABLED(FWRETRACT))
         #define CONTROL_PARKMENU (CONTROL_FWRETRACT + ENABLED(NOZZLE_PARK_FEATURE))
         #define CONTROL_LEDS (CONTROL_PARKMENU + ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU))
-        #define CONTROL_VISUAL (CONTROL_LEDS + 1)
+        #define CONTROL_ENCODER_DIR (CONTROL_LEDS + 1)
+        #define CONTROL_VISUAL (CONTROL_ENCODER_DIR + 1)
         #define CONTROL_HOSTSETTINGS (CONTROL_VISUAL + 1)
         #define CONTROL_ADVANCED (CONTROL_HOSTSETTINGS + 1)
         #define CONTROL_SAVE (CONTROL_ADVANCED + ENABLED(EEPROM_SETTINGS))
@@ -2577,6 +2596,16 @@
                 Draw_Menu(Ledsmenu);
               break;
           #endif
+          case CONTROL_ENCODER_DIR:
+            if (draw) {
+              Draw_Menu_Item(row, ICON_Motion, GET_TEXT_F(MSG_REV_ENCODER_DIR));
+              Draw_Checkbox(row, HMI_datas.rev_encoder_dir);
+            }
+            else {
+              HMI_datas.rev_encoder_dir = !HMI_datas.rev_encoder_dir;
+              Draw_Checkbox(row, HMI_datas.rev_encoder_dir);
+            }
+            break;
           case CONTROL_VISUAL:
             if (draw)
               Draw_Menu_Item(row, ICON_PrintSize, GET_TEXT_F(MSG_VISUAL_SETTINGS), nullptr, true);
@@ -2929,11 +2958,11 @@
           #define MPC_TUNE (MPC_HOME + 1)
           #define MPC_POWR (MPC_TUNE + 1)
           #define MPC_HCAP (MPC_POWR + 1)
-          #define MPC_RESP (MPC_HCAP + 1)
+          #define MPC_FILH (MPC_HCAP + 1)
+          #define MPC_RESP (MPC_FILH + 0) // enable when working
           #define MPC_XFER (MPC_RESP + 1)
           #define MPC_XFAN (MPC_XFER + 1)
-          #define MPC_TEMP (MPC_XFAN + ENABLED(MPC_INCLUDE_FAN))
-          #define MPC_TOTAL (MPC_TEMP)
+          #define MPC_TOTAL (MPC_XFAN)
 
           switch (item) {
             case MPC_BACK:
@@ -2950,56 +2979,62 @@
               }
               break;
             case MPC_TUNE:
+              if (draw)
+                Draw_Menu_Item(row, ICON_HotendTemp, GET_TEXT_F(MSG_MPC_AUTOTUNE));
+              else {
+                Popup_Handler(MPCWait);
+                sprintf_P(cmd, PSTR("M306 T"));
+                gcode.process_subcommands_now(cmd);
+                planner.synchronize();
+              }
               break;
             case MPC_POWR:
               if (draw) {
                 Draw_Menu_Item(row, ICON_Version, GET_TEXT_F(MSG_MPC_POWER_E));
-                Draw_Float(thermalManager.temp_hotend[0].constants.heater_power, row, false, 1);
+                Draw_Float(thermalManager.temp_hotend[0].constants.heater_power, row, false, 10);
               }
               else {
-                Modify_Value(thermalManager.temp_hotend[0].constants.heater_power, 0, 200, 1);
+                Modify_Value(thermalManager.temp_hotend[0].constants.heater_power, 0, 200, 10);
               }
               break;
             case MPC_HCAP:
               if (draw) {
                 Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_BLOCK_HEAT_CAPACITY_E));
-                Draw_Float(thermalManager.temp_hotend[0].constants.block_heat_capacity, row, false, 1);
+                Draw_Float(thermalManager.temp_hotend[0].constants.block_heat_capacity, row, false, 10);
               }
               else {
-                Modify_Value(thermalManager.temp_hotend[0].constants.block_heat_capacity, 0, 40, 1);
+                Modify_Value(thermalManager.temp_hotend[0].constants.block_heat_capacity, 0, 40, 10);
               }
               break;
             case MPC_RESP:
               if (draw) {
                 Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_SENSOR_RESPONSIVENESS_E));
-                Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 1);
+                Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 100);
               }
               else {
-                Modify_Value(thermalManager.temp_hotend[0].constants.sensor_responsiveness, 0, 1, 1);
+                Modify_Value(thermalManager.temp_hotend[0].constants.sensor_responsiveness, 0, 1, 100);
               }
               break;
             case MPC_XFER:
               if (draw) {
                 Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_AMBIENT_XFER_COEFF_E));
-                Draw_Float(thermalManager.temp_hotend[0].constants.ambient_xfer_coeff_fan0, row, false, 1);
+                Draw_Float(thermalManager.temp_hotend[0].constants.ambient_xfer_coeff_fan0, row, false, 100);
               }
               else {
-                Modify_Value(thermalManager.temp_hotend[0].constants.ambient_xfer_coeff_fan0, 0, 1, 1);
+                Modify_Value(thermalManager.temp_hotend[0].constants.ambient_xfer_coeff_fan0, 0, 1, 100);
               }
               break;
             #if ENABLED(MPC_INCLUDE_FAN)
             case MPC_XFAN:
               if (draw) {
                 Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_AMBIENT_XFER_COEFF_FAN_E));
-                Draw_Float(thermalManager.temp_hotend[0].constants.fan255_adjustment, row, false, 1);
+                Draw_Float(thermalManager.temp_hotend[0].constants.fan255_adjustment, row, false, 100);
               }
               else {
-                Modify_Value(thermalManager.temp_hotend[0].constants.fan255_adjustment, 0, 1, 1);
+                Modify_Value(thermalManager.temp_hotend[0].constants.fan255_adjustment, -1, 1, 100);
               }
               break;
             #endif
-            case MPC_TEMP:
-              break;
           }
 
           break;
@@ -4637,11 +4672,13 @@
         #define ADVANCED_LA (ADVANCED_CORNER + ENABLED(LIN_ADVANCE))
         #define ADVANCED_FILMENU (ADVANCED_LA + 1)
         #define ADVANCED_SORT_SD (ADVANCED_FILMENU + ALL(SDSUPPORT, SDCARD_SORT_ALPHA, SDSORT_GCODE))
-        #define ADVANCED_POWER_LOSS (ADVANCED_SORT_SD + ENABLED(POWER_LOSS_RECOVERY))
+        #define ADVANCED_REPRINT (ADVANCED_SORT_SD + 1)
+        #define ADVANCED_POWER_LOSS (ADVANCED_REPRINT + ENABLED(POWER_LOSS_RECOVERY))
         #define ADVANCED_ENDSDIAG (ADVANCED_POWER_LOSS + ENABLED(HAS_ES_DIAG))
         #define ADVANCED_BAUDRATE_MODE (ADVANCED_ENDSDIAG + ENABLED(BAUD_RATE_GCODE))
         #define ADVANCED_SCREENLOCK (ADVANCED_BAUDRATE_MODE + 1)
-        #define ADVANCED_TOTAL ADVANCED_SCREENLOCK
+        #define ADVANCED_SAVE_SETTINGS (ADVANCED_SCREENLOCK + 1)
+        #define ADVANCED_TOTAL ADVANCED_SAVE_SETTINGS
 
         switch (item) {
           case ADVANCED_BACK:
@@ -4719,6 +4756,16 @@
               }
               break;
           #endif
+          case ADVANCED_REPRINT:
+            if (draw) {
+              Draw_Menu_Item(row, ICON_File, F("Re-Print on/off"));
+              Draw_Checkbox(row, HMI_datas.reprint_on);
+            }
+            else {
+              HMI_datas.reprint_on = !HMI_datas.reprint_on;
+              Draw_Checkbox(row, HMI_datas.reprint_on);
+            }
+            break;
           #if ENABLED(POWER_LOSS_RECOVERY)
             case ADVANCED_POWER_LOSS:
               if (draw) {
@@ -4763,6 +4810,12 @@
                 Draw_Menu_Item(row, ICON_Lock, GET_TEXT_F(MSG_LOCKSCREEN));
             else 
                 DWIN_ScreenLock();
+            break;
+          case ADVANCED_SAVE_SETTINGS:
+            if (draw)
+              Draw_Menu_Item(row, ICON_WriteEEPROM, GET_TEXT_F(MSG_STORE_EEPROM));
+            else
+              AudioFeedback(settings.save());
             break;
         }
         break;
@@ -5187,10 +5240,6 @@
                 Popup_Handler(Home);
                 gcode.home_all_axes(true);
                 #if ENABLED(AUTO_BED_LEVELING_UBL) 
-                  #if ENABLED(PREHEAT_BEFORE_LEVELING)
-                    Popup_Handler(Heating);
-                    probe.preheat_for_probing(LEVELING_NOZZLE_TEMP, LEVELING_BED_TEMP);
-                  #endif
                   #if HAS_BED_PROBE
                     TERN_(EXTJYERSUI, HMI_flags.cancel_ubl = 0);
                     //Popup_Handler(Level);
@@ -5202,6 +5251,7 @@
                     //Popup_Handler(SaveLevel);
                     #if EXTJYERSUI
                       if (!HMI_flags.cancel_ubl) Viewmesh();
+                      else HMI_flags.cancel_ubl = 0;
                     #else
                       Viewmesh();
                     #endif
@@ -5224,6 +5274,7 @@
                   //Popup_Handler(SaveLevel);
                   #if EXTJYERSUI
                    if (!HMI_flags.cancel_abl) Viewmesh();
+                   else HMI_flags.cancel_abl = 0;
                   #else
                    Viewmesh();
                   #endif
@@ -5964,7 +6015,8 @@
         #define TUNE_ZUP (TUNE_ZOFFSET + ENABLED(HAS_ZOFFSET_ITEM))
         #define TUNE_ZDOWN (TUNE_ZUP + ENABLED(HAS_ZOFFSET_ITEM))
         #define TUNE_FWRETRACT (TUNE_ZDOWN + ENABLED(FWRETRACT))
-        #define TUNE_CHANGEFIL (TUNE_FWRETRACT + ENABLED(FILAMENT_LOAD_UNLOAD_GCODES))
+        #define TUNE_HOSTACTIONS (TUNE_FWRETRACT + ENABLED(HOST_ACTION_COMMANDS))
+        #define TUNE_CHANGEFIL (TUNE_HOSTACTIONS + ENABLED(FILAMENT_LOAD_UNLOAD_GCODES))
         #define TUNE_FILSENSORENABLED (TUNE_CHANGEFIL + ENABLED(HAS_FILAMENT_SENSOR))
         #define TUNE_FILSENSORDISTANCE (TUNE_FILSENSORENABLED + ENABLED(HAS_FILAMENT_SENSOR))
         #define TUNE_CASELIGHT (TUNE_FILSENSORDISTANCE + ENABLED(CASE_LIGHT_MENU))
@@ -6092,7 +6144,19 @@
                 Draw_Menu_Item(row, ICON_StepE, GET_TEXT_F(MSG_AUTORETRACT), nullptr, true);
               else {
                 flag_tune = true;
+                last_pos_selection = selection;
                 Draw_Menu(FwRetraction);
+                }
+              break;
+          #endif
+          #if ENABLED(HOST_ACTION_COMMANDS)
+            case TUNE_HOSTACTIONS:
+              if (draw)
+                Draw_Menu_Item(row, ICON_SetHome, GET_TEXT_F(MSG_HOST_ACTIONS), nullptr, true);
+              else {
+                flag_tune = true;
+                last_pos_selection = selection;
+                Draw_Menu(HostActions);
                 }
               break;
           #endif
@@ -6565,6 +6629,7 @@
       case TempWarn:      Draw_Popup(option ? GET_TEXT_F(MSG_HOTEND_TOO_COLD) : GET_TEXT_F(MSG_HOTEND_TOO_HOT), F(""), F(""), Wait, option ? ICON_TempTooLow : ICON_TempTooHigh); break;
       case Runout:        Draw_Popup(GET_TEXT_F(MSG_FILAMENT_RUNOUT), F(""), F(""), Wait, ICON_BLTouch); break;
       case PIDWait:       Draw_Popup(option ? GET_TEXT_F(MSG_BED_PID_AUTOTUNE) : GET_TEXT_F(MSG_HOTEND_PID_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
+      case MPCWait:       Draw_Popup(GET_TEXT_F(MSG_MPC_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
       case Resuming:      Draw_Popup(GET_TEXT_F(MSG_RESUMING_PRINT), GET_TEXT_F(MSG_PLEASE_WAIT), F(""), Wait, ICON_BLTouch); break;
       case ConfirmStartPrint: Draw_Popup(option ? GET_TEXT_F(MSG_LOADING_PREVIEW) : GET_TEXT_F(MSG_PRINT_FILE), F(""), F(""), Popup); break;
       case Reprint:       Draw_Popup(GET_TEXT_F(MSG_REPRINT_FILE), F(""), F(""), Popup); break;
@@ -7516,13 +7581,8 @@
             file_preview = false;
           #endif
           queue.inject(F("M84"));
-          if (sdprint) {
-            Popup_Handler(Reprint);
-          }
-          else {
-            sdprint = false;
-            Draw_Main_Menu();
-          }
+          if (HMI_datas.reprint_on)  Popup_Handler(Reprint);
+          else { TERN_(DEBUG_DWIN, SERIAL_ECHOLNPGM("DWIN_Print_Finished")); Draw_Main_Menu(); }
           break;
         case FilInsert:
           Popup_Handler(FilChange);
@@ -8141,12 +8201,13 @@
       old_sdsort = !HMI_datas.sdsort_alpha;
     #endif
 
-    #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
-      leds.color.b = ((HMI_datas.LEDColor >>  0) & 0xFF);
-      leds.color.g = ((HMI_datas.LEDColor >>  8) & 0xFF);
-      leds.color.r = ((HMI_datas.LEDColor >> 16) & 0xFF);
-      TERN_(HAS_WHITE_LED, leds.color.w = ((HMI_datas.LEDColor >> 24) & 0xFF));
-      leds.update();
+    #if ENABLED(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+      leds.set_color(
+      (HMI_datas.LEDColor >> 16) & 0xFF,
+      (HMI_datas.LEDColor >>  8) & 0xFF,
+      (HMI_datas.LEDColor >>  0) & 0xFF
+      OPTARG(HAS_WHITE_LED, (HMI_datas.LEDColor >> 24) & 0xFF)
+      );
     #endif
 
     shortcut0 = HMI_datas.shortcut_0;
@@ -8168,8 +8229,10 @@
   }
 
   void CrealityDWINClass::Reset_Settings() {
-    HMI_datas.time_format_textual = false;
+    HMI_datas.time_format_textual = TIME_HMS_FORMAT;
     HMI_datas.fan_percent = FAN_SPEED_PERCENT_DEF;
+    HMI_datas.rev_encoder_dir = false;
+    HMI_datas.reprint_on = false;
     TERN_(AUTO_BED_LEVELING_UBL, HMI_datas.tilt_grid_size = 0);
     HMI_datas.corner_pos = 325;
     HMI_datas.cursor_color = TERN(Ext_Config_JyersUI, Def_cursor_color, 0);
@@ -8188,7 +8251,7 @@
     HMI_datas.ico_confirm_txt = TERN(Ext_Config_JyersUI, Def_ico_confirm_txt, 0);
     HMI_datas.ico_confirm_bg = TERN(Ext_Config_JyersUI, Def_ico_confirm_bg, 0);
     HMI_datas.ico_cancel_txt = TERN(Ext_Config_JyersUI, Def_ico_cancel_txt, 0);
-    HMI_datas.ico_cancel_txt = TERN(Ext_Config_JyersUI, Def_ico_cancel_bg, 0);
+    HMI_datas.ico_cancel_bg = TERN(Ext_Config_JyersUI, Def_ico_cancel_bg, 0);
     HMI_datas.ico_continue_txt = TERN(Ext_Config_JyersUI, Def_ico_continue_txt, 0);
     HMI_datas.ico_continue_bg = TERN(Ext_Config_JyersUI, Def_ico_continue_bg, 0);
     HMI_datas.print_screen_txt = TERN(Ext_Config_JyersUI, Def_print_screen_txt, 0);

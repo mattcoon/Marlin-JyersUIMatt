@@ -130,8 +130,20 @@ EncoderState Encoder_ReceiveAnalyze() {
   }
 
   if (ABS(temp_diff) >= ENCODER_PULSES_PER_STEP) {
-    if (temp_diff > 0) temp_diffState = TERN(REVERSE_ENCODER_DIRECTION, ENCODER_DIFF_CCW, ENCODER_DIFF_CW);
-    else temp_diffState = TERN(REVERSE_ENCODER_DIRECTION, ENCODER_DIFF_CW, ENCODER_DIFF_CCW);
+    if (temp_diff > 0) temp_diffState = TERN(REVERSE_ENCODER_DIRECTION, 
+      #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+        (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CW : ENCODER_DIFF_CCW, (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CCW : ENCODER_DIFF_CW
+      #else
+        ENCODER_DIFF_CCW, ENCODER_DIFF_CW
+      #endif
+      );
+    else temp_diffState = TERN(REVERSE_ENCODER_DIRECTION,
+      #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+        (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CCW : ENCODER_DIFF_CW, (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CW : ENCODER_DIFF_CCW
+      #else
+        ENCODER_DIFF_CW, ENCODER_DIFF_CCW
+      #endif
+      );
 
     #if ENABLED(ENCODER_RATE_MULTIPLIER)
 

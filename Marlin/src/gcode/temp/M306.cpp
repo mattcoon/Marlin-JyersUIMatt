@@ -26,6 +26,7 @@
 
 #include "../gcode.h"
 #include "../../module/temperature.h"
+#include "../../lcd/marlinui.h"
 
 /**
  * M306: MPC settings and autotune
@@ -41,9 +42,9 @@
  */
 
 void GcodeSuite::M306() {
-  if (parser.seen_test('T')) { thermalManager.MPC_autotune(); return; }
+  if (parser.seen_test('T')) { thermalManager.MPC_autotune();   ui.reset_status(); return; }
 
-  if (parser.seen("ACFPR")) {
+  if (parser.seen("ACFPRH")) {
     const heater_id_t hid = (heater_id_t)parser.intval('E', 0);
     MPC_t &constants = thermalManager.temp_hotend[hid].constants;
     if (parser.seenval('P')) constants.heater_power = parser.value_float();
@@ -53,6 +54,7 @@ void GcodeSuite::M306() {
     #if ENABLED(MPC_INCLUDE_FAN)
       if (parser.seenval('F')) constants.fan255_adjustment = parser.value_float() - constants.ambient_xfer_coeff_fan0;
     #endif
+    if (parser.seenval('H')) constants.filament_heat_capacity_permm = parser.value_float();
     return;
   }
 
@@ -70,8 +72,10 @@ void GcodeSuite::M306_report(const bool forReplay/*=true*/) {
     SERIAL_ECHOPAIR_F(" R", constants.sensor_responsiveness, 4);
     SERIAL_ECHOPAIR_F(" A", constants.ambient_xfer_coeff_fan0, 4);
     #if ENABLED(MPC_INCLUDE_FAN)
-    SERIAL_ECHOLNPAIR_F(" F", constants.ambient_xfer_coeff_fan0 + constants.fan255_adjustment, 4);
+      SERIAL_ECHOPAIR_F(" F", constants.ambient_xfer_coeff_fan0 + constants.fan255_adjustment, 4);
     #endif
+    SERIAL_ECHOPAIR_F(" M", constants.filament_heat_capacity_permm, 4);
+    SERIAL_EOL();
   }
 }
 

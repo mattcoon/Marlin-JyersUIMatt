@@ -1,14 +1,16 @@
-# Contains code from: https://github.com/mriscoc/Marlin_Ender3v2/blob/42585074807fa799bdee7ced10c9d83508df6ebf/slicer%20scripts/cura/CreateJPEGThumbnail.py
+# Contains code from: # Contains code from:
+# https://github.com/Ultimaker/Cura/blob/master/plugins/PostProcessingPlugin/scripts/CreateThumbnail.py
+
 import base64
 
 from UM.Logger import Logger
 from cura.Snapshot import Snapshot
-from PyQt5.QtCore import QByteArray, QIODevice, QBuffer
+from cura.CuraVersion import CuraVersion
 
 from ..Script import Script
 
 
-class Cura_JPEG_Preview(Script):
+class CuraV5_JPEG_Preview(Script):
     def __init__(self):
         super().__init__()
 
@@ -19,13 +21,29 @@ class Cura_JPEG_Preview(Script):
         except Exception:
             Logger.logException("w", "Failed to create snapshot image")
 
-    def _encodeSnapshot(self, snapshot, quality):
+    def _encodeSnapshot(self, snapshot):
+    
+        Major=0
+        Minor=0
+        try:
+          Major = int(CuraVersion.split(".")[0])
+          Minor = int(CuraVersion.split(".")[1])
+        except:
+          pass
+
+        if Major < 5 :
+          from PyQt5.QtCore import QByteArray, QIODevice, QBuffer
+        else :
+          from PyQt6.QtCore import QByteArray, QIODevice, QBuffer
+          
         Logger.log("d", "Encoding thumbnail image...")
         try:
-            thumbnail_buffer = QBuffer()
-            thumbnail_buffer.open(QBuffer.ReadWrite)
+            if Major < 5 :
+              thumbnail_buffer.open(QBuffer.ReadWrite)
+            else:
+              thumbnail_buffer.open(QBuffer.OpenModeFlag.ReadWrite)
             thumbnail_image = snapshot
-            thumbnail_image.save(thumbnail_buffer, "JPG", quality)
+            thumbnail_image.save(thumbnail_buffer, "JPG")
             base64_bytes = base64.b64encode(thumbnail_buffer.data())
             base64_message = base64_bytes.decode('ascii')
             thumbnail_buffer.close()
@@ -53,8 +71,8 @@ class Cura_JPEG_Preview(Script):
 
     def getSettingDataString(self):
         return """{
-            "name": "Create JPEG Preview",
-            "key": "Cura_JPEG_Preview",
+            "name": "Create Cura V5 JPEG Preview",
+            "key": "CuraV5_JPEG_Preview",
             "metadata": {},
             "version": 2,
             "settings":
@@ -84,7 +102,7 @@ class Cura_JPEG_Preview(Script):
 
         preview = self._createSnapshot(preview_width, preview_height)
         if preview and self.getSettingValueByKey("create_preview"):
-            encoded_preview = self._encodeSnapshot(preview, 60)
+            encoded_preview = self._encodeSnapshot(preview)
             preview_gcode = self._convertSnapshotToGcode(
                 encoded_preview, preview_width, preview_height)
 
@@ -103,7 +121,7 @@ class Cura_JPEG_Preview(Script):
 
         thumbnail = self._createSnapshot(thumbnail_width, thumbnail_height)
         if thumbnail and self.getSettingValueByKey("create_thumbnail"):
-            encoded_thumbnail = self._encodeSnapshot(thumbnail, 80)
+            encoded_thumbnail = self._encodeSnapshot(thumbnail)
             thumbnail_gcode = self._convertSnapshotToGcode(
                 encoded_thumbnail, thumbnail_width, thumbnail_height)
 

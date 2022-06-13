@@ -271,7 +271,6 @@ bool wait_for_heatup = true;
     while (wait_for_user && !(ms && ELAPSED(millis(), ms)))
       idle(TERN_(ADVANCED_PAUSE_FEATURE, no_sleep));
     wait_for_user = false;
-    while (ui.button_pressed()) safe_delay(50);
   }
 
 #endif
@@ -320,6 +319,9 @@ bool pin_is_protected(const pin_t pin) {
 }
 
 #pragma GCC diagnostic pop
+bool printer_busy() {
+  return planner.movesplanned() || printingIsActive();
+}
 
 /**
  * A Print Job exists when the timer is running or SD is printing
