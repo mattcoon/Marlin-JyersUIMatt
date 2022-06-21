@@ -196,6 +196,7 @@ public:
 
   static void Main_Menu_Icons();
   static void Draw_Main_Menu(uint8_t select=0);
+  static void Draw_Quick_Home();
   static void Print_Screen_Icons();
   static void Draw_Print_Screen();
   static void Draw_Print_Filename(const bool reset=false);

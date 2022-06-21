@@ -248,11 +248,11 @@
 
   int16_t pausetemp, pausebed, pausefan;
 
-  bool livemove = false;
-  bool liveadjust = false;
+  bool livemove = TERN(DWIN_MOVE_LIVE,true,false); // changed to support instant moves
+  bool liveadjust = TERN(DWIN_MOVE_LIVE,true,false); // changed to support instant moves
 
   uint8_t preheatmode = 0;
-  uint8_t zoffsetmode = 0;
+  uint8_t zoffsetmode = TERN(DWIN_MOVE_LIVE,2,0);
   
   float zoffsetvalue = 0;
 
@@ -920,6 +920,14 @@
     DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(HMI_datas.icons_menu_text, Color_White), Color_Bg_Blue, 145 + ((109 - strlen(shortcut_text) * MENU_CHR_W) / 2), 316, F(shortcut_text));
   }
 
+  void CrealityDWINClass::Draw_Quick_Home() { 
+    if (flag_tune) { 
+      flag_tune = false; 
+      Redraw_Menu(false, true, true); 
+    } 
+    else 
+      Draw_Main_Menu();
+  }
   void CrealityDWINClass::Draw_Main_Menu(uint8_t select/*=0*/) {
     process = Main;
     active_menu = MainMenu;
@@ -1962,7 +1970,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           #if HAS_BED_PROBE
@@ -2145,7 +2153,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else {
-                zoffsetmode = 0;
+                zoffsetmode = TERN(DWIN_MOVE_LIVE,2,0);
                 #if !HAS_BED_PROBE
                   gcode.process_subcommands_now(F("M211 S1"));
                 #endif
@@ -2160,7 +2168,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case ZOFFSET_HOME:
@@ -2277,7 +2285,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case PREHEAT_MODE:
@@ -2367,7 +2375,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case CHANGEFIL_PARKHEAD:
@@ -2489,7 +2497,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case HOSTACTIONS_1:
@@ -2690,7 +2698,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
           #if HAS_HOTEND
@@ -2821,7 +2829,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_HOTEND && ENABLED(PIDTEMP)
@@ -2886,7 +2894,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case HOTENDPID_TUNE:
@@ -2975,7 +2983,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case MPC_TUNE:
@@ -3067,7 +3075,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case BEDPID_TUNE:
@@ -3144,7 +3152,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_HOTEND
@@ -3202,7 +3210,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_HOTEND
@@ -3260,7 +3268,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_HOTEND
@@ -3318,7 +3326,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_HOTEND
@@ -3376,7 +3384,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_HOTEND
@@ -3438,7 +3446,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case MOTION_HOMEOFFSETS:
@@ -3538,7 +3546,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case FWR_RET_LENGTH:
@@ -3614,7 +3622,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
             case PARKMENU_POSX:
               if (draw) {
@@ -3663,7 +3671,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case HOMEOFFSETS_XOFFSET:
@@ -3705,7 +3713,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case SPEED_X:
@@ -3773,7 +3781,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case ACCEL_X:
@@ -3834,7 +3842,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case JERK_X:
@@ -3922,7 +3930,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case STEPS_X:
@@ -4149,7 +4157,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case VISUAL_BACKLIGHT:
@@ -4303,7 +4311,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case COLORSETTINGS_CURSOR:
@@ -4585,7 +4593,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           #if ENABLED(HOST_ACTION_COMMANDS)
@@ -4625,7 +4633,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           case ACTIONCOMMANDS_1:
@@ -4692,7 +4700,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           #if ENABLED(SOUND_MENU_ITEM)
@@ -4852,7 +4860,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
               case PROBE_XOFFSET:
@@ -4994,7 +5002,7 @@
             if (draw)
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
             else {
-              Draw_Main_Menu();
+              Draw_Quick_Home();
             }
             break;
           #if HAS_FILAMENT_SENSOR
@@ -5400,7 +5408,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case LEVELING_VIEW_MESH:
@@ -5459,7 +5467,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             #if HAS_LEVELING_HEAT
@@ -5598,7 +5606,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else {
-                liveadjust = false;
+                liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
                 flag_leveling_m = true;
                 gcode.process_subcommands_now(F("M211 S1"));
                 set_bed_leveling_enabled(level_state);
@@ -5610,7 +5618,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case LEVELING_M_MODELIVE:
@@ -5668,7 +5676,7 @@
                         AudioFeedback(settings.save());
                       #endif
                     #endif
-                    liveadjust = false;
+                    liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
                     TERN_(AUTO_BED_LEVELING_BILINEAR, bbl.refresh_bed_level());
                     planner.synchronize();
                     Draw_Menu(Leveling, LEVELING_MANUAL);
@@ -5776,7 +5784,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
               else {
-                liveadjust = false;
+                liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
                 gcode.process_subcommands_now(F("M211 S1"));
                 set_bed_leveling_enabled(level_state);
                 Draw_Menu(Leveling, LEVELING_GET_MESH);
@@ -5813,7 +5821,7 @@
                   gcode.process_subcommands_now(F("G29 S"));
                   planner.synchronize();
                   AudioFeedback(true);
-                  liveadjust = false;
+                  liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
                   gcode.process_subcommands_now(F("M211 S1"));
                   set_bed_leveling_enabled(level_state);
                   Draw_Menu(Leveling, LEVELING_GET_MESH);
@@ -5895,7 +5903,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BUTTON_CANCEL));
               else {
-                liveadjust = false;
+                liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
                 gcode.process_subcommands_now(F("M211 S1\nG29 A"));
                 planner.synchronize();
                 set_bed_leveling_enabled(level_state);
@@ -5930,7 +5938,7 @@
                 gcode.process_subcommands_now(F("G29"));
                 planner.synchronize();
                 AudioFeedback(settings.save());
-                liveadjust = false;
+                liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
                 gcode.process_subcommands_now(F("M211 S1"));
                 set_bed_leveling_enabled(level_state);
                 Draw_Menu(Leveling, LEVELING_GET_MESH);
@@ -6003,8 +6011,7 @@
       case Tune:
 
         #define TUNE_BACK 0
-        #define TUNE_HOME (TUNE_BACK + 1)
-        #define TUNE_BACKLIGHT_OFF (TUNE_HOME + 1)
+        #define TUNE_BACKLIGHT_OFF (TUNE_BACK + 1)
         #define TUNE_BACKLIGHT (TUNE_BACKLIGHT_OFF + 1)
         #define TUNE_SPEED (TUNE_BACKLIGHT + 1)
         #define TUNE_FLOW (TUNE_SPEED + ENABLED(HAS_HOTEND))
@@ -6030,13 +6037,6 @@
               Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_BACK));
             else
               Draw_Print_Screen();
-            break;
-          case TUNE_HOME:
-            if (draw)
-              Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
-            else {
-              Draw_Main_Menu();
-            }
             break;
           case TUNE_SPEED:
             if (draw) {
@@ -6256,7 +6256,7 @@
               if (draw)
                 Draw_Menu_Item(row, ICON_Back, GET_TEXT_F(MSG_MAIN));
               else {
-                Draw_Main_Menu();
+                Draw_Quick_Home();
               }
               break;
             case PREHEATHOTEND_CONTINUE:
