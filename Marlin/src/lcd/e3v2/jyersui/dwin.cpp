@@ -1650,7 +1650,7 @@
             break;
           case PREPARE_MANUALLEVEL:
             if (draw)
-              Draw_Menu_Item(row, ICON_PrintSize, GET_TEXT_F(MSG_BED_TRAMMING_MANUAL), nullptr, true);
+              Draw_Menu_Item(row, ICON_PrintSize, GET_TEXT_F(MSG_BED_TRAMMING), nullptr, true);
             else {
               if (axes_should_home()) {
                 Popup_Handler(Home);
@@ -1945,7 +1945,8 @@
         #define MLEVEL_BACK 0
         #define MLEVEL_HOME  (MLEVEL_BACK + 1) // mmm
         #define MLEVEL_PROBE (MLEVEL_HOME + ENABLED(HAS_BED_PROBE))
-        #define MLEVEL_BL (MLEVEL_PROBE + 1)
+        #define MLEVEL_WIZARD (MLEVEL_PROBE + ENABLED(HAS_BED_PROBE))
+        #define MLEVEL_BL (MLEVEL_WIZARD + 1)
         #define MLEVEL_TL (MLEVEL_BL + 1)
         #define MLEVEL_TR (MLEVEL_TL + 1)
         #define MLEVEL_BR (MLEVEL_TR + 1)
@@ -1982,6 +1983,12 @@
               else {
                 use_probe = !use_probe;
                 Draw_Checkbox(row, use_probe);
+              }
+              break;
+            case MLEVEL_WIZARD:
+              if (draw)
+                Draw_Menu_Item(row, ICON_Zoffset, GET_TEXT_F(MSG_TRAMMING_WIZARD));
+              else {
                 if (use_probe) {
                   Popup_Handler(Level);
                   do_z_clearance(Z_HOMING_HEIGHT);
@@ -6373,7 +6380,7 @@
       case Prepare:           return GET_TEXT_F(MSG_PREPARE);
       case HomeMenu:          return GET_TEXT_F(MSG_HOMING);
       case Move:              return GET_TEXT_F(MSG_MOVE_AXIS);
-      case ManualLevel:       return GET_TEXT_F(MSG_BED_TRAMMING_MANUAL);
+      case ManualLevel:       return GET_TEXT_F(MSG_BED_TRAMMING);
       #if HAS_ZOFFSET_ITEM
         case ZOffset:         return GET_TEXT_F(MSG_OFFSET_Z);
       #endif
