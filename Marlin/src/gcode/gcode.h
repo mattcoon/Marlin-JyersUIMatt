@@ -110,7 +110,7 @@
  * M33  - Get the longname version of a path. (Requires LONG_FILENAME_HOST_SUPPORT)
  * M34  - Set SD Card sorting options. (Requires SDCARD_SORT_ALPHA)
  *
- * M42  - Change pin status via gcode: M42 P<pin> S<value>. LED pin assumed if P is omitted. (Requires DIRECT_PIN_CONTROL)
+ * M42  - Change pin status via G-code: M42 P<pin> S<value>. LED pin assumed if P is omitted. (Requires DIRECT_PIN_CONTROL)
  * M43  - Display pin status, watch pins for changes, watch endstops & toggle LED, Z servo probe test, toggle pins (Requires PINS_DEBUGGING)
  * M48  - Measure Z Probe repeatability: M48 P<points> X<pos> Y<pos> V<level> E<engage> L<legs> S<chizoid>. (Requires Z_MIN_PROBE_REPEATABILITY_TEST)
  *
@@ -202,6 +202,7 @@
  * M226 - Wait until a pin is in a given state: "M226 P<pin> S<state>" (Requires DIRECT_PIN_CONTROL)
  * M240 - Trigger a camera to take a photograph. (Requires PHOTO_GCODE)
  * M250 - Set LCD contrast: "M250 C<contrast>" (0-63). (Requires LCD support)
+ * M255 - Set LCD sleep time: "M255 S<minutes>" (0-99). (Requires an LCD with brightness or sleep/wake)
  * M256 - Set LCD brightness: "M256 B<brightness>" (0-255). (Requires an LCD with brightness control)
  * M260 - i2c Send Data (Requires EXPERIMENTAL_I2CBUS)
  * M261 - i2c Request Data (Requires EXPERIMENTAL_I2CBUS)
@@ -220,8 +221,8 @@
  * M350 - Set microstepping mode. (Requires digital microstepping pins.)
  * M351 - Toggle MS1 MS2 pins directly. (Requires digital microstepping pins.)
  * M355 - Set Case Light on/off and set brightness. (Requires CASE_LIGHT_PIN)
- * M380 - Activate solenoid on active extruder. (Requires EXT_SOLENOID)
- * M381 - Disable all solenoids. (Requires EXT_SOLENOID)
+ * M380 - Activate solenoid on active tool (Requires EXT_SOLENOID) or the tool specified by 'S' (Requires MANUAL_SOLENOID_CONTROL).
+ * M381 - Disable solenoids on all tools (Requires EXT_SOLENOID) or the tool specified by 'S' (Requires MANUAL_SOLENOID_CONTROL).
  * M400 - Finish all moves.
  * M401 - Deploy and activate Z probe. (Requires a probe)
  * M402 - Deactivate and stow Z probe. (Requires a probe)
@@ -231,6 +232,7 @@
  * M406 - Disable Filament Sensor flow control. (Requires FILAMENT_WIDTH_SENSOR)
  * M407 - Display measured filament diameter in millimeters. (Requires FILAMENT_WIDTH_SENSOR)
  * M410 - Quickstop. Abort all planned moves.
+ * M412 - Enable / Disable Filament Runout Detection. (Requires FILAMENT_RUNOUT_SENSOR)
  * M413 - Enable / Disable Power-Loss Recovery. (Requires POWER_LOSS_RECOVERY)
  * M414 - Set language by index. (Requires LCD_LANGUAGE_2...)
  * M420 - Enable/Disable Leveling (with current values) S1=enable S0=disable (Requires MESH_BED_LEVELING or ABL)
@@ -255,7 +257,6 @@
  * M554 - Get or set IP gateway. (Requires enabled Ethernet port)
  * M569 - Enable stealthChop on an axis. (Requires at least one _DRIVER_TYPE to be TMC2130/2160/2208/2209/5130/5160)
  * M575 - Change the serial baud rate. (Requires BAUD_RATE_GCODE)
- * M591 - Configure Filament Runout Detection. (Requires FILAMENT_RUNOUT_SENSOR)
  * M600 - Pause for filament change: "M600 X<pos> Y<pos> Z<raise> E<first_retract> L<later_retract>". (Requires ADVANCED_PAUSE_FEATURE)
  * M603 - Configure filament change: "M603 T<tool> U<unload_length> L<load_length>". (Requires ADVANCED_PAUSE_FEATURE)
  * M605 - Set Dual X-Carriage movement mode: "M605 S<mode> [X<x_offset>] [R<temp_offset>]". (Requires DUAL_X_CARRIAGE)
@@ -395,14 +396,20 @@ public:
     static bool select_coordinate_system(const int8_t _new);
   #endif
 
-  static millis_t previous_move_ms, max_inactive_time, stepper_inactive_time;
-  FORCE_INLINE static void reset_stepper_timeout(const millis_t ms=millis()) { previous_move_ms = ms; }
+  static millis_t previous_move_ms, max_inactive_time;
   FORCE_INLINE static bool stepper_max_timed_out(const millis_t ms=millis()) {
     return max_inactive_time && ELAPSED(ms, previous_move_ms + max_inactive_time);
   }
-  FORCE_INLINE static bool stepper_inactive_timeout(const millis_t ms=millis()) {
-    return ELAPSED(ms, previous_move_ms + stepper_inactive_time);
-  }
+  FORCE_INLINE static void reset_stepper_timeout(const millis_t ms=millis()) { previous_move_ms = ms; }
+
+  #if HAS_DISABLE_INACTIVE_AXIS
+    static millis_t stepper_inactive_time;
+    FORCE_INLINE static bool stepper_inactive_timeout(const millis_t ms=millis()) {
+      return ELAPSED(ms, previous_move_ms + stepper_inactive_time);
+    }
+  #else
+    static bool stepper_inactive_timeout(const millis_t) { return false; }
+  #endif
 
   static void report_echo_start(const bool forReplay);
   static void report_heading(const bool forReplay, FSTR_P const fstr, const bool eol=true);
@@ -883,6 +890,7 @@ private:
     static void M255();
     static void M255_report(const bool forReplay=true);
   #endif
+
   #if HAS_LCD_BRIGHTNESS
     static void M256();
     static void M256_report(const bool forReplay=true);

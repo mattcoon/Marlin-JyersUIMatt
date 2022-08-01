@@ -77,7 +77,7 @@ void GcodeSuite::M303() {
       SERIAL_ECHOLNPGM(STR_PID_BAD_HEATER_ID);
       TERN_(EXTENSIBLE_UI, ExtUI::onPidTuning(ExtUI::result_t::PID_BAD_EXTRUDER_NUM));
       TERN_(DWIN_LCD_PROUI, DWIN_PidTuning(PID_BAD_EXTRUDER_NUM));
-      TERN_(DWIN_CREALITY_LCD_JYERSUI, CrealityDWINClass::PidTuning(CrealityDWINClass::pidresult_t::PID_BAD_EXTRUDER_NUM));
+      TERN_(DWIN_CREALITY_LCD_JYERSUI, CrealityDWINClass::DWIN_PidTuning(PID_BAD_EXTRUDER_NUM));
       return;
   }
 

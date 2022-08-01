@@ -93,7 +93,7 @@ void GcodeSuite::M106() {
   // mmmm only in laser mode
   #if ENABLED(LASER_SYNCHRONOUS_M106_M107)
    if (planner.laserMode == true)
-      planner.buffer_sync_block(BLOCK_FLAG_SYNC_FANS);
+      planner.buffer_sync_block(BLOCK_BIT_SYNC_FANS);
   #endif
 
   if (TERN0(DUAL_X_CARRIAGE, idex_is_duplicating()))  // pfan == 0 when duplicating
@@ -118,7 +118,7 @@ void GcodeSuite::M107() {
   // mmmm only in laser mode
   #if ENABLED(LASER_SYNCHRONOUS_M106_M107)
    if (planner.laserMode == true)
-      planner.buffer_sync_block(BLOCK_FLAG_SYNC_FANS);
+      planner.buffer_sync_block(BLOCK_BIT_SYNC_FANS);
   #endif
 }
 

@@ -39,7 +39,7 @@
 #endif
 
 #if EXTJYERSUI
-  #include "../lcd/e3v2/jyersui/extjyersui.h"
+  #include "../lcd/e3v2/jyersui/jyenhanced.h"
 #endif
 
 #ifndef FILAMENT_RUNOUT_THRESHOLD

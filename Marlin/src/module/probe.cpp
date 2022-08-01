@@ -48,6 +48,11 @@
   #include "delta.h"
 #endif
 
+#if ENABLED(SENSORLESS_PROBING)
+  abc_float_t offset_sensorless_adj{0};
+  float largest_sensorless_adj = 0;
+#endif
+
 #if ANY(HAS_QUIET_PROBING, USE_SENSORLESS)
   #include "stepper/indirection.h"
   #if BOTH(HAS_QUIET_PROBING, PROBING_ESTEPPERS_OFF)
@@ -105,21 +110,21 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
 // EXTJYERSUI - Probe margin
 #if EXTJYERSUI
   float Probe::_min_x(const xy_pos_t &probe_offset_xy) {
-     return _MAX((X_MIN_BED) + (HMI_datas.probing_margin), (X_MIN_POS) + probe_offset_xy.x);
+     return _MAX((X_MIN_BED) + (eeprom_settings.probing_margin), (X_MIN_POS) + probe_offset_xy.x);
   }
   float Probe::_max_x(const xy_pos_t &probe_offset_xy) {
-     return _MIN((X_MAX_BED) - (HMI_datas.probing_margin), (X_MAX_POS) + probe_offset_xy.x);
+     return _MIN((X_MAX_BED) - (eeprom_settings.probing_margin), (X_MAX_POS) + probe_offset_xy.x);
   }
   float Probe::_min_y(const xy_pos_t &probe_offset_xy) {
-     return _MAX((Y_MIN_BED) + (HMI_datas.probing_margin), (Y_MIN_POS) + probe_offset_xy.y);
+     return _MAX((Y_MIN_BED) + (eeprom_settings.probing_margin), (Y_MIN_POS) + probe_offset_xy.y);
   }
   float Probe::_max_y(const xy_pos_t &probe_offset_xy) {
-     return _MIN((Y_MAX_BED) - (HMI_datas.probing_margin), (Y_MAX_POS) + probe_offset_xy.y);
+     return _MIN((Y_MAX_BED) - (eeprom_settings.probing_margin), (Y_MAX_POS) + probe_offset_xy.y);
   }
 #endif
 
 #if ENABLED(SENSORLESS_PROBING)
-  Probe::sense_bool_t Probe::test_sensitivity;
+  Probe::sense_bool_t Probe::test_sensitivity = { true, true, true };
 #endif
 
 #if ENABLED(Z_PROBE_SLED)
@@ -275,7 +280,57 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
     #endif
   }
 
-#endif // Z_PROBE_ALLEN_KEY
+#elif ENABLED(MAG_MOUNTED_PROBE)
+
+  typedef struct { float fr_mm_min; xyz_pos_t where; } mag_probe_move_t;
+
+  inline void run_deploy_moves_script() {
+    #ifdef MAG_MOUNTED_DEPLOY_1
+      constexpr mag_probe_move_t deploy_1 = MAG_MOUNTED_DEPLOY_1;
+      do_blocking_move_to(deploy_1.where, MMM_TO_MMS(deploy_1.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_DEPLOY_2
+      constexpr mag_probe_move_t deploy_2 = MAG_MOUNTED_DEPLOY_2;
+      do_blocking_move_to(deploy_2.where, MMM_TO_MMS(deploy_2.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_DEPLOY_3
+      constexpr mag_probe_move_t deploy_3 = MAG_MOUNTED_DEPLOY_3;
+      do_blocking_move_to(deploy_3.where, MMM_TO_MMS(deploy_3.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_DEPLOY_4
+      constexpr mag_probe_move_t deploy_4 = MAG_MOUNTED_DEPLOY_4;
+      do_blocking_move_to(deploy_4.where, MMM_TO_MMS(deploy_4.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_DEPLOY_5
+      constexpr mag_probe_move_t deploy_5 = MAG_MOUNTED_DEPLOY_5;
+      do_blocking_move_to(deploy_5.where, MMM_TO_MMS(deploy_5.fr_mm_min));
+    #endif
+  }
+
+  inline void run_stow_moves_script() {
+    #ifdef MAG_MOUNTED_STOW_1
+      constexpr mag_probe_move_t stow_1 = MAG_MOUNTED_STOW_1;
+      do_blocking_move_to(stow_1.where, MMM_TO_MMS(stow_1.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_STOW_2
+      constexpr mag_probe_move_t stow_2 = MAG_MOUNTED_STOW_2;
+      do_blocking_move_to(stow_2.where, MMM_TO_MMS(stow_2.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_STOW_3
+      constexpr mag_probe_move_t stow_3 = MAG_MOUNTED_STOW_3;
+      do_blocking_move_to(stow_3.where, MMM_TO_MMS(stow_3.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_STOW_4
+      constexpr mag_probe_move_t stow_4 = MAG_MOUNTED_STOW_4;
+      do_blocking_move_to(stow_4.where, MMM_TO_MMS(stow_4.fr_mm_min));
+    #endif
+    #ifdef MAG_MOUNTED_STOW_5
+      constexpr mag_probe_move_t stow_5 = MAG_MOUNTED_STOW_5;
+      do_blocking_move_to(stow_5.where, MMM_TO_MMS(stow_5.fr_mm_min));
+    #endif
+  }
+
+#endif // MAG_MOUNTED_PROBE
 
 #if HAS_QUIET_PROBING
 
@@ -290,14 +345,14 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
     #if ENABLED(PROBING_STEPPERS_OFF) && DISABLED(DELTA)
       static uint8_t old_trusted;
       if (dopause) {
-        old_trusted = axis_trusted;
+        old_trusted = axes_trusted;
         stepper.disable_axis(X_AXIS);
         stepper.disable_axis(Y_AXIS);
       }
       else {
         if (TEST(old_trusted, X_AXIS)) stepper.enable_axis(X_AXIS);
         if (TEST(old_trusted, Y_AXIS)) stepper.enable_axis(Y_AXIS);
-        axis_trusted = old_trusted;
+        axes_trusted = old_trusted;
       }
     #endif
     if (dopause) safe_delay(_MAX(DELAY_BEFORE_PROBING, 25));
@@ -359,9 +414,9 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
 
   #elif HAS_Z_SERVO_PROBE
 
-    MOVE_SERVO(Z_PROBE_SERVO_NR, servo_angles[Z_PROBE_SERVO_NR][deploy ? 0 : 1]);
+    servo[Z_PROBE_SERVO_NR].move(servo_angles[Z_PROBE_SERVO_NR][deploy ? 0 : 1]);
 
-  #elif EITHER(TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY)
+  #elif ANY(TOUCH_MI_PROBE, Z_PROBE_ALLEN_KEY, MAG_MOUNTED_PROBE)
 
     deploy ? run_deploy_moves_script() : run_stow_moves_script();
 
@@ -407,7 +462,7 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     #if ENABLED(WAIT_FOR_NOZZLE_HEAT)
       const celsius_t hotendPreheat = hotend_temp > thermalManager.degTargetHotend(0) ? hotend_temp : 0;
       #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-          if (HMI_datas.ena_LevelingTemp_hotend) {
+          if (eeprom_settings.ena_LevelingTemp_hotend) {
       #endif
             if (hotendPreheat) {
               DEBUG_ECHOPGM("hotend (", hotendPreheat, ")");
@@ -424,7 +479,7 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     #if ENABLED(WAIT_FOR_BED_HEAT)
       const celsius_t bedPreheat = bed_temp > thermalManager.degTargetBed() ? bed_temp : 0;
       #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-          if (HMI_datas.ena_LevelingTemp_bed) {
+          if (eeprom_settings.ena_LevelingTemp_bed) {
       #endif
           if (bedPreheat) {
             if (hotendPreheat) DEBUG_ECHOPGM(" and ");
@@ -441,11 +496,11 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     DEBUG_EOL();
 
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-      if (HMI_datas.ena_LevelingTemp_hotend) 
+      if (eeprom_settings.ena_LevelingTemp_hotend) 
     #endif
         TERN_(WAIT_FOR_NOZZLE_HEAT, if (hotend_temp > thermalManager.wholeDegHotend(0) + (TEMP_WINDOW)) thermalManager.wait_for_hotend(0));
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-      if (HMI_datas.ena_LevelingTemp_bed) 
+      if (eeprom_settings.ena_LevelingTemp_bed) 
     #endif
         TERN_(WAIT_FOR_BED_HEAT,    if (bed_temp    > thermalManager.wholeDegBed() + (TEMP_BED_WINDOW)) thermalManager.wait_for_bed_heating());
   }
@@ -535,15 +590,12 @@ bool Probe::set_deployed(const bool deploy) {
 }
 
 /**
- * @brief Used by run_z_probe to do a single Z probe move.
+ * @brief Move down until the probe triggers or the low limit is reached
+ *        Used by run_z_probe to do a single Z probe move.
  *
  * @param  z        Z destination
  * @param  fr_mm_s  Feedrate in mm/s
  * @return true to indicate an error
- */
-
-/**
- * @brief Move down until the probe triggers or the low limit is reached
  *
  * @details Used by run_z_probe to get each bed Z height measurement.
  *          Sets current_position.z to the height where the probe triggered
@@ -571,12 +623,12 @@ bool Probe::probe_down_to_z(const_float_t z, const_feedRate_t fr_mm_s) {
   #if ENABLED(SENSORLESS_PROBING)
     sensorless_t stealth_states { false };
     #if HAS_DELTA_SENSORLESS_PROBING
-      if (test_sensitivity.x) stealth_states.x = tmc_enable_stallguard(stepperX);  // Delta watches all DIAG pins for a stall
+      if (test_sensitivity.x) stealth_states.x = tmc_enable_stallguard(stepperX); // Delta watches all DIAG pins for a stall
       if (test_sensitivity.y) stealth_states.y = tmc_enable_stallguard(stepperY);
     #endif
-    if (test_sensitivity.z) stealth_states.z = tmc_enable_stallguard(stepperZ);    // All machines will check Z-DIAG for stall
+    if (test_sensitivity.z) stealth_states.z = tmc_enable_stallguard(stepperZ);   // All machines will check Z-DIAG for stall
+    endstops.set_homing_current(true);                                            // The "homing" current also applies to probing
     endstops.enable(true);
-    set_homing_current(true);                                 // The "homing" current also applies to probing
   #endif
 
   TERN_(HAS_QUIET_PROBING, set_probing_paused(true));
@@ -593,6 +645,11 @@ bool Probe::probe_down_to_z(const_float_t z, const_feedRate_t fr_mm_s) {
     #endif
   ;
 
+  // Offset sensorless probing
+  #if HAS_DELTA_SENSORLESS_PROBING
+    if (probe_triggered) probe.refresh_largest_sensorless_adj();
+  #endif
+
   TERN_(HAS_QUIET_PROBING, set_probing_paused(false));
 
   // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -603,7 +660,7 @@ bool Probe::probe_down_to_z(const_float_t z, const_feedRate_t fr_mm_s) {
       if (test_sensitivity.y) tmc_disable_stallguard(stepperY, stealth_states.y);
     #endif
     if (test_sensitivity.z) tmc_disable_stallguard(stepperZ, stealth_states.z);
-    set_homing_current(false);
+    endstops.set_homing_current(false);
   #endif
 
   #if ENABLED(BLTOUCH)
@@ -706,8 +763,7 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
     if (try_to_probe(PSTR("FAST"), z_probe_low_point, z_probe_fast_mm_s,
                      sanity_check, Z_CLEARANCE_BETWEEN_PROBES) ) return NAN;
 
-    const float first_probe_z = current_position.z;
-
+    const float first_probe_z = DIFF_TERN(HAS_DELTA_SENSORLESS_PROBING, current_position.z, largest_sensorless_adj);
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("1st Probe Z:", first_probe_z);
 
     // Raise to give the probe clearance
@@ -749,7 +805,7 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
 
       TERN_(MEASURE_BACKLASH_WHEN_PROBING, backlash.measure_with_probe());
 
-      const float z = current_position.z;
+      const float z = DIFF_TERN(HAS_DELTA_SENSORLESS_PROBING, current_position.z, largest_sensorless_adj);
 
       #if EXTRA_PROBING > 0
         // Insert Z measurement into probes[]. Keep it sorted ascending.
@@ -800,7 +856,7 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
 
   #elif TOTAL_PROBING == 2
 
-    const float z2 = current_position.z;
+    const float z2 = DIFF_TERN(HAS_DELTA_SENSORLESS_PROBING, current_position.z, largest_sensorless_adj);
 
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("2nd Probe Z:", z2, " Discrepancy:", first_probe_z - z2);
 
@@ -883,7 +939,7 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
       SERIAL_ERROR_MSG(STR_ERR_PROBING_FAILED);
     #endif
   }
-
+  DEBUG_ECHOLNPGM("measured_z: ", measured_z);
   return measured_z;
 }
 
@@ -903,95 +959,38 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
 
 #endif // HAS_Z_SERVO_PROBE
 
-#if USE_SENSORLESS
-
-  sensorless_t stealth_states { false };
+#if HAS_DELTA_SENSORLESS_PROBING
 
   /**
-   * Disable stealthChop if used. Enable diag1 pin on driver.
+   * Set the sensorless Z offset
    */
-  void Probe::enable_stallguard_diag1() {
-    #if ENABLED(SENSORLESS_PROBING)
-      #if HAS_DELTA_SENSORLESS_PROBING
-        stealth_states.x = tmc_enable_stallguard(stepperX);
-        stealth_states.y = tmc_enable_stallguard(stepperY);
-      #endif
-      stealth_states.z = tmc_enable_stallguard(stepperZ);
-      endstops.enable(true);
-    #endif
+  void Probe::set_offset_sensorless_adj(const_float_t sz) {
+    DEBUG_SECTION(pso, "Probe::set_offset_sensorless_adj", true);
+    if (test_sensitivity.x) offset_sensorless_adj.a = sz;
+    if (test_sensitivity.y) offset_sensorless_adj.b = sz;
+    if (test_sensitivity.z) offset_sensorless_adj.c = sz;
   }
 
   /**
-   * Re-enable stealthChop if used. Disable diag1 pin on driver.
+   * Refresh largest_sensorless_adj based on triggered endstops
    */
-  void Probe::disable_stallguard_diag1() {
-    #if ENABLED(SENSORLESS_PROBING)
-      endstops.not_homing();
-      #if HAS_DELTA_SENSORLESS_PROBING
-        tmc_disable_stallguard(stepperX, stealth_states.x);
-        tmc_disable_stallguard(stepperY, stealth_states.y);
-      #endif
-      tmc_disable_stallguard(stepperZ, stealth_states.z);
-    #endif
+  void Probe::refresh_largest_sensorless_adj() {
+    DEBUG_SECTION(rso, "Probe::refresh_largest_sensorless_adj", true);
+    largest_sensorless_adj = -3;  // A reference away from any real probe height
+    if (TEST(endstops.state(), X_MAX)) {
+      NOLESS(largest_sensorless_adj, offset_sensorless_adj.a);
+      DEBUG_ECHOLNPGM("Endstop_X: ", largest_sensorless_adj, " TowerX");
+    }
+    if (TEST(endstops.state(), Y_MAX)) {
+      NOLESS(largest_sensorless_adj, offset_sensorless_adj.b);
+      DEBUG_ECHOLNPGM("Endstop_Y: ", largest_sensorless_adj, " TowerY");
+    }
+    if (TEST(endstops.state(), Z_MAX)) {
+      NOLESS(largest_sensorless_adj, offset_sensorless_adj.c);
+      DEBUG_ECHOLNPGM("Endstop_Z: ", largest_sensorless_adj, " TowerZ");
+    }
   }
 
-  /**
-   * Change the current in the TMC drivers to N##_CURRENT_HOME. And we save the current configuration of each TMC driver.
-   */
-  void Probe::set_homing_current(const bool onoff) {
-    #define HAS_CURRENT_HOME(N) (defined(N##_CURRENT_HOME) && N##_CURRENT_HOME != N##_CURRENT)
-    #if HAS_CURRENT_HOME(X) || HAS_CURRENT_HOME(Y) || HAS_CURRENT_HOME(Z) || HAS_CURRENT_HOME(I) || HAS_CURRENT_HOME(J) || HAS_CURRENT_HOME(K) || HAS_CURRENT_HOME(U) || HAS_CURRENT_HOME(V) || HAS_CURRENT_HOME(W)
-      #if ENABLED(DELTA)
-        static int16_t saved_current_X, saved_current_Y;
-      #endif
-      #if HAS_CURRENT_HOME(Z)
-        static int16_t saved_current_Z;
-      #endif
-      #if ((ENABLED(DELTA) && (HAS_CURRENT_HOME(X) || HAS_CURRENT_HOME(Y))) || HAS_CURRENT_HOME(Z))
-        auto debug_current_on = [](PGM_P const s, const int16_t a, const int16_t b) {
-          if (DEBUGGING(LEVELING)) { DEBUG_ECHOPGM_P(s); DEBUG_ECHOLNPGM(" current: ", a, " -> ", b); }
-        };
-      #endif
-      if (onoff) {
-        #if ENABLED(DELTA)
-          #if HAS_CURRENT_HOME(X)
-            saved_current_X = stepperX.getMilliamps();
-            stepperX.rms_current(X_CURRENT_HOME);
-            debug_current_on(PSTR("X"), saved_current_X, X_CURRENT_HOME);
-          #endif
-          #if HAS_CURRENT_HOME(Y)
-            saved_current_Y = stepperY.getMilliamps();
-            stepperY.rms_current(Y_CURRENT_HOME);
-            debug_current_on(PSTR("Y"), saved_current_Y, Y_CURRENT_HOME);
-          #endif
-        #endif
-        #if HAS_CURRENT_HOME(Z)
-          saved_current_Z = stepperZ.getMilliamps();
-          stepperZ.rms_current(Z_CURRENT_HOME);
-          debug_current_on(PSTR("Z"), saved_current_Z, Z_CURRENT_HOME);
-        #endif
-        TERN_(IMPROVE_HOMING_RELIABILITY, planner.enable_stall_prevention(true));
-      }
-      else {
-        #if ENABLED(DELTA)
-          #if HAS_CURRENT_HOME(X)
-            stepperX.rms_current(saved_current_X);
-            debug_current_on(PSTR("X"), X_CURRENT_HOME, saved_current_X);
-          #endif
-          #if HAS_CURRENT_HOME(Y)
-            stepperY.rms_current(saved_current_Y);
-            debug_current_on(PSTR("Y"), Y_CURRENT_HOME, saved_current_Y);
-          #endif
-        #endif
-        #if HAS_CURRENT_HOME(Z)
-          stepperZ.rms_current(saved_current_Z);
-          debug_current_on(PSTR("Z"), Z_CURRENT_HOME, saved_current_Z);
-        #endif
-        TERN_(IMPROVE_HOMING_RELIABILITY, planner.enable_stall_prevention(false));
-      }
-    #endif
-  }
-
-#endif // SENSORLESS_PROBING || SENSORLESS_HOMING
+#endif
 
 #endif // HAS_BED_PROBE

@@ -31,6 +31,9 @@
 #include "temperature.h"
 #include "../lcd/marlinui.h"
 
+#define DEBUG_OUT BOTH(USE_SENSORLESS, DEBUG_LEVELING_FEATURE)
+#include "../core/debug_out.h"
+
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   #include HAL_PATH(../HAL, endstop_interrupts.h)
 #endif
@@ -725,7 +728,7 @@ void Endstops::update() {
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT_TO(live_state, DST_BIT, TEST(live_state, SRC_BIT))
 
-  #if ENABLED(G38_PROBE_TARGET) && NONE(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_XY)
+  #if ENABLED(G38_PROBE_TARGET) && NONE(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_YX)
     #define HAS_G38_PROBE 1
     // For G38 moves check the probe's pin for ALL movement
     if (G38_move) UPDATE_ENDSTOP_BIT(Z, TERN(USES_Z_MIN_PROBE_PIN, MIN_PROBE, MIN));
@@ -736,7 +739,7 @@ void Endstops::update() {
   #define X_MAX_TEST() TERN1(DUAL_X_CARRIAGE, TERN0(X_HOME_TO_MAX, stepper.last_moved_extruder == 0) || TERN0(X2_HOME_TO_MAX, stepper.last_moved_extruder != 0))
 
   // Use HEAD for core axes, AXIS for others
-  #if ANY(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_XY)
+  #if ANY(CORE_IS_XY, CORE_IS_XZ, MARKFORGED_XY, MARKFORGED_YX)
     #define X_AXIS_HEAD X_HEAD
   #else
     #define X_AXIS_HEAD X_AXIS
@@ -1120,7 +1123,7 @@ void Endstops::update() {
     #define PROCESS_ENDSTOP_Z(MINMAX) PROCESS_DUAL_ENDSTOP(Z, MINMAX)
   #endif
 
-  #if HAS_G38_PROBE
+  #if HAS_G38_PROBE // TODO (DerAndere): Add support for HAS_I_AXIS
     #define _G38_OPEN_STATE TERN(G38_PROBE_AWAY, (G38_move >= 4), LOW)
     // For G38 moves check the probe's pin for ALL movement
     if (G38_move && TEST_ENDSTOP(_ENDSTOP(Z, TERN(USES_Z_MIN_PROBE_PIN, MIN_PROBE, MIN))) != _G38_OPEN_STATE) {
@@ -1643,3 +1646,66 @@ void Endstops::update() {
   }
 
 #endif // PINS_DEBUGGING
+
+#if USE_SENSORLESS
+  /**
+   * Change TMC driver currents to N##_CURRENT_HOME, saving the current configuration of each.
+   */
+  void Endstops::set_homing_current(const bool onoff) {
+    #define HAS_CURRENT_HOME(N) (defined(N##_CURRENT_HOME) && N##_CURRENT_HOME != N##_CURRENT)
+    #define HAS_DELTA_X_CURRENT (ENABLED(DELTA) && HAS_CURRENT_HOME(X))
+    #define HAS_DELTA_Y_CURRENT (ENABLED(DELTA) && HAS_CURRENT_HOME(Y))
+    #if HAS_DELTA_X_CURRENT || HAS_DELTA_Y_CURRENT || HAS_CURRENT_HOME(Z)
+      #if HAS_DELTA_X_CURRENT
+        static int16_t saved_current_x;
+      #endif
+      #if HAS_DELTA_Y_CURRENT
+        static int16_t saved_current_y;
+      #endif
+      #if HAS_CURRENT_HOME(Z)
+        static int16_t saved_current_z;
+      #endif
+      auto debug_current_on = [](PGM_P const s, const int16_t a, const int16_t b) {
+        if (DEBUGGING(LEVELING)) { DEBUG_ECHOPGM_P(s); DEBUG_ECHOLNPGM(" current: ", a, " -> ", b); }
+      };
+      if (onoff) {
+        #if HAS_DELTA_X_CURRENT
+          saved_current_x = stepperX.getMilliamps();
+          stepperX.rms_current(X_CURRENT_HOME);
+          debug_current_on(PSTR("X"), saved_current_x, X_CURRENT_HOME);
+        #endif
+        #if HAS_DELTA_Y_CURRENT
+          saved_current_y = stepperY.getMilliamps();
+          stepperY.rms_current(Y_CURRENT_HOME);
+          debug_current_on(PSTR("Y"), saved_current_y, Y_CURRENT_HOME);
+        #endif
+        #if HAS_CURRENT_HOME(Z)
+          saved_current_z = stepperZ.getMilliamps();
+          stepperZ.rms_current(Z_CURRENT_HOME);
+          debug_current_on(PSTR("Z"), saved_current_z, Z_CURRENT_HOME);
+        #endif
+      }
+      else {
+        #if HAS_DELTA_X_CURRENT
+          stepperX.rms_current(saved_current_x);
+          debug_current_on(PSTR("X"), X_CURRENT_HOME, saved_current_x);
+        #endif
+        #if HAS_DELTA_Y_CURRENT
+          stepperY.rms_current(saved_current_y);
+          debug_current_on(PSTR("Y"), Y_CURRENT_HOME, saved_current_y);
+        #endif
+        #if HAS_CURRENT_HOME(Z)
+          stepperZ.rms_current(saved_current_z);
+          debug_current_on(PSTR("Z"), Z_CURRENT_HOME, saved_current_z);
+        #endif
+      }
+
+      TERN_(IMPROVE_HOMING_RELIABILITY, planner.enable_stall_prevention(onoff));
+
+      #if SENSORLESS_STALLGUARD_DELAY
+        safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
+      #endif
+
+    #endif // XYZ
+  }
+#endif

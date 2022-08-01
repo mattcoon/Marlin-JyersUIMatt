@@ -293,7 +293,7 @@ bool load_filament(const_float_t slow_load_length/*=0*/, const_float_t fast_load
           // Show "Purge More" / "Resume" menu and wait for reply
           KEEPALIVE_STATE(PAUSED_FOR_USER);
           wait_for_user = false;
-          #if ANY(HAS_MARLINUI_MENU, DWIN_LCD_PROUI, DWIN_CREALITY_LCD_JYERSUI)
+          #if ANY(HAS_MARLINUI_MENU, DWIN_CREALITY_LCD_JYERSUI, DWIN_LCD_PROUI)
             ui.pause_show_message(PAUSE_MESSAGE_OPTION); // Also sets PAUSE_RESPONSE_WAIT_FOR
           #else
             pause_menu_response = PAUSE_RESPONSE_WAIT_FOR;
@@ -726,14 +726,13 @@ void resume_print(const_float_t slow_load_length/*=0*/, const_float_t fast_load_
 
   TERN_(HAS_FILAMENT_SENSOR, runout.reset());
 
-  //TERN_(HAS_STATUS_MESSAGE, ui.reset_status());
   #if ENABLED(DWIN_LCD_PROUI)
     DWIN_Print_Resume();
+    HMI_ReturnScreen();
   #else
-    TERN_(HAS_STATUS_MESSAGE, ui.reset_status());
+    ui.reset_status();
+    ui.return_to_status();
   #endif
-  TERN_(HAS_MARLINUI_MENU, ui.return_to_status());
-  //TERN_(DWIN_LCD_PROUI, HMI_ReturnScreen());
 }
 
 #endif // ADVANCED_PAUSE_FEATURE

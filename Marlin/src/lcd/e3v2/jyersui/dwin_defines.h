@@ -33,7 +33,7 @@
 
 
 #if EXTJYERSUI
-  #include "extjyersui.h"
+  #include "jyenhanced.h"
 #endif
 
 #ifndef LCD_SET_PROGRESS_MANUALLY
@@ -59,9 +59,21 @@
     #define HAS_LEVELING_HEAT 1
 #endif
 
-#define HAS_ES_DIAG 1
-
+#define JYENHANCED 1 // Enable LCH-77 JYersUI Enhancements
+#define HAS_ESDIAG 1
+#define HAS_LOCKSCREEN 1
+#define HAS_PIDPLOT 1
+#define HAS_GCODE_PREVIEW 1
 #define HAS_SHORTCUTS 1
+#if ENABLED(HOST_ACTION_COMMANDS)
+  #define HAS_HOSTACTION_MENUS 1
+#endif
+
+#include "../../../core/types.h"
+#include "../common/dwin_color.h"
+#if JYENHANCED
+  #include "jyenhanced.h"
+#endif
 
 #ifndef DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW
   #define DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW
@@ -73,6 +85,34 @@
 
 #if NONE(AQUILA_DISPLAY, DACAI_DISPLAY)
   #define DWIN_DISPLAY
+#endif
+
+// Default UI Colors
+#define Def_Background_Color  RGB(4,4,0)
+#define Def_Cursor_color      RGB(24,24,0)
+#define Def_TitleBg_color     RGB(12,12,0)
+#define Def_TitleTxt_color    Color_White
+#define Def_Text_Color        Color_White
+#define Def_Selected_Color    RGB(24,24,0)
+#define Def_SplitLine_Color   RGB(24,24,0)
+#define Def_Highlight_Color   RGB(31,40,0)
+#define Def_StatusBg_Color    RGB(12,12,0)
+#define Def_StatusTxt_Color   Color_White
+#define Def_PopupBg_color     Color_Bg_Window
+#define Def_PopupTxt_Color    Popup_Text_Color
+#define Def_AlertBg_Color     Color_Bg_Red
+#define Def_AlertTxt_Color    Color_Yellow
+#define Def_PercentTxt_Color  RGB(31,48,8)
+#define Def_Barfill_Color     RGB(12,12,0)
+#define Def_Indicator_Color   RGB(31,48,8)
+#define Def_Coordinate_Color  Color_White
+#define Def_Button_Color      RGB(12,12,0)
+
+#if ENABLED(LED_CONTROL_MENU, HAS_COLOR_LEDS)
+  #define Def_Leds_Color      0xFFFFFFFF
+#endif
+#if ENABLED(CASELIGHT_USES_BRIGHTNESS)
+  #define Def_CaseLight_Brightness 255
 #endif
 
 #if DISABLED(REVERSE_ENCODER_DIRECTION) && ENABLED(AQUILA_DISPLAY)
@@ -208,12 +248,22 @@ typedef struct {
 
     uint8_t shortcut_0 = TERN(Ext_Config_JyersUI, Def_Shortcut_0, 0);
     uint8_t shortcut_1 = TERN(Ext_Config_JyersUI, Def_Shortcut_1, 1);
+  #if ENABLED(DWIN_ICON_SET)
+    uint8_t iconset_current;
+  #endif
 
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
       bool show_gcode_thumbnails : 1;
     #endif
     
-    bool invert_dir_extruder = DEF_INVERT_E0_DIR;
+    bool Invert_E0 = DEF_INVERT_E0_DIR;
+    int16_t x_bed_size = DEF_X_BED_SIZE;
+    int16_t y_bed_size = DEF_Y_BED_SIZE;
+    int16_t x_min_pos = DEF_X_MIN_POS;
+    int16_t y_min_pos = DEF_Y_MIN_POS;
+    int16_t x_max_pos = DEF_X_MAX_POS;
+    int16_t y_max_pos = DEF_Y_MAX_POS;
+    int16_t z_max_pos = DEF_Z_MAX_POS;
     bool fan_percent : 1;
     #if ANY(AUTO_BED_LEVELING_BILINEAR, AUTO_BED_LEVELING_UBL, MESH_BED_LEVELING)
       bool leveling_active : 1;
@@ -243,6 +293,12 @@ typedef struct {
           float probing_margin = DEF_PROBING_MARGIN;
           uint16_t zprobefeedfast = DEF_Z_PROBE_FEEDRATE_FAST;
           uint16_t zprobefeedslow = DEF_Z_PROBE_FEEDRATE_SLOW;
+    #endif
+    #if HAS_MESH
+      float mesh_min_x = DEF_MESH_MIN_X;
+      float mesh_max_x = DEF_MESH_MAX_X;
+      float mesh_min_y = DEF_MESH_MIN_Y;
+      float mesh_max_y = DEF_MESH_MAX_Y;
       #endif
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
           uint8_t fil_unload_feedrate = DEF_FILAMENT_CHANGE_UNLOAD_FEEDRATE;
@@ -254,14 +310,14 @@ typedef struct {
       uint32_t LEDColor = Def_Leds_Color;
     #endif
 
-  } HMI_datas_t;
+  } eeprom_settings_t;
 
   #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
     static constexpr size_t eeprom_data_size = 156;
   #else
     static constexpr size_t eeprom_data_size = 124;
   #endif
-  extern HMI_datas_t HMI_datas;
+  extern eeprom_settings_t eeprom_settings;
 
 
 //
@@ -289,17 +345,17 @@ typedef struct {
   // New Defines :
   //
   #if HAS_BED_PROBE
-    #define PROBING_MARGIN HMI_datas.probing_margin
-    #define Z_PROBE_FEEDRATE_FAST HMI_datas.zprobefeedfast
-    #define Z_PROBE_FEEDRATE_SLOW HMI_datas.zprobefeedslow
+    #define PROBING_MARGIN eeprom_settings.probing_margin
+    #define Z_PROBE_FEEDRATE_FAST eeprom_settings.zprobefeedfast
+    #define Z_PROBE_FEEDRATE_SLOW eeprom_settings.zprobefeedslow
   #endif
-  #define INVERT_E0_DIR HMI_datas.invert_dir_extruder
+  #define INVERT_E0_DIR eeprom_settings.Invert_E0
   #if ENABLED(NOZZLE_PARK_FEATURE)
-    #define NOZZLE_PARK_POINT {(float)HMI_datas.Park_point.x, (float)HMI_datas.Park_point.y, (float)HMI_datas.Park_point.z}
+    #define NOZZLE_PARK_POINT {(float)eeprom_settings.Park_point.x, (float)eeprom_settings.Park_point.y, (float)eeprom_settings.Park_point.z}
   #endif
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
-    #define FILAMENT_CHANGE_UNLOAD_FEEDRATE (float)HMI_datas.fil_unload_feedrate
-    #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE (float)HMI_datas.fil_fast_load_feedrate
+    #define FILAMENT_CHANGE_UNLOAD_FEEDRATE (float)eeprom_settings.fil_unload_feedrate
+    #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE (float)eeprom_settings.fil_fast_load_feedrate
   #endif
 
 

@@ -36,7 +36,7 @@
 //#define FLASH_EEPROM_EMULATION                  // Use Flash-based EEPROM emulation
 #if EITHER(NO_EEPROM_SELECTED, I2C_EEPROM)
   #define I2C_EEPROM
-  #define MARLIN_EEPROM_SIZE              0x1000  // 4KB
+  #define MARLIN_EEPROM_SIZE              0x1000  // 4K
   #define I2C_SCL_PIN                       PB6
   #define I2C_SDA_PIN                       PB7
 #endif
@@ -118,6 +118,14 @@
 #define TEMP_0_PIN                          PC1   // TH1
 #define TEMP_1_PIN                          PA2   // TH2
 #define TEMP_BED_PIN                        PC0   // TB1
+
+#if HOTENDS == 1 && !REDUNDANT_TEMP_MATCH(SOURCE, E1)
+  #if TEMP_SENSOR_PROBE
+    #define TEMP_PROBE_PIN            TEMP_1_PIN
+  #elif TEMP_SENSOR_CHAMBER
+    #define TEMP_CHAMBER_PIN          TEMP_1_PIN
+  #endif
+#endif
 
 //
 // Heaters / Fans
@@ -275,16 +283,16 @@
   #define TFT_MISO_PIN               EXP2_10_PIN
   #define TFT_MOSI_PIN               EXP2_05_PIN
   #define TFT_DC_PIN                 EXP1_03_PIN
-  #define TFT_RST_PIN                EXP1_07_PIN
   #define TFT_A0_PIN                  TFT_DC_PIN
 
   #define TFT_RESET_PIN              EXP1_07_PIN
-  #define TFT_BACKLIGHT_PIN          EXP1_08_PIN
+
+  #define LCD_BACKLIGHT_PIN          EXP1_08_PIN
+  #define TFT_BACKLIGHT_PIN    LCD_BACKLIGHT_PIN
 
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          1
 
-  #define LCD_BACKLIGHT_PIN          EXP1_08_PIN
   #ifndef TFT_WIDTH
     #define TFT_WIDTH                        480
   #endif
@@ -318,30 +326,11 @@
     #define TOUCH_ORIENTATION    TOUCH_LANDSCAPE
   #endif
 
-#elif EITHER(HAS_DWIN_E3V2, IS_DWIN_MARLINUI)
-  /**
-   *
-   *       MKS Robin nano V3.1                          MKS Robin nano V3.1
-   *             ------                                        ------
-   * (BEEPER)  PC5 |10  9 | PE13 (BTN_ENC)   (SPI1 MISO)  PA6 |10  9 | PA5 (SPI1 SCK)
-   * (LCD_EN) PD13 | 8  7 | PC6 (LCD_RS)       (BTN_EN1)  PE8 | 8  7 | PE10 (SPI1 CS)
-   * (LCD_D4) PE14   6  5 | PE15 (LCD_D5)      (BTN_EN2) PE11   6  5 | PA7 (SPI1 MOSI)
-   * (LCD_D6) PD11 | 4  3 | PD10 (LCD_D7)      (SPI1_RS) PE12 | 4  3 | RESET
-   *           GND | 2  1 | 5V                           GND  | 2  1 | 3.3V
-   *                ------                                     ------
-   *                 EXP1                                       EXP2
-   */
-
-   #define BTN_ENC                    EXP1_09_PIN //PE13
-   #define BTN_EN1                    EXP2_08_PIN //PE8
-   #define BTN_EN2                    EXP2_06_PIN //PE11
-   #define BEEPER_PIN                 EXP1_10_PIN //PC5
-
 #elif HAS_WIRED_LCD
 
-   #define LCD_PINS_ENABLE            EXP1_08_PIN
-   #define LCD_PINS_RS                EXP1_07_PIN
-   #define LCD_BACKLIGHT_PIN                 -1
+  #define LCD_PINS_ENABLE            EXP1_08_PIN
+  #define LCD_PINS_RS                EXP1_07_PIN
+  #define LCD_BACKLIGHT_PIN                 -1
 
   // MKS MINI12864 and MKS LCD12864B; If using MKS LCD12864A (Need to remove RPK2 resistor)
   #if ENABLED(MKS_MINI_12864)

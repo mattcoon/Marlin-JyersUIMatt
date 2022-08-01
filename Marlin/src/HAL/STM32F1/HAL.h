@@ -34,7 +34,6 @@
 #include "../shared/HAL_SPI.h"
 
 #include "fastio.h"
-#include "watchdog.h"
 
 #include <stdint.h>
 #include <util/atomic.h>
@@ -247,6 +246,10 @@ public:
   // Earliest possible init, before setup()
   MarlinHAL() {}
 
+  // Watchdog
+  static void watchdog_init()    IF_DISABLED(USE_WATCHDOG, {});
+  static void watchdog_refresh() IF_DISABLED(USE_WATCHDOG, {});
+
   static void init();          // Called early in setup()
   static void init_board() {}  // Called less early in setup()
   static void reboot();        // Restart the firmware from 0x0
@@ -280,7 +283,7 @@ public:
   // Called by Temperature::init for each sensor at startup
   static void adc_enable(const pin_t pin) { pinMode(pin, INPUT_ANALOG); }
 
-  // Begin ADC sampling on the given channel
+  // Begin ADC sampling on the given pin. Called from Temperature::isr!
   static void adc_start(const pin_t pin);
 
   // Is the ADC ready for reading?

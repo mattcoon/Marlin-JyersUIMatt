@@ -46,10 +46,6 @@ MMU2 mmu2;
   #include "../../lcd/extui/ui_api.h"
 #endif
 
-//#if ENABLED(EXTJYERSUI)
-//  #include "../../lcd/e3v2/jyersui/dwin_defines.h"
-//#endif
-
 #define DEBUG_OUT ENABLED(MMU2_DEBUG)
 #include "../../core/debug_out.h"
 
@@ -144,7 +140,7 @@ uint8_t MMU2::get_current_tool() {
 }
 
 #if EITHER(HAS_PRUSA_MMU2S, MMU_EXTRUDER_SENSOR)
-  #define FILAMENT_PRESENT() (READ(FIL_RUNOUT1_PIN) != runout.out_state()) //modif
+  #define FILAMENT_PRESENT() (READ(FIL_RUNOUT1_PIN) != FIL_RUNOUT1_STATE)
 #endif
 
 void mmu2_attn_buzz(const bool two=false) {
@@ -943,7 +939,7 @@ bool MMU2::load_filament_to_nozzle(const uint8_t index) {
  * Load filament to nozzle of multimaterial printer
  *
  * This function is used only after T? (user select filament) and M600 (change filament).
- * It is not used after T0 .. T4 command (select filament), in such case, gcode is responsible for loading
+ * It is not used after T0 .. T4 command (select filament), in such case, G-code is responsible for loading
  * filament to nozzle.
  */
 void MMU2::load_to_nozzle() {
@@ -1035,8 +1031,7 @@ void MMU2::execute_extruder_sequence(const E_Step * sequence, int steps) {
     const float es = pgm_read_float(&(step->extrude));
     const feedRate_t fr_mm_m = pgm_read_float(&(step->feedRate));
 
-    DEBUG_ECHO_START();
-    DEBUG_ECHOLNPGM("E step ", es, "/", fr_mm_m);
+    DEBUG_ECHO_MSG("E step ", es, "/", fr_mm_m);
 
     current_position.e += es;
     line_to_current_position(MMM_TO_MMS(fr_mm_m));

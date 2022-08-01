@@ -51,11 +51,7 @@ ENCODER_Rate EncoderRate;
 // TODO: Replace with ui.quick_feedback
 void Encoder_tick() {
   #if PIN_EXISTS(BEEPER)
-    if (ui.buzzer_enabled) {
-      WRITE(BEEPER_PIN, HIGH);
-      delay(10);
-      WRITE(BEEPER_PIN, LOW);
-    }
+    if (ui.sound_on) buzzer.click(10);
   #endif
 }
 
@@ -132,14 +128,14 @@ EncoderState Encoder_ReceiveAnalyze() {
   if (ABS(temp_diff) >= ENCODER_PULSES_PER_STEP) {
     if (temp_diff > 0) temp_diffState = TERN(REVERSE_ENCODER_DIRECTION, 
       #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-        (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CW : ENCODER_DIFF_CCW, (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CCW : ENCODER_DIFF_CW
+        (eeprom_settings.rev_encoder_dir)? ENCODER_DIFF_CW : ENCODER_DIFF_CCW, (eeprom_settings.rev_encoder_dir)? ENCODER_DIFF_CCW : ENCODER_DIFF_CW
       #else
         ENCODER_DIFF_CCW, ENCODER_DIFF_CW
       #endif
       );
     else temp_diffState = TERN(REVERSE_ENCODER_DIRECTION,
       #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
-        (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CCW : ENCODER_DIFF_CW, (HMI_datas.rev_encoder_dir)? ENCODER_DIFF_CW : ENCODER_DIFF_CCW
+        (eeprom_settings.rev_encoder_dir)? ENCODER_DIFF_CCW : ENCODER_DIFF_CW, (eeprom_settings.rev_encoder_dir)? ENCODER_DIFF_CW : ENCODER_DIFF_CCW
       #else
         ENCODER_DIFF_CW, ENCODER_DIFF_CCW
       #endif

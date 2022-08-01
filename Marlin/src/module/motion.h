@@ -66,13 +66,12 @@ extern xyz_pos_t cartes;
 #endif
 
 #if HAS_BED_PROBE
-  #if EXTJYERSUI
-    extern feedRate_t z_probe_fast_mm_s; //EXTJYERSUI
+  #if JYENHANCED
+    extern feedRate_t z_probe_fast_mm_s;
   #else
-    constexpr feedRate_t z_probe_fast_mm_s = MMM_TO_MMS(Z_PROBE_FEEDRATE_FAST); 
+    constexpr feedRate_t z_probe_fast_mm_s = MMM_TO_MMS(Z_PROBE_FEEDRATE_FAST);
   #endif
 #endif
-
 
 /**
  * Feed rates are often configured with mm/m
@@ -130,11 +129,19 @@ extern int16_t feedrate_percentage;
 inline float pgm_read_any(const float *p)   { return TERN(__IMXRT1062__, *p, pgm_read_float(p)); }
 inline int8_t pgm_read_any(const int8_t *p) { return TERN(__IMXRT1062__, *p, pgm_read_byte(p)); }
 
-#define XYZ_DEFS(T, NAME, OPT) \
-  inline T NAME(const AxisEnum axis) { \
-    static const XYZval<T> NAME##_P DEFS_PROGMEM = NUM_AXIS_ARRAY(X_##OPT, Y_##OPT, Z_##OPT, I_##OPT, J_##OPT, K_##OPT, U_##OPT, V_##OPT, W_##OPT); \
-    return pgm_read_any(&NAME##_P[axis]); \
-  }
+#if JYENHANCED
+  #define XYZ_DEFS(T, NAME, OPT) \
+    inline T NAME(const AxisEnum axis) { \
+      const XYZval<T> Value = NUM_AXIS_ARRAY(X_##OPT, Y_##OPT, Z_##OPT, I_##OPT, J_##OPT, K_##OPT, U_##OPT, V_##OPT, W_##OPT); \
+      return Value[axis]; \
+    }
+#else
+  #define XYZ_DEFS(T, NAME, OPT) \
+    inline T NAME(const AxisEnum axis) { \
+      static const XYZval<T> NAME##_P DEFS_PROGMEM = NUM_AXIS_ARRAY(X_##OPT, Y_##OPT, Z_##OPT, I_##OPT, J_##OPT, K_##OPT, U_##OPT, V_##OPT, W_##OPT); \
+      return pgm_read_any(&NAME##_P[axis]); \
+    }
+#endif
 XYZ_DEFS(float, base_min_pos,   MIN_POS);
 XYZ_DEFS(float, base_max_pos,   MAX_POS);
 XYZ_DEFS(float, base_home_pos,  HOME_POS);
@@ -412,38 +419,41 @@ void restore_feedrate_and_scaling();
 /**
  * Homing and Trusted Axes
  */
-typedef IF<(NUM_AXES > 8), uint16_t, uint8_t>::type linear_axis_bits_t;
-constexpr linear_axis_bits_t linear_bits = _BV(NUM_AXES) - 1;
+typedef IF<(NUM_AXES > 8), uint16_t, uint8_t>::type main_axes_bits_t;
+constexpr main_axes_bits_t main_axes_mask = _BV(NUM_AXES) - 1;
+
+typedef IF<(NUM_AXES + EXTRUDERS > 8), uint16_t, uint8_t>::type e_axis_bits_t;
+constexpr e_axis_bits_t e_axis_mask = (_BV(EXTRUDERS) - 1) << NUM_AXES;
 
 void set_axis_is_at_home(const AxisEnum axis);
 
 #if HAS_ENDSTOPS
   /**
-   * axis_homed
+   * axes_homed
    *   Flags that each linear axis was homed.
    *   XYZ on cartesian, ABC on delta, ABZ on SCARA.
    *
-   * axis_trusted
+   * axes_trusted
    *   Flags that the position is trusted in each linear axis. Set when homed.
    *   Cleared whenever a stepper powers off, potentially losing its position.
    */
-  extern linear_axis_bits_t axis_homed, axis_trusted;
+  extern main_axes_bits_t axes_homed, axes_trusted;
   void homeaxis(const AxisEnum axis);
   void set_axis_never_homed(const AxisEnum axis);
-  linear_axis_bits_t axes_should_home(linear_axis_bits_t axis_bits=linear_bits);
-  bool homing_needed_error(linear_axis_bits_t axis_bits=linear_bits);
-  inline void set_axis_unhomed(const AxisEnum axis)   { CBI(axis_homed, axis); }
-  inline void set_axis_untrusted(const AxisEnum axis) { CBI(axis_trusted, axis); }
-  inline void set_all_unhomed()                       { axis_homed = axis_trusted = 0; }
-  inline void set_axis_homed(const AxisEnum axis)     { SBI(axis_homed, axis); }
-  inline void set_axis_trusted(const AxisEnum axis)   { SBI(axis_trusted, axis); }
-  inline void set_all_homed()                         { axis_homed = axis_trusted = linear_bits; }
+  main_axes_bits_t axes_should_home(main_axes_bits_t axes_mask=main_axes_mask);
+  bool homing_needed_error(main_axes_bits_t axes_mask=main_axes_mask);
+  inline void set_axis_unhomed(const AxisEnum axis)   { CBI(axes_homed, axis); }
+  inline void set_axis_untrusted(const AxisEnum axis) { CBI(axes_trusted, axis); }
+  inline void set_all_unhomed()                       { axes_homed = axes_trusted = 0; }
+  inline void set_axis_homed(const AxisEnum axis)     { SBI(axes_homed, axis); }
+  inline void set_axis_trusted(const AxisEnum axis)   { SBI(axes_trusted, axis); }
+  inline void set_all_homed()                         { axes_homed = axes_trusted = main_axes_mask; }
 #else
-  constexpr linear_axis_bits_t axis_homed = linear_bits, axis_trusted = linear_bits; // Zero-endstop machines are always homed and trusted
+  constexpr main_axes_bits_t axes_homed = main_axes_mask, axes_trusted = main_axes_mask; // Zero-endstop machines are always homed and trusted
   inline void homeaxis(const AxisEnum axis)           {}
   inline void set_axis_never_homed(const AxisEnum)    {}
-  inline linear_axis_bits_t axes_should_home(linear_axis_bits_t=linear_bits) { return 0; }
-  inline bool homing_needed_error(linear_axis_bits_t=linear_bits) { return false; }
+  inline main_axes_bits_t axes_should_home(main_axes_bits_t=main_axes_mask) { return 0; }
+  inline bool homing_needed_error(main_axes_bits_t=main_axes_mask) { return false; }
   inline void set_axis_unhomed(const AxisEnum axis)   {}
   inline void set_axis_untrusted(const AxisEnum axis) {}
   inline void set_all_unhomed()                       {}
@@ -452,13 +462,13 @@ void set_axis_is_at_home(const AxisEnum axis);
   inline void set_all_homed()                         {}
 #endif
 
-inline bool axis_was_homed(const AxisEnum axis)       { return TEST(axis_homed, axis); }
-inline bool axis_is_trusted(const AxisEnum axis)      { return TEST(axis_trusted, axis); }
+inline bool axis_was_homed(const AxisEnum axis)       { return TEST(axes_homed, axis); }
+inline bool axis_is_trusted(const AxisEnum axis)      { return TEST(axes_trusted, axis); }
 inline bool axis_should_home(const AxisEnum axis)     { return (axes_should_home() & _BV(axis)) != 0; }
-inline bool no_axes_homed()                           { return !axis_homed; }
-inline bool all_axes_homed()                          { return linear_bits == (axis_homed & linear_bits); }
+inline bool no_axes_homed()                           { return !axes_homed; }
+inline bool all_axes_homed()                          { return main_axes_mask == (axes_homed & main_axes_mask); }
 inline bool homing_needed()                           { return !all_axes_homed(); }
-inline bool all_axes_trusted()                        { return linear_bits == (axis_trusted & linear_bits); }
+inline bool all_axes_trusted()                        { return main_axes_mask == (axes_trusted & main_axes_mask); }
 
 void home_if_needed(const bool keeplev=false);
 

@@ -171,7 +171,7 @@ CardReader::CardReader() {
   workDirDepth = 0;
   ZERO(workDirParents);
 
-  #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+  #if BOTH(SDSUPPORT, HAS_SD_DETECT)
     SET_INPUT_PULLUP(SD_DETECT_PIN);
   #endif
 
@@ -485,10 +485,11 @@ void CardReader::mount() {
 
   if (flag.mounted)
     cdroot();
-  #if ENABLED(USB_FLASH_DRIVE_SUPPORT) || PIN_EXISTS(SD_DETECT)
-    else if (marlin_state != MF_INITIALIZING)
-      LCD_ALERTMESSAGE(MSG_MEDIA_INIT_FAIL);
-  #endif
+  else {
+    #if EITHER(HAS_SD_DETECT, USB_FLASH_DRIVE_SUPPORT)
+      if (marlin_state != MF_INITIALIZING) LCD_ALERTMESSAGE(MSG_MEDIA_INIT_FAIL);
+    #endif
+  }
 
   ui.refresh();
 }
@@ -501,54 +502,54 @@ void CardReader::mount() {
 #endif
 
 void CardReader::manage_media() {
-  static uint8_t prev_stat = 2;     // First call, no prior state
+  static uint8_t prev_stat = 2;     // At boot we don't know if media is present or not
   uint8_t stat = uint8_t(IS_SD_INSERTED());
-  if (stat == prev_stat) return;
+  if (stat == prev_stat) return;    // Already checked and still no change?
 
-  DEBUG_ECHOLNPGM("SD: Status changed from ", prev_stat, " to ", stat);
+  DEBUG_SECTION(cmm, "CardReader::manage_media()", true);
+  DEBUG_ECHOLNPGM("Media present: ", prev_stat, " -> ", stat);
 
-  flag.workDirIsRoot = true;        // Return to root on mount/release
+  if (!ui.detected()) {
+    DEBUG_ECHOLNPGM("SD: No UI Detected.");
+    return;
+  }
 
-  if (ui.detected()) {
+  flag.workDirIsRoot = true;        // Return to root on mount/release/init
 
-  uint8_t old_stat = prev_stat;
-  prev_stat = stat;                 // Change now to prevent re-entry
+  const uint8_t old_stat = prev_stat;
+  prev_stat = stat;                 // Change now to prevent re-entry in safe_delay
 
-    if (stat) {                       // Media Inserted
-      safe_delay(500);                // Some boards need a delay to get settled
-      if (TERN1(SD_IGNORE_AT_STARTUP, old_stat != 2))
-        mount();                      // Try to mount the media
-      #if MB(FYSETC_CHEETAH, FYSETC_CHEETAH_V12, FYSETC_AIO_II)
-        reset_stepper_drivers();      // Workaround for Cheetah bug
-      #endif
-      if (!isMounted()) stat = 0;     // Not mounted?
-    }
-    else {
-      #if PIN_EXISTS(SD_DETECT)
-        release();                    // Card is released
-      #endif
-    }
+  if (stat) {                       // Media Inserted
+    safe_delay(500);                // Some boards need a delay to get settled
 
-  ui.media_changed(old_stat, stat); // Update the UI
+    // Try to mount the media (only later with SD_IGNORE_AT_STARTUP)
+    if (TERN1(SD_IGNORE_AT_STARTUP, old_stat != 2)) mount();
+    if (!isMounted()) stat = 0;     // Not mounted?
 
-    if (stat) {
+    TERN_(RESET_STEPPERS_ON_MEDIA_INSERT, reset_stepper_drivers()); // Workaround for Cheetah bug
+  }
+  else {
+    TERN_(HAS_SD_DETECT, release()); // Card is released
+  }
 
-  TERN_(SDCARD_EEPROM_EMULATION, settings.first_load());
+  ui.media_changed(old_stat, stat); // Update the UI or flag an error
 
-      if (old_stat == 2) {            // First mount?
+  if (!stat) return;                // Exit if no media is present
+
+  if (old_stat != 2) return;        // First mount?
 
   DEBUG_ECHOLNPGM("First mount.");
-        #if ENABLED(POWER_LOSS_RECOVERY)
-          recovery.check();           // Check for PLR file. (If not there then call autofile_begin)
-        #elif DISABLED(NO_SD_AUTOSTART)
-          autofile_begin();           // Look for auto0.g on the next loop
-        #endif
-      }
-    }
+
+  // Load settings the first time media is inserted (not just during init)
+  TERN_(SDCARD_EEPROM_EMULATION, settings.first_load());
+
+  bool do_auto = true; UNUSED(do_auto);
+
   // Check for PLR file.
-  }
-  else
-    DEBUG_ECHOLNPGM("SD: No UI Detected.");
+  TERN_(POWER_LOSS_RECOVERY, if (recovery.check()) do_auto = false);
+
+  // Look for auto0.g on the next idle()
+  IF_DISABLED(NO_SD_AUTOSTART, if (do_auto) autofile_begin());
 }
 
 /**

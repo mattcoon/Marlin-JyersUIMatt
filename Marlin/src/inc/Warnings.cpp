@@ -71,6 +71,10 @@
 
 #ifndef NO_AUTO_ASSIGN_WARNING
 
+  #if AUTO_ASSIGNED_LCD_SERIAL
+    #warning "Note: Auto-assigned LCD_SERIAL_PORT. (Define NO_AUTO_ASSIGN_WARNING to suppress this warning.)"
+  #endif
+
   #if AUTO_ASSIGNED_X2_STEPPER
     #warning "Note: Auto-assigned X2 STEP/DIR/ENABLE_PINs to unused En_STEP/DIR/ENABLE_PINs. (Define NO_AUTO_ASSIGN_WARNING to suppress this warning.)"
   #endif
@@ -704,9 +708,9 @@
 #endif
 
 // Ender 3 Pro (but, apparently all Creality 4.2.2 boards)
-#if ENABLED(EMIT_CREALITY_422_WARNING) || MB(CREALITY_V4)
-  #warning "Creality 4.2.2 boards come with a variety of stepper drivers. Check the board label and set the correct *_DRIVER_TYPE! (C=HR4988, E=A4988, A=TMC2208, B=TMC2209, H=TMC2225)."
-#endif
+// #if ENABLED(EMIT_CREALITY_422_WARNING) || MB(CREALITY_V4)
+  // #warning "Creality 4.2.2 boards come with a variety of stepper drivers. Check the board label and set the correct *_DRIVER_TYPE! (C=HR4988, E=A4988, A=TMC2208, B=TMC2209, H=TMC2225)."
+// #endif
 
 #if PRINTCOUNTER_SYNC
   #warning "To prevent step loss, motion will pause for PRINTCOUNTER auto-save."
@@ -757,7 +761,7 @@
 #endif
 
 /**
- * Maple environent
+ * Maple environment
  */
 #ifdef __STM32F1__
   #warning "Maple build environments are deprecated. Please use a non-Maple build environment. Report issues to the Marlin Firmware project."
