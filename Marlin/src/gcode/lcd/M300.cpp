@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if HAS_BUZZER
+#if HAS_SOUND
 
 #include "../gcode.h"
 

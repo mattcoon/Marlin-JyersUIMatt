@@ -113,16 +113,11 @@ Stepper stepper; // Singleton
   #include "../feature/mixing.h"
 #endif
 
-//#if HAS_FILAMENT_RUNOUT_DISTANCE
+// mmm #if HAS_FILAMENT_RUNOUT_DISTANCE
 #if HAS_FILAMENT_SENSOR
   #include "../feature/runout.h"
 #endif
 
-#if HAS_L64XX
-  #include "../libs/L64XX/L64XX_Marlin.h"
-  uint8_t L6470_buf[MAX_L64XX + 1];   // chip command sequence - element 0 not used
-  bool L64XX_OK_to_power_up = false;  // flag to keep L64xx steppers powered down after a reset or power up
-#endif
 
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "../feature/power.h"
@@ -494,7 +489,7 @@ void Stepper::enable_axis(const AxisEnum axis) {
 bool Stepper::disable_axis(const AxisEnum axis) {
   mark_axis_disabled(axis);
 
-  TERN_(DWIN_CREALITY_LCD_JYERSUI, set_axis_untrusted(axis)); //  workaround
+  TERN_(DWIN_CREALITY_LCD_JYERSUI, set_axis_untrusted(axis)); // mmm workaround
   TERN_(DWIN_LCD_PROUI, set_axis_untrusted(axis)); // MRISCOC workaround: https://github.com/MarlinFirmware/Marlin/issues/23095
 
   // If all the axes that share the enabled bit are disabled
@@ -619,27 +614,6 @@ void Stepper::set_directions() {
       }
     #endif
   #endif // !LIN_ADVANCE
-
-  #if HAS_L64XX
-    if (L64XX_OK_to_power_up) { // OK to send the direction commands (which powers up the L64XX steppers)
-      if (L64xxManager.spi_active) {
-        L64xxManager.spi_abort = true;                    // Interrupted SPI transfer needs to shut down gracefully
-        for (uint8_t j = 1; j <= L64XX::chain[0]; j++)
-          L6470_buf[j] = dSPIN_NOP;                         // Fill buffer with NOOPs
-        L64xxManager.transfer(L6470_buf, L64XX::chain[0]);  // Send enough NOOPs to complete any command
-        L64xxManager.transfer(L6470_buf, L64XX::chain[0]);
-        L64xxManager.transfer(L6470_buf, L64XX::chain[0]);
-      }
-
-      // L64xxManager.dir_commands[] is an array that holds direction command for each stepper
-
-      // Scan command array, copy matches into L64xxManager.transfer
-      for (uint8_t j = 1; j <= L64XX::chain[0]; j++)
-        L6470_buf[j] = L64xxManager.dir_commands[L64XX::chain[j]];
-
-      L64xxManager.transfer(L6470_buf, L64XX::chain[0]);  // send the command stream to the drivers
-    }
-  #endif
 
   DIR_WAIT_AFTER();
 }
@@ -1971,7 +1945,7 @@ uint32_t Stepper::block_phase_isr() {
           PAGE_SEGMENT_UPDATE_POS(E);
         }
       #endif
-      TERN_(HAS_FILAMENT_SENSOR, runout.block_completed(current_block));
+      TERN_(HAS_FILAMENT_SENSOR, runout.block_completed(current_block)); // mmm
       discard_current_block();
     }
     else {
@@ -2177,7 +2151,7 @@ uint32_t Stepper::block_phase_isr() {
 
         TERN_(LASER_SYNCHRONOUS_M106_M107, if (current_block->is_fan_sync()) planner.sync_fan_speeds(current_block->fan_speed));
 
-        if (!(current_block->is_fan_sync() || !planner.laserMode || current_block->is_pwr_sync())) _set_position(current_block->position);
+        if (!(current_block->is_fan_sync() || !planner.laserMode || current_block->is_pwr_sync())) _set_position(current_block->position); // mmm
 
         discard_current_block();
 
@@ -2353,13 +2327,11 @@ uint32_t Stepper::block_phase_isr() {
         else LA_isr_rate = LA_ADV_NEVER;
       #endif
 
-      if ( ENABLED(HAS_L64XX)       // Always set direction for L64xx (Also enables the chips)
-        || ENABLED(DUAL_X_CARRIAGE) // TODO: Find out why this fixes "jittery" small circles
+      if ( ENABLED(DUAL_X_CARRIAGE) // TODO: Find out why this fixes "jittery" small circles
         || current_block->direction_bits != last_direction_bits
         || TERN(MIXING_EXTRUDER, false, stepper_extruder != last_moved_extruder)
       ) {
         E_TERN_(last_moved_extruder = stepper_extruder);
-        TERN_(HAS_L64XX, L64XX_OK_to_power_up = true);
         set_directions(current_block->direction_bits);
       }
 

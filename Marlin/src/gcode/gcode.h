@@ -916,7 +916,7 @@ private:
     static void M290();
   #endif
 
-  #if HAS_BUZZER
+  #if HAS_SOUND
     static void M300();
   #endif
 
@@ -1165,13 +1165,6 @@ private:
     static void M919();
   #endif
 
-  #if HAS_L64XX
-    static void M122();
-    static void M906();
-    static void M916();
-    static void M917();
-    static void M918();
-  #endif
 
   #if HAS_MOTOR_CURRENT_SPI || HAS_MOTOR_CURRENT_PWM || HAS_MOTOR_CURRENT_I2C || HAS_MOTOR_CURRENT_DAC
     static void M907();
