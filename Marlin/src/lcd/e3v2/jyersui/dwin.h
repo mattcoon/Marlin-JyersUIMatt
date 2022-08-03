@@ -155,12 +155,16 @@ enum menuID : uint8_t {
 typedef struct {
   // Flags
   bool flag_tune = false;
+  bool flag_viewmesh = false;
+  bool flag_leveling_m = false;
+  bool flag_shortcut = false;
+  bool flag_chg_fil = false;
   bool auto_fw_retract = false;
   bool printing = false;
   bool paused = false;
   bool sdprint = false;
-  bool livemove = false;
-  bool liveadjust = false;
+  bool livemove =  TERN(DWIN_MOVE_LIVE,true,false);
+  bool liveadjust = TERN(DWIN_MOVE_LIVE,true,false);;
   bool probe_deployed = false;
   // Auxiliary values
   AxisEnum axis = X_AXIS;    // Axis Select
@@ -168,7 +172,7 @@ typedef struct {
   int16_t pausebed = 0;
   int16_t pausefan = 0;
   uint8_t preheatmode = 0;
-  uint8_t zoffsetmode = 0;
+  uint8_t zoffsetmode = TERN(DWIN_MOVE_LIVE,2,0);
   float zoffsetvalue = 0;
   uint8_t gridpoint;
   float corner_avg;

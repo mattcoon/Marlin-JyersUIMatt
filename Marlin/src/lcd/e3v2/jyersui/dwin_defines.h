@@ -31,11 +31,6 @@
   #include "../../../feature/leds/leds.h"
 #endif
 
-
-#if EXTJYERSUI
-  #include "jyenhanced.h"
-#endif
-
 #ifndef LCD_SET_PROGRESS_MANUALLY
   #define LCD_SET_PROGRESS_MANUALLY
 #endif
@@ -176,20 +171,6 @@
 
 //#define BOOTPERSO
 
-typedef struct { 
-
-  #if EXTJYERSUI && HAS_LEVELING
-    #if ENABLED(AUTO_BED_LEVELING_UBL)
-      bool cancel_ubl : 1; // cancel current ubl
-    #else
-      bool cancel_abl : 1;   // cancel current abl
-    #endif
-  #endif
-
-} HMI_flags_t;
-
-extern HMI_flags_t HMI_flags;
-
 #if ENABLED(LED_CONTROL_MENU, HAS_COLOR_LEDS)
   #define Def_Leds_Color      {255}
 #endif
@@ -227,7 +208,7 @@ typedef struct {
     uint8_t progress_bar  :4;
     uint8_t progress_percent  : 4;
     uint8_t remain_time  : 4;
-    uint8_t elapsed_time  : 4;
+    uint8_t progress_time  : 4;
     uint8_t status_bar_text  : 4;
     uint8_t status_area_text  : 4;
     uint8_t status_area_percent  : 4;
@@ -236,7 +217,16 @@ typedef struct {
     #if ENABLED(DWIN_ICON_SET)
     uint8_t iconset_index : 4;
     #endif
-    #if ENABLED(HOST_ACTION_COMMANDS)
+  #if ENABLED(BAUD_RATE_GCODE)
+    bool Baud115k : 1;
+  #endif
+  #if ENABLED(PREHEAT_BEFORE_LEVELING)
+    bool ena_hotend_levtemp : 1;
+    bool ena_bed_levtemp : 1;
+    celsius_t hotend_levtemp = LEVELING_NOZZLE_TEMP;
+    celsius_t bed_levtemp = LEVELING_BED_TEMP;
+  #endif
+  #if HAS_HOSTACTION_MENUS
       uint64_t host_action_label_1 : 48;
       uint64_t host_action_label_2 : 48;
       uint64_t host_action_label_3 : 48;
@@ -267,9 +257,6 @@ typedef struct {
     bool fan_percent : 1;
     #if ANY(AUTO_BED_LEVELING_BILINEAR, AUTO_BED_LEVELING_UBL, MESH_BED_LEVELING)
       bool leveling_active : 1;
-    #endif
-    #if ENABLED(BAUD_RATE_GCODE)
-      bool baudratemode : 1;
     #endif
 
     #if HAS_LEVELING_HEAT
@@ -319,46 +306,57 @@ typedef struct {
   #endif
   extern eeprom_settings_t eeprom_settings;
 
+#if JYENHANCED
 
-//
-// Undef :
-//
-#if EXTJYERSUI
+  #undef INVERT_E0_DIR
 
-  #if ENABLED(NOZZLE_PARK_FEATURE)
-    #undef NOZZLE_PARK_POINT
-  #endif
-
+  
   #if HAS_BED_PROBE
     #undef PROBING_MARGIN
     #undef Z_PROBE_FEEDRATE_FAST
     #undef Z_PROBE_FEEDRATE_SLOW
   #endif
 
+  #if HAS_MESH
+    #undef MESH_MIN_X
+    #undef MESH_MAX_X
+    #undef MESH_MIN_Y
+    #undef MESH_MAX_Y
+  #endif
+
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     #undef FILAMENT_CHANGE_UNLOAD_FEEDRATE
     #undef FILAMENT_CHANGE_FAST_LOAD_FEEDRATE
   #endif
+  #if ENABLED(NOZZLE_PARK_FEATURE)
+    #undef NOZZLE_PARK_POINT
+  #endif
 
-  #undef INVERT_E0_DIR
+  #define INVERT_E0_DIR eeprom_settings.Invert_E0
   //
-  // New Defines :
+  
   //
   #if HAS_BED_PROBE
     #define PROBING_MARGIN eeprom_settings.probing_margin
     #define Z_PROBE_FEEDRATE_FAST eeprom_settings.zprobefeedfast
     #define Z_PROBE_FEEDRATE_SLOW eeprom_settings.zprobefeedslow
   #endif
-  #define INVERT_E0_DIR eeprom_settings.Invert_E0
-  #if ENABLED(NOZZLE_PARK_FEATURE)
-    #define NOZZLE_PARK_POINT {(float)eeprom_settings.Park_point.x, (float)eeprom_settings.Park_point.y, (float)eeprom_settings.Park_point.z}
+
+  #if HAS_MESH
+    #define MESH_MIN_X eeprom_settings.mesh_min_x
+    #define MESH_MAX_X eeprom_settings.mesh_max_x
+    #define MESH_MIN_Y eeprom_settings.mesh_min_y
+    #define MESH_MAX_Y eeprom_settings.mesh_max_y
   #endif
+
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     #define FILAMENT_CHANGE_UNLOAD_FEEDRATE (float)eeprom_settings.fil_unload_feedrate
     #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE (float)eeprom_settings.fil_fast_load_feedrate
   #endif
 
+  #if ENABLED(NOZZLE_PARK_FEATURE)
+    #define NOZZLE_PARK_POINT {(float)eeprom_settings.Park_point.x, (float)eeprom_settings.Park_point.y, (float)eeprom_settings.Park_point.z}
+  #endif
 
 #endif
-
 

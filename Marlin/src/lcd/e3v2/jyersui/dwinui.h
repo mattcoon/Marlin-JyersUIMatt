@@ -51,7 +51,7 @@
 // enum PopupID : uint8_t {
 //   Pause, Stop, Resume, SaveLevel, ETemp, ConfFilChange, PurgeMore, MeshSlot,
 //   Level, Home, MoveWait, Heating,  FilLoad, FilChange, TempWarn, Runout, PIDWait, MPCWait, Resuming, ManualProbing,
-//   FilInsert, HeaterTime, UserInput, LevelError, InvalidMesh, NocreatePlane, UI, Complete, ConfirmStartPrint, BadextruderNumber,
+//   FilInsert, HeaterTime, UserInput, LevelError, InvalidMesh, NocreatePlane, UI, Complete, PrintConfirm, BadextruderNumber,
 //   TemptooHigh, PIDTimeout, PIDDone, viewmesh, Level2, endsdiag, Reprint
 // };
 
