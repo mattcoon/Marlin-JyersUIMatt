@@ -21,7 +21,6 @@
 
 #pragma once
 
-#define EXTJYERSUI 1
 //#define DEBUG_DWIN 1
 
 #include "../../../core/types.h"
@@ -82,24 +81,45 @@
   #define DWIN_DISPLAY
 #endif
 
+#define RGB(R,G,B)  (R << 11) | (G << 5) | (B) // R,B: 0..31; G: 0..63
+#define GetRColor(color) ((color >> 11) & 0x1F)
+#define GetGColor(color) ((color >>  5) & 0x3F)
+#define GetBColor(color) ((color >>  0) & 0x1F)
+
+#define Color_White         0xFFFF
+#define Color_Yellow        RGB(0x1F,0x3F,0x00)
+#define Color_Red           RGB(0x1F,0x00,0x00)
+#define Color_Error_Red     0xB000  // Error!
+#define Color_Bg_Red        0xF00F  // Red background color
+#define Color_Bg_Window     0x31E8  // Popup background color
+#define Color_Bg_Blue       0x1125  // Dark blue background color
+#define Color_Bg_Black      0x0841  // Black background color
+#define Color_IconBlue      0x45FA  // Lighter blue that matches icons/accents
+#define Popup_Text_Color    0xD6BA  // Popup font background color
+#define Line_Color          0x3A6A  // Split line color
+#define Rectangle_Color     0xEE2F  // Blue square cursor color
+#define Percent_Color       0xFE29  // Percentage color
+#define BarFill_Color       0x10E4  // Fill color of progress bar
+#define Select_Color        0x33BB  // Selected color
+
 // Default UI Colors
-#define Def_Background_Color  RGB(4,4,0)
-#define Def_Cursor_color      RGB(24,24,0)
-#define Def_TitleBg_color     RGB(12,12,0)
+#define Def_Background_Color  Color_Bg_Black
+#define Def_Cursor_color      Color_White
+#define Def_TitleBg_color     Color_Bg_Blue
 #define Def_TitleTxt_color    Color_White
 #define Def_Text_Color        Color_White
-#define Def_Selected_Color    RGB(24,24,0)
-#define Def_SplitLine_Color   RGB(24,24,0)
-#define Def_Highlight_Color   RGB(31,40,0)
-#define Def_StatusBg_Color    RGB(12,12,0)
+#define Def_Selected_Color    Select_Color
+#define Def_SplitLine_Color   Color_White
+#define Def_Highlight_Color   Color_White
+#define Def_StatusBg_Color    Color_Bg_Black
 #define Def_StatusTxt_Color   Color_White
 #define Def_PopupBg_color     Color_Bg_Window
 #define Def_PopupTxt_Color    Popup_Text_Color
 #define Def_AlertBg_Color     Color_Bg_Red
 #define Def_AlertTxt_Color    Color_Yellow
-#define Def_PercentTxt_Color  RGB(31,48,8)
+#define Def_PercentTxt_Color  Color_White
 #define Def_Barfill_Color     RGB(12,12,0)
-#define Def_Indicator_Color   RGB(31,48,8)
+#define Def_Indicator_Color   Color_White
 #define Def_Coordinate_Color  Color_White
 #define Def_Button_Color      RGB(12,12,0)
 
@@ -272,7 +292,7 @@ typedef struct {
     bool rev_encoder_dir : 1;
     bool reprint_on : 1;
 
-    #if EXTJYERSUI
+    #if JYENHANCED
       #if ENABLED(NOZZLE_PARK_FEATURE)
           xyz_int_t Park_point = DEF_NOZZLE_PARK_POINT;
       #endif

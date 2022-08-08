@@ -38,7 +38,7 @@
   #include "../lcd/extui/ui_api.h"
 #endif
 
-#if EXTJYERSUI
+#if JYENHANCED
   #include "../lcd/e3v2/jyersui/jyenhanced.h"
 #endif
 

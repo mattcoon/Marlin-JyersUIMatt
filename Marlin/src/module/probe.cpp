@@ -107,8 +107,8 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
   const xy_pos_t &Probe::offset_xy = Probe::offset;
 #endif
 
-// EXTJYERSUI - Probe margin
-#if EXTJYERSUI
+// JYENHANCED - Probe margin
+#if JYENHANCED
   float Probe::_min_x(const xy_pos_t &probe_offset_xy) {
      return _MAX((X_MIN_BED) + (eeprom_settings.probing_margin), (X_MIN_POS) + probe_offset_xy.x);
   }
@@ -769,7 +769,7 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
     // Raise to give the probe clearance
     do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, z_probe_fast_mm_s);
 
-  #elif TERN(EXTJYERSUI, 1, Z_PROBE_FEEDRATE_FAST != Z_PROBE_FEEDRATE_SLOW)
+  #elif TERN(JYENHANCED, 1, Z_PROBE_FEEDRATE_FAST != Z_PROBE_FEEDRATE_SLOW)
 
     // If the nozzle is well over the travel height then
     // move down quickly before doing the slow probe

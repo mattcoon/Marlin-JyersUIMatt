@@ -1327,7 +1327,7 @@ void CrealityDWINClass::Draw_Popup(FSTR_P const line1, FSTR_P const line2, FSTR_
       DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.popup_highlight, Color_White), 86, 279, 187, 318);
       DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.popup_highlight, Color_White), 85, 278, 188, 319);
       DWIN_Draw_String(false, DWIN_FONT_STAT, GetColor(eeprom_settings.ico_continue_txt, Color_White), GetColor(eeprom_settings.ico_continue_bg, Confirm_Color), 
-          #if EXTJYERSUI
+          #if JYENHANCED
             (popup == Level2) ? 104 : 96, 
             290,
             (popup == Level2) ? GET_TEXT_F(MSG_BUTTON_CANCEL) : GET_TEXT_F(MSG_BUTTON_CONTINUE)
@@ -1725,7 +1725,7 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
                   #if ENABLED(NOZZLE_PARK_FEATURE)
                     queue.inject(F("G28O\nG27 P2"));
                   #else
-                    sprintf_P(cmd, PSTR("G28O\nG0 F4000 X%i Y%i\nG0 F3000 Z%i"), TERN(EXTJYERSUI, eeprom_settings.Park_point.x, 240) , TERN(EXTJYERSUI, eeprom_settings.Park_point.y, 220), TERN(EXTJYERSUI, eeprom_settings.Park_point.z, 20));
+                    sprintf_P(cmd, PSTR("G28O\nG0 F4000 X%i Y%i\nG0 F3000 Z%i"), TERN(JYENHANCED, eeprom_settings.Park_point.x, 240) , TERN(JYENHANCED, eeprom_settings.Park_point.y, 220), TERN(JYENHANCED, eeprom_settings.Park_point.z, 20));
                     queue.inject(cmd);
                   #endif
                   if (thermalManager.temp_hotend[0].target < thermalManager.extrude_min_temp)
@@ -5178,12 +5178,12 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
         #define FIL_BACK 0
         #define FIL_HOME (FIL_BACK + 1)
         #define FIL_SENSORENABLED (FIL_HOME + ENABLED(HAS_FILAMENT_SENSOR))
-        #define FIL_RUNOUTACTIVE (FIL_SENSORENABLED + (BOTH(HAS_FILAMENT_SENSOR, EXTJYERSUI)))
+        #define FIL_RUNOUTACTIVE (FIL_SENSORENABLED + (BOTH(HAS_FILAMENT_SENSOR, JYENHANCED)))
         #define FIL_SENSORDISTANCE (FIL_RUNOUTACTIVE + 1)
         #define FIL_LOAD (FIL_SENSORDISTANCE + ENABLED(ADVANCED_PAUSE_FEATURE))
         #define FIL_UNLOAD (FIL_LOAD + ENABLED(ADVANCED_PAUSE_FEATURE))
-        #define FIL_UNLOAD_FEEDRATE (FIL_UNLOAD + (BOTH(ADVANCED_PAUSE_FEATURE, EXTJYERSUI)))
-        #define FIL_FAST_LOAD_FEEDRATE (FIL_UNLOAD_FEEDRATE + (BOTH(ADVANCED_PAUSE_FEATURE, EXTJYERSUI)))
+        #define FIL_UNLOAD_FEEDRATE (FIL_UNLOAD + (BOTH(ADVANCED_PAUSE_FEATURE, JYENHANCED)))
+        #define FIL_FAST_LOAD_FEEDRATE (FIL_UNLOAD_FEEDRATE + (BOTH(ADVANCED_PAUSE_FEATURE, JYENHANCED)))
         #define FIL_COLD_EXTRUDE  (FIL_FAST_LOAD_FEEDRATE + ENABLED(PREVENT_COLD_EXTRUSION))
         #define FIL_TOTAL FIL_COLD_EXTRUDE
 
@@ -5214,7 +5214,7 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
                 Draw_Checkbox(row, runout.enabled[0]);
               }
               break;
-            #if EXTJYERSUI 
+            #if JYENHANCED 
               case FIL_RUNOUTACTIVE:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_FilSet, GET_TEXT_F(MSG_RUNOUT_ENABLE));
@@ -5258,7 +5258,7 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
               else
                 Modify_Value(fc_settings[0].unload_length, 0, EXTRUDE_MAXLENGTH, 1);
               break;
-            #if EXTJYERSUI
+            #if JYENHANCED
               case FIL_UNLOAD_FEEDRATE:
                 if (draw) {
                   Draw_Menu_Item(row, ICON_FilUnload, GET_TEXT_F(MSG_FILAMENT_UNLOAD_RATE));
@@ -5436,15 +5436,15 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
                 gcode.home_all_axes(true);
                 #if ENABLED(AUTO_BED_LEVELING_UBL) 
                   #if HAS_BED_PROBE
-                    TERN_(EXTJYERSUI, temp_val.cancel_lev = 0);
+                    TERN_(JYENHANCED, temp_val.cancel_lev = 0);
                     //Popup_Handler(Level);
-                    TERN(EXTJYERSUI, Confirm_Handler(Level2), Popup_Handler(Level));
+                    TERN(JYENHANCED, Confirm_Handler(Level2), Popup_Handler(Level));
                     gcode.process_subcommands_now(F("G29 P1"));
                     gcode.process_subcommands_now(F("G29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nG29 P3\nM420 S1"));
                     planner.synchronize();
                     Update_Status(GET_TEXT(MSG_MESH_DONE));
                     //Popup_Handler(SaveLevel);
-                    #if EXTJYERSUI
+                    #if JYENHANCED
                       if (!temp_val.cancel_lev) Viewmesh();
                       else temp_val.cancel_lev = 0;
                     #else
@@ -5461,13 +5461,13 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
                     Draw_Menu(UBLMesh);
                   #endif
                 #elif HAS_BED_PROBE
-                  TERN_(EXTJYERSUI,temp_val.cancel_lev = 0);
+                  TERN_(JYENHANCED,temp_val.cancel_lev = 0);
                   //Popup_Handler(Level);
-                  TERN(EXTJYERSUI, Confirm_Handler(Level2), Popup_Handler(Level));
+                  TERN(JYENHANCED, Confirm_Handler(Level2), Popup_Handler(Level));
                   gcode.process_subcommands_now(F("G29"));
                   planner.synchronize();
                   //Popup_Handler(SaveLevel);
-                  #if EXTJYERSUI
+                  #if JYENHANCED
                    if (!temp_val.cancel_lev) Viewmesh();
                    else temp_val.cancel_lev = 0;
                   #else
