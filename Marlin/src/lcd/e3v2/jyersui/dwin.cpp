@@ -550,7 +550,9 @@
   #if HAS_FILAMENT_SENSOR
     constexpr const char * const CrealityDWINClass::runoutsensor_modes[4];
   #endif
+  #if ENABLED(DWIN_ICON_SET)
   uint8_t CrealityDWINClass::iconset_current = DWIN_ICON_DEF;
+  #endif
   constexpr const char * const CrealityDWINClass::shortcut_list[NB_Shortcuts + 1];
   constexpr const char * const CrealityDWINClass::_shortcut_list[NB_Shortcuts + 1];
 

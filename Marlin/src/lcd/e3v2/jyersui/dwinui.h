@@ -38,104 +38,12 @@
 #include "../common/dwin_color.h"
 #include "../common/dwin_api.h"
 #include "dwin_defines.h"
+#include "dwin.h"
 
 // ICON ID
 
 #ifndef USE_STOCK_DWIN_SET
   #define USE_STOCK_DWIN_SET           // Official Marlin DWIN_SET
-#endif
-// enum processID : uint8_t {
-//   Main, Print, Menu, Value, Option, File, Popup, Confirm, Keyboard, Wait, Locked, Short_cuts
-// };
-
-// enum PopupID : uint8_t {
-//   Pause, Stop, Resume, SaveLevel, ETemp, ConfFilChange, PurgeMore, MeshSlot,
-//   Level, Home, MoveWait, Heating,  FilLoad, FilChange, TempWarn, Runout, PIDWait, MPCWait, Resuming, ManualProbing,
-//   FilInsert, HeaterTime, UserInput, LevelError, InvalidMesh, NocreatePlane, UI, Complete, PrintConfirm, BadextruderNumber,
-//   TemptooHigh, PIDTimeout, PIDDone, viewmesh, Level2, endsdiag, Reprint
-// };
-
-// enum menuID : uint8_t {
-//   MainMenu,
-//     Prepare,
-//       Move,
-//       HomeMenu,
-//       ManualLevel,
-//       ZOffset,
-//       Preheat,
-//       ChangeFilament,
-//       HostActions,
-//     Control,
-//       TempMenu,
-//         PID,
-//           HotendPID,
-//           BedPID,
-//         #if ENABLED(MPCTEMP)
-//          MPC,
-//         #endif
-//         #if HAS_PREHEAT
-//           #define _PREHEAT_ID(N) Preheat##N,
-//           REPEAT_1(PREHEAT_COUNT, _PREHEAT_ID)
-//         #endif
-//       Motion,
-//         HomeOffsets,
-//         MaxSpeed,
-//         MaxAcceleration,
-//         MaxJerk,
-//         JDmenu,
-//         Steps,
-//       FwRetraction,
-//       Parkmenu,
-//       #if ANY(CASE_LIGHT_MENU, LED_CONTROL_MENU)
-//         Ledsmenu,
-//         #if BOTH(CASE_LIGTH_MENU, CASELIGHT_USES_BRIGHTNESS)
-//           CaseLightmenu,
-//         #endif
-//         #if ENABLED(LED_CONTROL_MENU)
-//           LedControlmenu,
-//         #endif
-//       #endif
-//       Visual,
-//         ColorSettings,
-//       HostSettings,
-//         ActionCommands,
-//       Advanced,
-//         ProbeMenu,
-//         Filmenu,
-//       Info,
-//     Leveling,
-//       LevelManual,
-//       LevelView,
-//       MeshViewer,
-//       LevelSettings,
-//       ManualMesh,
-//       UBLMesh,
-//     InfoMain,
-//   Tune,
-//     //Tune_FwRetraction,
-//   PreheatHotend
-// };
-
-#ifdef ICON
-    #undef ICON
-#endif
-// #ifndef USE_STOCK_DWIN_SET
-//   #define ICON                    0x07  // Default MarlinUI DWIN_SET
-// #else 
-//   #define ICON                    0x09  // Default Stock DWIN_SET
-//   #define ICON_PACK               0x03  // Default MarlinUI DWIN_SET
-// #endif
-#define USE_STOCK_DWIN_SET  // Use the Creality stock DWIN_SET instead of Marlin's unified DWIN_SET by The-EG & thinkyhead
-  #ifdef USE_STOCK_DWIN_SET
-    #define DWIN_ICON_DEF 9 // 9.ICO
-  #else
-    #define DWIN_ICON_DEF 7 // 7.ICO
-  #endif
-// // #endif
-#if ENABLED(DWIN_ICON_SET)
-    #define ICON eeprom_settings.iconset_current
-#else
-    #define ICON DWIN_ICON_DEF
 #endif
 
 #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
@@ -322,10 +230,6 @@ namespace DWINUI {
    void Draw_Checkbox(uint8_t row, bool value);
    void Draw_Title(const char * title);
    void Draw_Title(FSTR_P const title);
-  //  void Draw_Menu_Item(uint16_t row, uint8_t icon=0,     const char * const label1=nullptr, const char * const label2=nullptr, bool more=false,     bool centered=false,     bool onlyCachedFileIcon=false);
-  //  void Draw_Menu_Item(uint8_t row, uint8_t icon=0, FSTR_P const flabel1=nullptr, FSTR_P const flabel2=nullptr, bool more=false, bool centered=false, bool onlyCachedFileIcon=false);
-  //  void Draw_Menu(uint8_t menu, uint8_t select=0, uint8_t scroll=0);
-//  static void Redraw_Menu(bool lastprocess=true, bool lastselection=false, bool lastmenu=false, bool flag_scroll=false);
    void Redraw_Screen();
 
   // Moves cursor to point
@@ -363,23 +267,6 @@ namespace DWINUI {
     return t;
   }
 
-  
-  // Draw an Icon with transparent background from the library ICON
-  //  icon: Icon ID
-  //  x/y: Upper-left point
-  inline void Draw_Icon(uint8_t icon, uint16_t x, uint16_t y) {
-    DWIN_ICON_Show(ICON, icon, x, y);
-  }
-
-  // Draw an Icon from the library ICON with its background
-  //  icon: Icon ID
-  //  x/y: Upper-left point
-  inline void Draw_IconWB(uint8_t icon, uint16_t x, uint16_t y) {
-    DWIN_ICON_Show(true, false, false, ICON, icon, x, y);
-  }
-  inline void DRAW_IconWB(uint8_t libID, uint8_t icon, uint16_t x, uint16_t y) {
-    DWIN_ICON_Show(true, false, false, libID, icon, x, y);
-  }
 
   // Draw a numeric integer value
   //  bShow: true=display background color; false=don't display background color

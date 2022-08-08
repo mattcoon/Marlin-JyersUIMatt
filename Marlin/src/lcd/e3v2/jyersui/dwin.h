@@ -419,3 +419,35 @@ public:
 };
 
 extern CrealityDWINClass CrealityDWIN;
+
+#ifdef ICON
+    #undef ICON
+#endif
+
+#define USE_STOCK_DWIN_SET  // Use the Creality stock DWIN_SET instead of Marlin's unified DWIN_SET by The-EG & thinkyhead
+  #ifdef USE_STOCK_DWIN_SET
+    #define DWIN_ICON_DEF 9 // 9.ICO
+  #else
+    #define DWIN_ICON_DEF 7 // 7.ICO
+  #endif
+
+#if ENABLED(DWIN_ICON_SET)
+    #define ICON (CrealityDWIN.iconset_current)
+#else
+    #define ICON DWIN_ICON_DEF
+#endif
+
+  
+  // Draw an Icon with transparent background from the library ICON
+  //  icon: Icon ID
+  //  x/y: Upper-left point
+  inline void DWIN_Draw_Icon(uint8_t icon, uint16_t x, uint16_t y) {
+    DWIN_ICON_Show(ICON, icon, x, y);
+  }
+
+  // Draw an Icon from the library ICON with its background
+  //  icon: Icon ID
+  //  x/y: Upper-left point
+  inline void DWIN_Draw_IconWB(uint8_t icon, uint16_t x, uint16_t y) {
+    DWIN_ICON_Show(true, false, false, ICON, icon, x, y);
+  }

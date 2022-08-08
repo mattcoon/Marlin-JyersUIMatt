@@ -58,7 +58,7 @@ void LockScreenClass::draw() {
   CrealityDWINClass::Clear_Screen(1);
   CrealityDWINClass::Draw_Title(GET_TEXT_F(MSG_LOCKSCREEN));
   DWINUI::ClearMainArea();
-  DWINUI::Draw_Icon(ICON_LOGO, 71, 120);  // CREALITY logo
+  DWIN_Draw_Icon(ICON_LOGO, 71, 120);  // CREALITY logo
   DWINUI::Draw_CenteredString(Color_White, 180, GET_TEXT_F(MSG_LOCKSCREEN_LOCKED));
   DWINUI::Draw_CenteredString(Color_White, 200, GET_TEXT_F(MSG_LOCKSCREEN_UNLOCK));
   DWINUI::Draw_CenteredString(Color_White, 240, F("-> | <-"));
