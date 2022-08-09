@@ -2782,7 +2782,7 @@ void MarlinSettings::postprocess() {
         #endif
 
         persistentStore.access_start();
-        const uint16_t status = persistentStore.read_data(pos, dest, MESH_STORE_SIZE, &crc);
+        uint16_t status = persistentStore.read_data(pos, dest, MESH_STORE_SIZE, &crc);
         persistentStore.access_finish();
 
         #if ENABLED(OPTIMIZED_MESH_STORAGE)
@@ -2793,6 +2793,16 @@ void MarlinSettings::postprocess() {
           }
           else
             bedlevel.set_mesh_from_store(z_mesh_store, bedlevel.z_values);
+        #endif
+
+        #if ENABLED(DWIN_LCD_PROUI)
+          status = !BedLevelTools.meshvalidate();
+          if (status) {
+            bedlevel.invalidate();
+            LCD_MESSAGE(MSG_UBL_MESH_INVALID);
+          }
+          else
+            ui.status_printf(0, GET_TEXT_F(MSG_MESH_LOADED), bedlevel.storage_slot);
         #endif
 
         if (status) SERIAL_ECHOLNPGM("?Unable to load mesh data.");
@@ -3634,7 +3644,6 @@ void MarlinSettings::reset() {
     //
     // Filament Runout Sensor
     //
-    //TERN_(HAS_FILAMENT_SENSOR, gcode.M412_report(forReplay));
     TERN_(HAS_FILAMENT_SENSOR, gcode.M591_report(forReplay));
 
     #if HAS_ETHERNET

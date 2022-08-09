@@ -107,5 +107,5 @@ void ESDiagClass::Update() {
   DWIN_UpdateLCD();
 }
 
-#endif  // HAS_ESDIAG
+#endif  // HAS_ES_DIAG
 #endif  // DWIN_CREALITY_LCD_JYERSUI

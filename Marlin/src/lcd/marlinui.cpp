@@ -121,7 +121,7 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
   bool MarlinUI::sound_on = ENABLED(SOUND_ON_DEFAULT);
 #endif
 
-  #if ENABLED(PCA9632_BUZZER)
+#if ENABLED(PCA9632_BUZZER)
   void MarlinUI::buzz(const long duration, const uint16_t freq) {
     if (sound_on) PCA9632_buzz(duration, freq);
   }

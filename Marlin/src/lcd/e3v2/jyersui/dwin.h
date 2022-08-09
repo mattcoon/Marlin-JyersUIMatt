@@ -327,7 +327,6 @@ public:
   static void Modify_Value(uint32_t &value, float min, float max, float unit, void (*f)()=nullptr);
   static void Modify_Value(int8_t &value, float min, float max, float unit, void (*f)()=nullptr);
   static void Modify_Option(uint8_t value, const char * const * options, uint8_t max);
-  //static void Modify_String(char * string, uint8_t maxlength, bool restrict);
 
   static void Update_Status(const char * const text);
   static void Update_Status(FSTR_P text);
@@ -387,11 +386,11 @@ public:
   #endif
 
   #if HAS_PIDPLOT
-   static void DWIN_Draw_PIDPopup(const pidresult_t pidresult);
+    static void DWIN_Draw_PIDPopup(const pidresult_t pidresult);
   #endif
 
   #if HAS_PID_HEATING
-   static void DWIN_PidTuning(const pidresult_t pidresult);
+    static void DWIN_PidTuning(const pidresult_t pidresult);
   #endif
   
   static void CPU_type();
@@ -415,7 +414,6 @@ public:
       static void ApplyMeshLimits();
     #endif
   #endif
-  
 };
 
 extern CrealityDWINClass CrealityDWIN;

@@ -1,12 +1,13 @@
 /**
- * DWIN general defines and data structs
- * Author: LChristophe68 (tititopher68-dev)
- * Version: 1.0
- * Date: 2022/02/03
+ * Marlin 3D Printer Firmware
+ * Copyright (c) 2021 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ *
+ * Based on Sprinter and grbl.
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as 
- * published by the Free Software Foundation, either version 3 of the License, or
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -14,14 +15,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
 #pragma once
 
-//#define DEBUG_DWIN 1
+
+/**
+ * DWIN general defines and data structs for PRO UI
+ * Author: Miguel A. Risco-Castillo (MRISCOC)
+ * Version: 3.11.2
+ * Date: 2022/02/28
+ *
+ * Modded for JYERSUI by LCH-77
+ * Version: 1.9
+ * Date: Jun 16, 2022
+ */
 
 #include "../../../core/types.h"
 #include "../common/dwin_color.h"
@@ -59,6 +69,8 @@
 #define HAS_PIDPLOT 1
 #define HAS_GCODE_PREVIEW 1
 #define HAS_SHORTCUTS 1
+//#define DEBUG_DWIN 1
+//#define NEED_HEX_PRINT 1
 #if ENABLED(HOST_ACTION_COMMANDS)
   #define HAS_HOSTACTION_MENUS 1
 #endif
@@ -292,45 +304,42 @@ typedef struct {
     bool rev_encoder_dir : 1;
     bool reprint_on : 1;
 
-    #if JYENHANCED
-      #if ENABLED(NOZZLE_PARK_FEATURE)
-          xyz_int_t Park_point = DEF_NOZZLE_PARK_POINT;
-      #endif
-      #if HAS_BED_PROBE
-          float probing_margin = DEF_PROBING_MARGIN;
-          uint16_t zprobefeedfast = DEF_Z_PROBE_FEEDRATE_FAST;
-          uint16_t zprobefeedslow = DEF_Z_PROBE_FEEDRATE_SLOW;
+    #if HAS_BED_PROBE
+      float probing_margin = DEF_PROBING_MARGIN;
+      uint16_t zprobefeedfast = DEF_Z_PROBE_FEEDRATE_FAST;
+      uint16_t zprobefeedslow = DEF_Z_PROBE_FEEDRATE_SLOW;
     #endif
     #if HAS_MESH
       float mesh_min_x = DEF_MESH_MIN_X;
       float mesh_max_x = DEF_MESH_MAX_X;
       float mesh_min_y = DEF_MESH_MIN_Y;
       float mesh_max_y = DEF_MESH_MAX_Y;
-      #endif
-      #if ENABLED(ADVANCED_PAUSE_FEATURE)
-          uint8_t fil_unload_feedrate = DEF_FILAMENT_CHANGE_UNLOAD_FEEDRATE;
-          uint8_t fil_fast_load_feedrate = DEF_FILAMENT_CHANGE_FAST_LOAD_FEEDRATE;
-      #endif
+    #endif  
+    #if ENABLED(ADVANCED_PAUSE_FEATURE)
+        uint8_t fil_unload_feedrate = DEF_FILAMENT_CHANGE_UNLOAD_FEEDRATE;
+        uint8_t fil_fast_load_feedrate = DEF_FILAMENT_CHANGE_FAST_LOAD_FEEDRATE;
+    #endif
+    #if ENABLED(NOZZLE_PARK_FEATURE)
+      xyz_int_t Park_point = DEF_NOZZLE_PARK_POINT;
     #endif
     
     #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
       uint32_t LEDColor = Def_Leds_Color;
     #endif
-
-  } eeprom_settings_t;
+} eeprom_settings_t;
 
   #if BOTH(LED_CONTROL_MENU, HAS_COLOR_LEDS)
     static constexpr size_t eeprom_data_size = 156;
   #else
     static constexpr size_t eeprom_data_size = 124;
   #endif
-  extern eeprom_settings_t eeprom_settings;
+extern eeprom_settings_t eeprom_settings;
 
 #if JYENHANCED
 
   #undef INVERT_E0_DIR
 
-  
+
   #if HAS_BED_PROBE
     #undef PROBING_MARGIN
     #undef Z_PROBE_FEEDRATE_FAST
@@ -353,9 +362,8 @@ typedef struct {
   #endif
 
   #define INVERT_E0_DIR eeprom_settings.Invert_E0
-  //
-  
-  //
+
+
   #if HAS_BED_PROBE
     #define PROBING_MARGIN eeprom_settings.probing_margin
     #define Z_PROBE_FEEDRATE_FAST eeprom_settings.zprobefeedfast
@@ -379,4 +387,3 @@ typedef struct {
   #endif
 
 #endif
-

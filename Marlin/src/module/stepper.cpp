@@ -118,7 +118,6 @@ Stepper stepper; // Singleton
   #include "../feature/runout.h"
 #endif
 
-
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "../feature/power.h"
 #endif

@@ -3266,7 +3266,7 @@ void Planner::set_machine_position_mm(const abce_pos_t &abce) {
   );
 
   if (has_blocks_queued()) {
-    //previous_nominal_speed_sqr = 0.0; // Reset planner junction speeds. Assume start from rest.
+    //previous_nominal_speed = 0.0f; // Reset planner junction speeds. Assume start from rest.
     //previous_speed.reset();
     buffer_sync_block(BLOCK_BIT_SYNC_POSITION);
   }
