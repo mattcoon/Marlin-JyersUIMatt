@@ -37,7 +37,6 @@
 
 #if HAS_ESDIAG
 
-#include "endstop_diag.h"
 #include "dwinui.h"
 #include "dwin.h"
 
@@ -49,16 +48,17 @@
   #include "../../../module/probe.h"
 #endif
 
-ESDiagClass ESDiag;
+#include "endstop_diag.h"
 
-void draw_es_label(FSTR_P const flabel=nullptr) {
+
+void ESDiagClass::draw_es_label(FSTR_P const flabel) {
   DWINUI::cursor.x = 40;
   if (flabel) DWINUI::Draw_String(F(flabel));
   DWINUI::Draw_String(F(": "));
   DWINUI::MoveBy(0, 25);
 }
 
-void draw_es_state(const bool is_hit) {
+void ESDiagClass::draw_es_state(const bool is_hit) {
   const uint8_t LM = 130;
   DWINUI::cursor.x = LM;
   DWIN_Draw_Rectangle(1, Color_Bg_Window, LM, DWINUI::cursor.y, LM + 100, DWINUI::cursor.y + 20);
@@ -106,6 +106,8 @@ void ESDiagClass::Update() {
   #endif
   DWIN_UpdateLCD();
 }
+
+ESDiagClass ESDiag;
 
 #endif  // HAS_ES_DIAG
 #endif  // DWIN_CREALITY_LCD_JYERSUI

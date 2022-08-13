@@ -34,6 +34,10 @@ class ESDiagClass {
 public:
   void Draw();
   void Update();
+private:
+  // void draw_es_label(FSTR_P const flabel=nullptr);
+  void draw_es_state(const bool is_hit);
+  void draw_es_label(FSTR_P const flabel=nullptr);
 };
 
 extern ESDiagClass ESDiag;
