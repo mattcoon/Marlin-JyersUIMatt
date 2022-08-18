@@ -277,6 +277,9 @@ typedef struct {
     #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
       bool show_gcode_thumbnails : 1;
     #endif
+  #if HAS_BED_PROBE
+    bool FullManualTramming : 1;
+  #endif
     
     bool Invert_E0 = DEF_INVERT_E0_DIR;
     int16_t x_bed_size = DEF_X_BED_SIZE;

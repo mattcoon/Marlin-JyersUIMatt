@@ -58,7 +58,7 @@ enum PopupID : uint8_t {
   Pause, Stop, Resume, SaveLevel, ETemp, ConfFilChange, PurgeMore, MeshSlot,
   Level, Home, MoveWait, Heating,  FilLoad, FilChange, TempWarn, Runout, PIDWait, MPCWait, Resuming, ManualProbing,
   FilInsert, HeaterTime, UserInput, LevelError, InvalidMesh, NocreatePlane, UI, Complete, ConfirmStartPrint, BadextruderNumber,
-  PIDWaitH, PIDWaitB, TempTooHigh, PIDTimeout, PIDDone, viewmesh, Level2, endsdiag, Reprint, Custom, ESDiagPopup, PrintConfirm
+  PIDWaitH, PIDWaitB, TempTooHigh, PIDTimeout, PIDDone, viewmesh, Level2, endsdiag, Reprint, Custom, ESDiagPopup, MeshviewPopup, PrintConfirm
 };
 
 enum menuID : uint8_t {
@@ -121,7 +121,7 @@ enum menuID : uint8_t {
       Leveling,
         LevelManual,
         LevelView,
-        MeshViewer,
+        MeshViewerMNU,
         LevelSettings,
         ManualMesh,
         UBLMesh,
@@ -287,8 +287,9 @@ public:
   static void Draw_Popup(FSTR_P const line1, FSTR_P const line2, FSTR_P const line3, uint8_t mode, uint8_t icon=0);
   static void Popup_Select(bool stflag=false);
   static void Update_Status_Bar(bool refresh=false);
-  //static void Draw_Keyboard(bool restrict, bool numeric, uint8_t selected=0, bool uppercase=false, bool lock=false);
-  //static void Draw_Keys(uint8_t index, bool selected, bool uppercase=false, bool lock=false);
+  #if HAS_BED_PROBE
+    static void Trammingwizard();
+  #endif
   #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
     static bool find_and_decode_gcode_preview(char *name, uint8_t preview_type, uint16_t *address, bool onlyCachedFileIcon=false);
     static bool find_and_decode_gcode_header(char *name, uint8_t header_type);
@@ -344,6 +345,11 @@ public:
   #if HAS_ESDIAG
     static void DWIN_EndstopsDiag();
   #endif
+  
+  #if HAS_BED_PROBE
+    static void DWIN_Tramming();
+  #endif
+
   #if HAS_LOCKSCREEN
     static void DWIN_LockScreen();
     static void DWIN_UnLockScreen();

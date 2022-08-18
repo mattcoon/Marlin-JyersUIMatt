@@ -29,6 +29,15 @@
 
 #pragma once
 
-void Preview_DrawFromSD();
-bool Preview_Valid();
-void Preview_Reset();
+
+class GcodePreviewClass {
+  public:
+    void Preview_DrawFromSD();
+    bool Preview_Valid();
+    void Preview_Reset();
+  private:
+    void Get_Value(char *buf, const char * const key, float &value);
+    bool Has_Preview();
+};
+
+extern GcodePreviewClass GcodePreview;
