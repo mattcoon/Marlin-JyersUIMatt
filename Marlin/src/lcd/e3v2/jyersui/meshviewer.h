@@ -50,3 +50,4 @@ class MeshViewerClass {
 
 extern MeshViewerClass MeshViewer;
 
+void TrammingWizard();

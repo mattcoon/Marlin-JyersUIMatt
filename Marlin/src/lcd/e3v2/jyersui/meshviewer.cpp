@@ -38,6 +38,7 @@
 #include "dwin.h"
 // #include "dwin_popup.h"
 #include "../../../feature/bedlevel/bedlevel.h"
+#include "../../../module/probe.h"
 #include "meshviewer.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -119,5 +120,83 @@ void MeshViewerClass::Update() {
   DWIN_UpdateLCD();
 }
 
+void TrammingWizard() {
+  if (!eeprom_settings.FullManualTramming) {
+    CrealityDWIN.Popup_Handler(Level);
+    // gcode.home_all_axes(true);
+    do_z_clearance(Z_HOMING_HEIGHT);
+    temp_val.corner_avg = 0;
+
+    MeshViewer.Zval[0][0] = probe.probe_at_point(PROBE_X_MIN, PROBE_Y_MIN, PROBE_PT_RAISE, 0, false);
+    const char * MSG_UNREACHABLE = GET_TEXT(MSG_ZPROBE_UNREACHABLE);
+    if (isnan(MeshViewer.Zval[0][0])) {
+      CrealityDWIN.Update_Status(MSG_UNREACHABLE);
+      CrealityDWIN.Redraw_Menu();
+    }
+    MeshViewer.DrawMesh(MeshViewer.Zval, 2, 2);
+    temp_val.corner_avg += MeshViewer.Zval[0][0];
+
+    MeshViewer.Zval[0][1] = probe.probe_at_point(PROBE_X_MIN, PROBE_Y_MAX, PROBE_PT_RAISE, 0, false);
+    if (isnan(MeshViewer.Zval[0][1])) {
+      CrealityDWIN.Update_Status(MSG_UNREACHABLE);
+      CrealityDWIN.Redraw_Menu();
+    }
+    MeshViewer.DrawMesh(MeshViewer.Zval, 2, 2);
+    temp_val.corner_avg += MeshViewer.Zval[0][1];
+
+    MeshViewer.Zval[1][1] = probe.probe_at_point(PROBE_X_MAX, PROBE_Y_MAX, PROBE_PT_RAISE, 0, false);
+    if (isnan(MeshViewer.Zval[1][1])) {
+      CrealityDWIN.Update_Status(MSG_UNREACHABLE);
+      CrealityDWIN.Redraw_Menu();
+    }
+    temp_val.corner_avg += MeshViewer.Zval[1][1];
+    MeshViewer.DrawMesh(MeshViewer.Zval, 2, 2);
+
+    MeshViewer.Zval[1][0] = probe.probe_at_point(PROBE_X_MAX, PROBE_Y_MIN, PROBE_PT_STOW, 0, false);
+    if (isnan(MeshViewer.Zval[1][0])) {
+      CrealityDWIN.Update_Status(MSG_UNREACHABLE);
+      CrealityDWIN.Redraw_Menu();
+    }
+    MeshViewer.DrawMesh(MeshViewer.Zval, 2, 2);
+    temp_val.corner_avg += MeshViewer.Zval[1][0];
+    temp_val.corner_avg /= 4;
+    // update grid with corner offsets to average height
+    LOOP_L_N(x, 2) LOOP_L_N(y, 2) MeshViewer.Zval[x][y] -= temp_val.corner_avg;
+    MeshViewer.DrawMesh(MeshViewer.Zval, 2, 2);
+    if (MeshViewer.CornerTolerance() < 0.05) {
+      DWINUI::Draw_CenteredString(140,F("Corners leveled"));
+      DWINUI::Draw_CenteredString(160,F("Tolerance achieved!"));
+    }
+    else {
+      uint8_t p = 0;
+      float max = 0;
+      FSTR_P plabel;
+      bool s = true;
+      LOOP_L_N(x, 2) LOOP_L_N(y, 2) {
+        const float d = ABS(MeshViewer.Zval[x][y]);
+        if (max < d) {
+          s = (MeshViewer.Zval[x][y] >= 0);
+          max = d;
+          p = x + 2 * y;
+        }
+      }
+      switch (p) {
+        case 0b00 : plabel = GET_TEXT_F(MSG_LEVBED_FL); break;
+        case 0b01 : plabel = GET_TEXT_F(MSG_LEVBED_FR); break;
+        case 0b10 : plabel = GET_TEXT_F(MSG_LEVBED_BL); break;
+        case 0b11 : plabel = GET_TEXT_F(MSG_LEVBED_BR); break;
+        default   : plabel = F(""); break;
+      }
+      DWINUI::Draw_CenteredString(120, F("Corners not leveled"));
+      DWINUI::Draw_CenteredString(140, F("Knob adjustment required"));
+      DWINUI::Draw_CenteredString(Color_Green, 160, s ? F("Lower") : F("Raise")); 
+      DWINUI::Draw_CenteredString(Color_Green, 180, plabel);
+    }
+    wait_for_user = false;
+    // Confirm_Handler(MeshviewPopup);
+    CrealityDWIN.Popup_Handler(MeshviewPopup);
+  }
+
+}
 
 #endif // DWIN_LCD_PROUI && HAS_MESH
