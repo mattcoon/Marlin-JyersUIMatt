@@ -168,18 +168,25 @@ void TrammingWizard() {
       DWINUI::Draw_CenteredString(160,F("Tolerance achieved!"));
     }
     else {
+      const float threads_factor[] = { 0.5, 0.7, 0.8 };
+      const uint8_t screw_thread = TRAMMING_SCREW_THREAD;
       uint8_t p = 0;
       float max = 0;
       FSTR_P plabel;
       bool s = true;
+      float adjust = 0;
       LOOP_L_N(x, 2) LOOP_L_N(y, 2) {
         const float d = ABS(MeshViewer.Zval[x][y]);
         if (max < d) {
           s = (MeshViewer.Zval[x][y] >= 0);
           max = d;
           p = x + 2 * y;
+          adjust = ABS(d) < 0.001f ? 0 : d / threads_factor[(screw_thread - 30) / 10];
         }
       }
+      const int full_turns = trunc(adjust);
+      const float decimal_part = adjust - float(full_turns);
+      const int minutes = trunc(decimal_part * 60.0f);
       switch (p) {
         case 0b00 : plabel = GET_TEXT_F(MSG_LEVBED_FL); break;
         case 0b01 : plabel = GET_TEXT_F(MSG_LEVBED_FR); break;
@@ -187,13 +194,13 @@ void TrammingWizard() {
         case 0b11 : plabel = GET_TEXT_F(MSG_LEVBED_BR); break;
         default   : plabel = F(""); break;
       }
-      DWINUI::Draw_CenteredString(120, F("Corners not leveled"));
-      DWINUI::Draw_CenteredString(140, F("Knob adjustment required"));
-      DWINUI::Draw_CenteredString(Color_Green, 160, s ? F("Lower") : F("Raise")); 
-      DWINUI::Draw_CenteredString(Color_Green, 180, plabel);
+
+      DWINUI::Draw_CenteredString(120, F("Corners not leveled. Turn"));
+      DWINUI::Draw_CenteredString(140,plabel);
+      DWINUI::Draw_Float(1,3,DWIN_WIDTH/2,160,adjust);
+      DWINUI::Draw_CenteredString(180, (s != (screw_thread&1)) ? F("Turns CCW") : F("Turns CW")); 
     }
     wait_for_user = false;
-    // Confirm_Handler(MeshviewPopup);
     CrealityDWIN.Popup_Handler(MeshviewPopup);
   }
 
