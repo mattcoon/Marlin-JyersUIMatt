@@ -197,8 +197,14 @@ void TrammingWizard() {
 
       DWINUI::Draw_CenteredString(120, F("Corners not leveled. Turn"));
       DWINUI::Draw_CenteredString(140,plabel);
-      DWINUI::Draw_Float(1,3,DWIN_WIDTH/2,160,adjust);
-      DWINUI::Draw_CenteredString(180, (s != (screw_thread&1)) ? F("Turns CCW") : F("Turns CW")); 
+      DWINUI::Draw_String(F(" : "));
+      DWINUI::cursor.x = 80;
+      DWINUI::cursor.y = 160;
+      DWINUI::Draw_Int(1, full_turns);
+      DWINUI::Draw_String(F(" Turns, "));
+      DWINUI::Draw_Int(2, minutes);
+      DWINUI::Draw_String(F(" mins "));
+      DWINUI::Draw_String((s == (screw_thread&1)) ? F("CW") : F("CCW")); 
     }
     wait_for_user = false;
     CrealityDWIN.Popup_Handler(MeshviewPopup);
