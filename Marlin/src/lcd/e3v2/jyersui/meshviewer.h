@@ -26,10 +26,6 @@
 #define PROBE_Y_MIN _MAX(0 + temp_val.corner_pos, Y_MIN_POS + probe.offset.y, Y_MIN_POS + PROBING_MARGIN) - probe.offset.y
 #define PROBE_Y_MAX _MIN((Y_BED_SIZE + Y_MIN_POS) - temp_val.corner_pos, Y_MAX_POS + probe.offset.y, Y_MAX_POS - PROBING_MARGIN) - probe.offset.y
 
-#define PROBEFL 0
-#define PROBERL 1
-#define PROBERR 2
-#define PROBEFR 3
 
 /**
  * Mesh Viewer for PRO UI
@@ -51,3 +47,4 @@ class MeshViewerClass {
 extern MeshViewerClass MeshViewer;
 
 void TrammingWizard();
+void TramPoint(float x, float y, float z = 0.0);

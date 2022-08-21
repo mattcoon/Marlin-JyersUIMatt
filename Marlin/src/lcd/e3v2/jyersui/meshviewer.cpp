@@ -39,6 +39,7 @@
 // #include "dwin_popup.h"
 #include "../../../feature/bedlevel/bedlevel.h"
 #include "../../../module/probe.h"
+#include "../../../gcode/gcode.h"
 #include "meshviewer.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -47,12 +48,17 @@
 
 MeshViewerClass MeshViewer;
 
+xy_uint8_t tramProbePoints[2][2];
+xy_uint8_t tramManualPoints[2][2];
+
+
 void MeshViewerClass::DrawMesh(bed_mesh_t zval, const uint8_t sizex, const uint8_t sizey) {
 
   const int8_t mx = 50, my = 50;  // Margins
+  const int8_t mxsz = 30; // max circle diameter
   const int16_t stx = (DWIN_WIDTH - 2 * mx) / (sizex - 1),  // Steps
                 sty = (DWIN_WIDTH - 2 * my) / (sizey - 1);
-  const int8_t rmax = _MIN(mx - 2, stx / 2);
+  const int8_t rmax = _MIN( _MIN(mxsz - 2 , mx-2) , stx / 2);
   const int8_t rmin = 7;
   int16_t zmesh[sizex][sizey];
   #define px(xp) (mx + (xp) * stx)
@@ -73,8 +79,6 @@ void MeshViewerClass::DrawMesh(bed_mesh_t zval, const uint8_t sizex, const uint8
   CrealityDWINClass::Clear_Screen(1);
   CrealityDWINClass::Draw_Title(F("Tramming"));
   DWINUI::ClearMainArea();
-  // DWIN_Draw_Rectangle(0, Color_White, 14, 60, 258, 330);
-  // DWINUI::Draw_Button(BTN_Continue, 86, 280);
   DWIN_Draw_Rectangle(0, Line_Color, px(0), py(0), px(sizex - 1), py(sizey - 1));
   LOOP_S_L_N(x, 1, sizex - 1) DrawMeshVLine(x);
   LOOP_S_L_N(y, 1, sizey - 1) DrawMeshHLine(y);
@@ -118,6 +122,25 @@ void MeshViewerClass::DrawMesh(bed_mesh_t zval, const uint8_t sizex, const uint8
 
 void MeshViewerClass::Update() {
   DWIN_UpdateLCD();
+}
+
+void TramPoint(float x, float y, float z) {
+    char cmd[MAX_CMD_SIZE+32], str_1[16], str_2[16], str_3[16];
+    CrealityDWIN.Popup_Handler(MoveWait);
+  if (!eeprom_settings.FullManualTramming) {
+    #if HAS_BED_PROBE
+      sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s"), dtostrf(x, 1, 3, str_1), dtostrf(y, 1, 3, str_2));
+      gcode.process_subcommands_now(cmd);
+      planner.synchronize();
+      CrealityDWIN.Popup_Handler(ManualProbing);
+    #endif
+  }
+  else {
+    sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s\nG0 F300 Z%s"), dtostrf(x, 1, 3, str_1), dtostrf(y, 1, 3, str_2), dtostrf(z, 1, 3, str_3));
+    gcode.process_subcommands_now(cmd);
+    planner.synchronize();
+    CrealityDWIN.Redraw_Menu();
+  }
 }
 
 void TrammingWizard() {
@@ -198,13 +221,14 @@ void TrammingWizard() {
       DWINUI::Draw_CenteredString(120, F("Corners not leveled. Turn"));
       DWINUI::Draw_CenteredString(140,plabel);
       DWINUI::Draw_String(F(" : "));
-      DWINUI::cursor.x = 80;
+      DWINUI::cursor.x = 60;
       DWINUI::cursor.y = 160;
       DWINUI::Draw_Int(1, full_turns);
       DWINUI::Draw_String(F(" Turns, "));
       DWINUI::Draw_Int(2, minutes);
       DWINUI::Draw_String(F(" mins "));
       DWINUI::Draw_String((s == (screw_thread&1)) ? F("CW") : F("CCW")); 
+      DWINUI::Draw_CenteredString(200, F("[Confirm] to repeat"));
     }
     wait_for_user = false;
     CrealityDWIN.Popup_Handler(MeshviewPopup);

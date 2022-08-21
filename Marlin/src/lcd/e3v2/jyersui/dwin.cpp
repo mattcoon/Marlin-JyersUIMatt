@@ -1974,115 +1974,39 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
             case MLEVEL_WIZARD:
               if (draw)
                 Draw_Menu_Item(row, ICON_Zoffset, GET_TEXT_F(MSG_TRAMMING_WIZARD));
-              else {
+              else
                 TrammingWizard();
-              }
               break;
           #endif
         case MLEVEL_FL:
             if (draw)
               Draw_Menu_Item(row, ICON_AxisBL, GET_TEXT_F(MSG_LEVBED_FL));
-            else {
-              Popup_Handler(MoveWait);
-              if (!eeprom_settings.FullManualTramming) {
-                #if HAS_BED_PROBE
-                  sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s"), dtostrf(PROBE_X_MIN, 1, 3, str_1), dtostrf(PROBE_Y_MIN, 1, 3, str_2));
-                  gcode.process_subcommands_now(cmd);
-                  planner.synchronize();
-                  Popup_Handler(ManualProbing);
-                #endif
-              }
-              else {
-                sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s\nG0 F300 Z%s"), dtostrf(temp_val.corner_pos, 1, 3, str_1), dtostrf(temp_val.corner_pos, 1, 3, str_2), dtostrf(mlev_z_pos, 1, 3, str_3));
-                gcode.process_subcommands_now(cmd);
-                planner.synchronize();
-                Redraw_Menu();
-              }
-            }
+            else
+              TramPoint(PROBE_X_MIN,PROBE_Y_MIN,mlev_z_pos);
             break;
         case MLEVEL_BL:
             if (draw)
               Draw_Menu_Item(row, ICON_AxisTL, GET_TEXT_F(MSG_LEVBED_BL));
-            else {
-              Popup_Handler(MoveWait);
-              if (!eeprom_settings.FullManualTramming) {
-                #if HAS_BED_PROBE
-                  sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s"), dtostrf(PROBE_X_MIN, 1, 3, str_1), dtostrf(PROBE_Y_MAX, 1, 3, str_2));
-                  gcode.process_subcommands_now(cmd);
-                  planner.synchronize();
-                  Popup_Handler(ManualProbing);
-                #endif
-              }
-              else {
-                sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s\nG0 F300 Z%s"), dtostrf(temp_val.corner_pos, 1, 3, str_1), dtostrf((Y_BED_SIZE + Y_MIN_POS) - temp_val.corner_pos, 1, 3, str_2), dtostrf(mlev_z_pos, 1, 3, str_3));
-                gcode.process_subcommands_now(cmd);
-                planner.synchronize();
-                Redraw_Menu();
-              }
-            }
+            else
+              TramPoint(PROBE_X_MIN,PROBE_Y_MAX,mlev_z_pos);
             break;
         case MLEVEL_BR:
             if (draw)
               Draw_Menu_Item(row, ICON_AxisTR, GET_TEXT_F(MSG_LEVBED_BR));
-            else {
-              Popup_Handler(MoveWait);
-              if (!eeprom_settings.FullManualTramming) {
-                #if HAS_BED_PROBE
-                  sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s"), dtostrf(PROBE_X_MAX, 1, 3, str_1), dtostrf(PROBE_Y_MAX, 1, 3, str_2));
-                  gcode.process_subcommands_now(cmd);
-                  planner.synchronize();
-                  Popup_Handler(ManualProbing);
-                #endif
-              }
-              else {
-                sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s\nG0 F300 Z%s"), dtostrf((X_BED_SIZE + X_MIN_POS) - temp_val.corner_pos, 1, 3, str_1), dtostrf((Y_BED_SIZE + Y_MIN_POS) - temp_val.corner_pos, 1, 3, str_2), dtostrf(mlev_z_pos, 1, 3, str_3));
-                gcode.process_subcommands_now(cmd);
-                planner.synchronize();
-                Redraw_Menu();
-              }
-            }
+            else
+              TramPoint(PROBE_X_MAX,PROBE_Y_MAX,mlev_z_pos);
             break;
         case MLEVEL_FR:
             if (draw)
               Draw_Menu_Item(row, ICON_AxisBR, GET_TEXT_F(MSG_LEVBED_FR));
-            else {
-              Popup_Handler(MoveWait);
-              if (!eeprom_settings.FullManualTramming) {
-                #if HAS_BED_PROBE
-                  sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s"), dtostrf(PROBE_X_MAX, 1, 3, str_1), dtostrf(PROBE_Y_MIN, 1, 3, str_2));
-                  gcode.process_subcommands_now(cmd);
-                  planner.synchronize();
-                  Popup_Handler(ManualProbing);
-                #endif
-              }
-              else {
-                sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s\nG0 F300 Z%s"), dtostrf((X_BED_SIZE + X_MIN_POS) - temp_val.corner_pos, 1, 3, str_1), dtostrf(temp_val.corner_pos, 1, 3, str_2), dtostrf(mlev_z_pos, 1, 3, str_3));
-                gcode.process_subcommands_now(cmd);
-                planner.synchronize();
-                Redraw_Menu();
-              }
-            }
+            else 
+              TramPoint(PROBE_X_MAX,PROBE_Y_MIN,mlev_z_pos);
             break;
           case MLEVEL_C:
             if (draw)
               Draw_Menu_Item(row, ICON_AxisC, GET_TEXT_F(MSG_LEVBED_C));
-            else {
-              Popup_Handler(MoveWait);
-              if (!eeprom_settings.FullManualTramming) {
-                #if HAS_BED_PROBE
-                  sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s"), dtostrf((X_BED_SIZE + X_MIN_POS) / 2.0f - probe.offset.x, 1, 3, str_1), dtostrf((Y_BED_SIZE + Y_MIN_POS) / 2.0f - probe.offset.y, 1, 3, str_2));
-                  gcode.process_subcommands_now(cmd);
-                  planner.synchronize();
-                  Popup_Handler(ManualProbing);
-                #endif
-              }
-              else {
-                sprintf_P(cmd, PSTR("G0 F4000\nG0 Z10\nG0 X%s Y%s\nG0 F300 Z%s"), dtostrf((X_BED_SIZE + X_MIN_POS) / 2.0f, 1, 3, str_1), dtostrf((Y_BED_SIZE + Y_MIN_POS) / 2.0f, 1, 3, str_2), dtostrf(mlev_z_pos, 1, 3, str_3));
-                gcode.process_subcommands_now(cmd);
-                planner.synchronize();
-                Redraw_Menu();
-              }
-            }
+            else
+              TramPoint((X_BED_SIZE + X_MIN_POS) / 2.0f - probe.offset.x,(Y_BED_SIZE + Y_MIN_POS) / 2.0f - probe.offset.y,mlev_z_pos);
             break;
           case MLEVEL_ZPOS:
             if (draw) {
