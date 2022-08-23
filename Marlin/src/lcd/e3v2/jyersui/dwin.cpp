@@ -7651,7 +7651,10 @@ void CrealityDWINClass::Update_Print_Filename(const char * const text) {
               if (temp_val.printing) Popup_Handler(Resuming);
               else {
                 if (temp_val.flag_chg_fil) Popup_Handler(FilChange, true);
-                else Redraw_Menu(true, true, (active_menu==PreheatHotend)); // TODO: mm auto cool here
+                else {
+                  thermalManager.cooldown();
+                  Redraw_Menu(true, true, (active_menu==PreheatHotend));
+                }
               }
             }
             break;
