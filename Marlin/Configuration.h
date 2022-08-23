@@ -43,14 +43,14 @@
 
 // TODO: runout/filament merge function
 // TODO: UBL flex mesh from proui
-// TODO: cooldown after filament change
-// TODO: Mesh display on proui
 // TODO: Add option for fastback
-// TODO: remove back main when printing
-// TODO: Tramming wizard
 
 // In test
+// TODO: cooldown after filament change
 // TODO: live moves from proui
+// TODO: Mesh display on proui
+// TODO: remove back main when printing
+// TODO: Tramming wizard
 
 /**
  * Here are some useful links to help get your machine configured and calibrated:
