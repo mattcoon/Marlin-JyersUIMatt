@@ -25,7 +25,7 @@
  * Release version. Leave the Marlin version or apply a custom scheme.
  */
 #ifndef SHORT_BUILD_VERSION
-  #define SHORT_BUILD_VERSION "Matt-JyersUI v2.1.0.2"
+  #define SHORT_BUILD_VERSION "Matt-JyersUI v2.1.0.3"
 #endif
 
 /**
@@ -42,7 +42,7 @@
  * version was tagged.
  */
 #ifndef STRING_DISTRIBUTION_DATE
-  #define STRING_DISTRIBUTION_DATE "2022-07-21"
+  #define STRING_DISTRIBUTION_DATE "2022-08-22"
 #endif
 
 /**
