@@ -290,11 +290,7 @@ public:
   #if HAS_BED_PROBE
     static void Trammingwizard();
   #endif
-  #if ENABLED(DWIN_CREALITY_LCD_JYERSUI_GCODE_PREVIEW)
-    static bool find_and_decode_gcode_preview(char *name, uint8_t preview_type, uint16_t *address, bool onlyCachedFileIcon=false);
-    static bool find_and_decode_gcode_header(char *name, uint8_t header_type);
-  #endif
-
+  
   #if ENABLED(AUTO_BED_LEVELING_UBL)
     static void Draw_Bed_Mesh(int16_t selected = -1, uint8_t gridline_width = 1, uint16_t padding_x = 8, uint16_t padding_y_top = 40 + 53 - 7);
     static void Set_Mesh_Viewer_Status();

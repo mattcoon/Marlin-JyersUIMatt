@@ -32,12 +32,13 @@
 
 class GcodePreviewClass {
   public:
-    void Preview_DrawFromSD();
-    bool Preview_Valid();
     void Preview_Reset();
+    bool find_and_decode_gcode_preview(char *name, uint8_t preview_type, uint16_t *address, bool onlyCachedFileIcon = false);
+    bool find_and_decode_gcode_header(char *name, uint8_t header_type);
+    bool file_preview;
+    uint16_t file_preview_image_address;
   private:
-    void Get_Value(char *buf, const char * const key, float &value);
-    bool Has_Preview();
+    uint16_t next_available_address;
 };
 
 extern GcodePreviewClass GcodePreview;
