@@ -816,7 +816,7 @@ void CrealityDWINClass::Main_Menu_Icons() {
 
   if (selection == 1) {
     DRAW_IconWB(ICON, ICON_Prepare_1, 145, 68);
-    DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Def_Highlight_Color), 145, 110, 254, 209);
+    DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Def_Highlight_Color), 145, 68, 254, 167);
   }
   else
     DRAW_IconWB(ICON, ICON_Prepare_0, 145, 68);

@@ -49,10 +49,12 @@
 
 // In test
 // TODO: cooldown after filament change
-// TODO: live moves from proui
-// TODO: Mesh display on proui
-// TODO: remove back main when printing
-// TODO: Tramming wizard
+
+// complete
+// live moves from proui
+// tram display on proui
+// remove back main when printing
+// Tramming wizard
 
 /**
  * Here are some useful links to help get your machine configured and calibrated:
