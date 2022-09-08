@@ -39,6 +39,7 @@ class GcodePreviewClass {
     uint16_t file_preview_image_address;
   private:
     uint16_t next_available_address;
+    char buf[16];
 };
 
 extern GcodePreviewClass GcodePreview;

@@ -33,6 +33,7 @@
 #if ENABLED(DWIN_CREALITY_LCD_JYERSUI)
 
 #include "dwin_defines.h"
+// #include "../../../core/macros.h"
 
 #if HAS_GCODE_PREVIEW
 
@@ -151,7 +152,6 @@ bool GcodePreviewClass::find_and_decode_gcode_preview(char *name, uint8_t previe
   }
   } else if (use_cache)  // If we didn't find the image, but we are using the cache, mark it as image not available
   {
-    //image_cache[file_path+to_string(preview_type)] = 0;
     image_cache[file_path+to_string(preview_type)] = 0;
   }
 
@@ -218,7 +218,7 @@ bool GcodePreviewClass::find_and_decode_gcode_header(char *name, uint8_t header_
         stored_in_buffer++;
       }
     }
-    // TODO:mmm sprintf_P(str_1, PSTR("%s"), out_buf);
+    sprintf_P(buf, PSTR("%s"), out_buf);
   }
   card.closefile();
 return encoded_header;
