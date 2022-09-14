@@ -8288,7 +8288,7 @@ void CrealityDWINClass::Reset_Settings() {
     eeprom_settings.Invert_E0 = DEF_INVERT_E0_DIR;
     DWIN_Invert_E0();
     #if ENABLED(NOZZLE_PARK_FEATURE)
-      eeprom_settings.Park_point = xyz_int_t DEF_NOZZLE_PARK_POINT;
+      eeprom_settings.Park_point = DEF_NOZZLE_PARK_POINT;
     #endif
     #if HAS_MESH
       eeprom_settings.mesh_min_x = DEF_MESH_MIN_X;
