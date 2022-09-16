@@ -40,7 +40,7 @@ constexpr int16_t DEF_X_MAX_POS = X_MAX_POS;
 constexpr int16_t DEF_Y_MAX_POS = Y_MAX_POS;
 constexpr int16_t DEF_Z_MAX_POS = Z_MAX_POS;
 
-#define DEF_NOZZLE_PARK_POINT {240, 220, 20}
+constexpr xyz_int_t DEF_NOZZLE_PARK_POINT = NOZZLE_PARK_POINT;
 #define MIN_PARK_POINT_Z 10
 
 #if HAS_MESH
