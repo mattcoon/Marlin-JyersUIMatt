@@ -4092,7 +4092,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
           else
             Modify_Value(ui.brightness, LCD_BRIGHTNESS_MIN, LCD_BRIGHTNESS_MAX, 1, ui.refresh_brightness);
           break;
-        #if LCD_BACKLIGHT_TIMEOUT 
+        #if HAS_BACKLIGHT_TIMEOUT
           case VISUAL_AUTOOFF:
               if (draw) {
                 Draw_Menu_Item(row, ICON_Brightness, GET_TEXT_F(MSG_LCD_TIMEOUT_SEC));
@@ -7900,7 +7900,7 @@ void CrealityDWINClass::State_Update() {
 void CrealityDWINClass::Screen_Update() {
   const millis_t ms = millis();
 
-    #if LCD_BACKLIGHT_TIMEOUT
+    #if HAS_BACKLIGHT_TIMEOUT
       if (ui.backlight_off_ms && ELAPSED(millis(), ui.backlight_off_ms)) {
         ui.backlight = false;
         ui.set_brightness(0);
