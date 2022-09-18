@@ -48,8 +48,12 @@
 // TODO: Add option for fastback
 
 // In test
+// TODO: LCD Timeout
 
 // complete
+// FAN 3d / laser
+// thumbnail print
+// dynamic sensor mode
 // live moves from proui
 // tram display on proui
 // remove back main when printing

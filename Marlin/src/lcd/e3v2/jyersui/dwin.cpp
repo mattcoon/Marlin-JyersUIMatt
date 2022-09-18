@@ -7901,7 +7901,7 @@ void CrealityDWINClass::Screen_Update() {
   const millis_t ms = millis();
 
     #if HAS_BACKLIGHT_TIMEOUT
-      if (ui.backlight_off_ms && ELAPSED(millis(), ui.backlight_off_ms)) {
+      if (ui.lcd_backlight_timeout && ELAPSED(ms, ui.backlight_off_ms)) {
         ui.backlight = false;
         ui.set_brightness(0);
         ui.backlight_off_ms = 0;
