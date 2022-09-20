@@ -2224,6 +2224,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                 gcode.process_subcommands_now(F("M701"));
                 planner.synchronize();
                 temp_val.flag_chg_fil = false;
+                thermalManager.cooldown();
                 Draw_Menu(ChangeFilament, CHANGEFIL_LOAD);
               }
             }
@@ -2267,6 +2268,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                 sprintf_P(cmd, PSTR("M600 B1 R%i"), thermalManager.temp_hotend[0].target);
                 gcode.process_subcommands_now(cmd);
                 temp_val.flag_chg_fil = false;
+                thermalManager.cooldown();
                 Draw_Menu(ChangeFilament, CHANGEFIL_CHANGE);
               }
             }
@@ -7901,7 +7903,23 @@ void CrealityDWINClass::Screen_Update() {
   const millis_t ms = millis();
 
     #if HAS_BACKLIGHT_TIMEOUT
-      if (ui.lcd_backlight_timeout && ELAPSED(ms, ui.backlight_off_ms)) {
+      if(ui.lcd_backlight_timeout) {
+        temp_val.backlight_timeout_disable = false;
+        switch(process) { 
+          case Popup:
+          case Confirm:
+          case Wait:
+          case Locked:
+          case Cancel:
+          case Keyboard:
+            temp_val.backlight_timeout_disable = true;
+            break;
+          default:
+            break;
+        }
+      }
+      else temp_val.backlight_timeout_disable = true;
+      if (!temp_val.backlight_timeout_disable && ELAPSED(ms, ui.backlight_off_ms)) {
         ui.backlight = false;
         ui.set_brightness(0);
         ui.backlight_off_ms = 0;

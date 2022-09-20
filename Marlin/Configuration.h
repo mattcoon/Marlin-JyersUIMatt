@@ -43,21 +43,24 @@
 
 // TODO: runout/filament merge function
 // TODO: UBL flex mesh from proui
-// TODO: cooldown after filament change
 // TODO: Mesh display on proui
 // TODO: Add option for fastback
 
 // In test
-// TODO: LCD Timeout
+// TODO: cooldown after filament change / load
 
 // complete
+// pause screen timeout when popup active / prevent blck screen without response
+// LCD Timeout
 // FAN 3d / laser
 // thumbnail print
 // dynamic sensor mode
 // live moves from proui
+// live Z-offset
 // tram display on proui
 // remove back main when printing
 // Tramming wizard
+
 /**
  * Here are some useful links to help get your machine configured and calibrated:
  *
