@@ -45,9 +45,11 @@
 // TODO: UBL flex mesh from proui
 // TODO: Mesh display on proui
 // TODO: Add option for fastback
+// TODO: MPC Plotting like PIDPlot
 
 // In test
 // TODO: cooldown after filament change / load
+// TODO: PID PLOT hanging
 
 // complete
 // pause screen timeout when popup active / prevent blck screen without response

@@ -2824,6 +2824,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               sprintf_P(cmd, PSTR("M303 E0 C%i S%i U1"), PID_cycles, temp_val.PID_e_temp);
               gcode.process_subcommands_now(cmd);
               planner.synchronize();
+              Redraw_Menu();
             }
             break;
           case HOTENDPID_TEMP:
@@ -2995,10 +2996,11 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             if (draw)
               Draw_Menu_Item(row, ICON_HotendTemp, GET_TEXT_F(MSG_PID_AUTOTUNE));
             else {
-              Popup_Handler(PIDWait, true);
+              Popup_Handler(PIDWait);
               sprintf_P(cmd, PSTR("M303 E-1 C%i S%i U1"), PID_cycles, temp_val.PID_bed_temp);
               gcode.process_subcommands_now(cmd);
               planner.synchronize();
+              Redraw_Menu();
             }
             break;
           case BEDPID_TEMP:
@@ -6699,7 +6701,9 @@ void CrealityDWINClass::Popup_Handler(PopupID popupid, bool option/*=false*/) {
     case FilChange:     Draw_Popup(option ? GET_TEXT_F(MSG_END_PROCESS) : GET_TEXT_F(MSG_FILAMENT_CHANGE), GET_TEXT_F(MSG_PLEASE_WAIT), F(""), Wait, ICON_BLTouch); break;
     case TempWarn:      Draw_Popup(option ? GET_TEXT_F(MSG_HOTEND_TOO_COLD) : GET_TEXT_F(MSG_HOTEND_TOO_HOT), F(""), F(""), Wait, option ? ICON_TempTooLow : ICON_TempTooHigh); break;
     case Runout:        Draw_Popup(GET_TEXT_F(MSG_FILAMENT_RUNOUT), F(""), F(""), Wait, ICON_BLTouch); break;
-    case PIDWait:       Draw_Popup(option ? GET_TEXT_F(MSG_BED_PID_AUTOTUNE) : GET_TEXT_F(MSG_HOTEND_PID_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
+    #if !HAS_PIDPLOT
+      case PIDWait:       Draw_Popup(option ? GET_TEXT_F(MSG_BED_PID_AUTOTUNE) : GET_TEXT_F(MSG_HOTEND_PID_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
+    #endif
     case MPCWait:       Draw_Popup(GET_TEXT_F(MSG_MPC_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
     case Resuming:      Draw_Popup(GET_TEXT_F(MSG_RESUMING_PRINT), GET_TEXT_F(MSG_PLEASE_WAIT), F(""), Wait, ICON_BLTouch); break;
     case PrintConfirm:  Draw_Popup(option ? GET_TEXT_F(MSG_LOADING_PREVIEW) : GET_TEXT_F(MSG_PRINT_FILE), F(""), F(""), Popup); break;
@@ -6722,10 +6726,6 @@ void CrealityDWINClass::Confirm_Handler(PopupID popupid, bool option/*=false*/) 
     case LevelError:        Draw_Popup(GET_TEXT_F(MSG_COULDNT_ENABLE_LEVELING), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), F(""), Confirm); break;
     case InvalidMesh:       Draw_Popup(GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST2), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST3), Confirm); break;
     case NocreatePlane:     Draw_Popup(GET_TEXT_F(MSG_COULDNT_CREATE_PLANE), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), F(""), Confirm); break;
-    case BadextruderNumber: Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_BAD_EXTRUDER_NUM), F(""), Confirm); break;
-    case TempTooHigh:       Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TEMP_TOO_HIGH), F(""), Confirm); break;
-    case PIDTimeout:        Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TIMEOUT), F(""), Confirm); break;
-    case PIDDone:           Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_DONE), F(""), F(""), Confirm); break;
     case Level2:            Draw_Popup(GET_TEXT_F(MSG_AUTO_BED_LEVELING), GET_TEXT_F(MSG_PLEASE_WAIT), GET_TEXT_F(MSG_CANCEL_TO_STOP), Confirm, ICON_AutoLeveling); break;
     
     default: break;
