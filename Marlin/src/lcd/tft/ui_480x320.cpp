@@ -772,7 +772,7 @@ static void z_minus() { moveAxis(Z_AXIS, -1); }
   }
 #endif
 
-#if BOTH(HAS_BED_PROBE, TOUCH_SCREEN)
+#if HAS_BED_PROBE
   static void z_select() {
     motionAxisState.z_selection *= -1;
     quick_feedback();

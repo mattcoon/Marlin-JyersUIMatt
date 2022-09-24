@@ -24,9 +24,8 @@
 
 #include "../gcode.h"
 
+#include "../../module/stepper.h"
 #include "../../module/endstops.h"
-#include "../../module/planner.h"
-#include "../../module/stepper.h" // for various
 
 #if HAS_MULTI_HOTEND
   #include "../../module/tool_change.h"
@@ -34,10 +33,6 @@
 
 #if HAS_LEVELING
   #include "../../feature/bedlevel/bedlevel.h"
-#endif
-
-#if ENABLED(BD_SENSOR)
-  #include "../../feature/bedlevel/bdl/bdl.h"
 #endif
 
 #if ENABLED(SENSORLESS_HOMING)
@@ -207,9 +202,7 @@ void GcodeSuite::G28() {
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) log_machine_info();
 
-  TERN_(BD_SENSOR, bdl.config_state = 0);
-
-  /**
+  /*
    * Set the laser power to false to stop the planner from processing the current power setting.
    */
   #if ENABLED(LASER_FEATURE)

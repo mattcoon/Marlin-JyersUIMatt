@@ -39,13 +39,17 @@
 #endif
 #include <math.h>
 
-#include "module/endstops.h"
+#include "core/utility.h"
+
 #include "module/motion.h"
 #include "module/planner.h"
-#include "module/printcounter.h" // PrintCounter or Stopwatch
-#include "module/settings.h"
-#include "module/stepper.h"
+#include "module/endstops.h"
 #include "module/temperature.h"
+#include "module/settings.h"
+#include "module/printcounter.h" // PrintCounter or Stopwatch
+
+#include "module/stepper.h"
+#include "module/stepper/indirection.h"
 
 #include "gcode/gcode.h"
 #include "gcode/parser.h"
@@ -119,10 +123,6 @@
 
 #if ENABLED(BLTOUCH)
   #include "feature/bltouch.h"
-#endif
-
-#if ENABLED(BD_SENSOR)
-  #include "feature/bedlevel/bdl/bdl.h"
 #endif
 
 #if ENABLED(POLL_JOG)
@@ -246,10 +246,6 @@
 
 #if ENABLED(EASYTHREED_UI)
   #include "feature/easythreed_ui.h"
-#endif
-
-#if ENABLED(MARLIN_TEST_BUILD)
-  #include "tests/marlin_tests.h"
 #endif
 
 PGMSTR(M112_KILL_STR, "M112 Shutdown");
@@ -783,9 +779,6 @@ void idle(bool no_stepper_sleep/*=false*/) {
     if (++idle_depth > 5) SERIAL_ECHOLNPGM("idle() call depth: ", idle_depth);
   #endif
 
-  // Bed Distance Sensor task
-  TERN_(BD_SENSOR, bdl.process());
-
   // Core Marlin activities
   manage_inactivity(no_stepper_sleep);
 
@@ -1227,10 +1220,10 @@ void setup() {
   SETUP_RUN(hal.init());
 
   // Init and disable SPI thermocouples; this is still needed
-  #if TEMP_SENSOR_IS_MAX_TC(0) || (TEMP_SENSOR_IS_MAX_TC(REDUNDANT) && REDUNDANT_TEMP_MATCH(SOURCE, E0))
+  #if TEMP_SENSOR_0_IS_MAX_TC || (TEMP_SENSOR_REDUNDANT_IS_MAX_TC && REDUNDANT_TEMP_MATCH(SOURCE, E0))
     OUT_WRITE(TEMP_0_CS_PIN, HIGH);  // Disable
   #endif
-  #if TEMP_SENSOR_IS_MAX_TC(1) || (TEMP_SENSOR_IS_MAX_TC(REDUNDANT) && REDUNDANT_TEMP_MATCH(SOURCE, E1))
+  #if TEMP_SENSOR_1_IS_MAX_TC || (TEMP_SENSOR_REDUNDANT_IS_MAX_TC && REDUNDANT_TEMP_MATCH(SOURCE, E1))
     OUT_WRITE(TEMP_1_CS_PIN, HIGH);
   #endif
 
@@ -1639,15 +1632,9 @@ void setup() {
     SETUP_RUN(test_tmc_connection());
   #endif
 
-  #if ENABLED(BD_SENSOR)
-    SETUP_RUN(bdl.init(I2C_BD_SDA_PIN, I2C_BD_SCL_PIN, I2C_BD_DELAY));
-  #endif
-
   marlin_state = MF_RUNNING;
 
   SETUP_LOG("setup() completed.");
-
-  TERN_(MARLIN_TEST_BUILD, runStartupTests());
 }
 
 /**
@@ -1682,6 +1669,5 @@ void loop() {
 
     TERN_(HAS_TFT_LVGL_UI, printer_state_polling());
 
-    TERN_(MARLIN_TEST_BUILD, runPeriodicTests());
   } while (ENABLED(__AVR__)); // Loop forever on slower (AVR) boards
 }

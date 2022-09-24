@@ -319,7 +319,12 @@ namespace Language_en {
   LSTR MSG_MOVE_X                         = _UxGT("Move X"); // Used by draw_edit_screen
   LSTR MSG_MOVE_Y                         = _UxGT("Move Y");
   LSTR MSG_MOVE_Z                         = _UxGT("Move Z");
-  LSTR MSG_MOVE_N                         = _UxGT("Move @");
+  LSTR MSG_MOVE_I                         = _UxGT("Move ") STR_I;
+  LSTR MSG_MOVE_J                         = _UxGT("Move ") STR_J;
+  LSTR MSG_MOVE_K                         = _UxGT("Move ") STR_K;
+  LSTR MSG_MOVE_U                         = _UxGT("Move ") STR_U;
+  LSTR MSG_MOVE_V                         = _UxGT("Move ") STR_V;
+  LSTR MSG_MOVE_W                         = _UxGT("Move ") STR_W;
   LSTR MSG_MOVE_E                         = _UxGT("Move Extruder");
   LSTR MSG_MOVE_EN                        = _UxGT("Move *");
   LSTR MSG_HOTEND_TOO_COLD                = _UxGT("Hotend too cold");
@@ -333,6 +338,12 @@ namespace Language_en {
   LSTR MSG_MOVE_01IN                      = _UxGT("Move 0.1in");
   LSTR MSG_MOVE_1IN                       = _UxGT("Move 1.0in");
   LSTR MSG_SPEED                          = _UxGT("Speed");
+  LSTR MSG_MAXSPEED                       = _UxGT("Max Speed (mm/s)");
+  LSTR MSG_MAXSPEED_X                     = _UxGT("Max ") STR_A _UxGT(" Speed");
+  LSTR MSG_MAXSPEED_Y                     = _UxGT("Max ") STR_B _UxGT(" Speed");
+  LSTR MSG_MAXSPEED_Z                     = _UxGT("Max ") STR_C _UxGT(" Speed");
+  LSTR MSG_MAXSPEED_E                     = _UxGT("Max ") STR_E _UxGT(" Speed");
+  LSTR MSG_MAXSPEED_A                     = _UxGT("Max @ Speed");
   LSTR MSG_BED_Z                          = _UxGT("Bed Z");
   LSTR MSG_NOZZLE                         = _UxGT("Nozzle");
   LSTR MSG_NOZZLE_N                       = _UxGT("Nozzle ~");
@@ -577,9 +588,9 @@ namespace Language_en {
   LSTR MSG_ZPROBE_XOFFSET                 = _UxGT("Probe X Offset");
   LSTR MSG_ZPROBE_YOFFSET                 = _UxGT("Probe Y Offset");
   LSTR MSG_ZPROBE_ZOFFSET                 = _UxGT("Probe Z Offset");
-
+  // LSTR MSG_ZPROBE_MARGIN                  = _UxGT("Probe Margin");
   LSTR MSG_Z_FEED_RATE                    = _UxGT("Z Feed Rate");
-
+  // LSTR MSG_ENABLE_HS_MODE                 = _UxGT("Enable HS mode");
   LSTR MSG_MOVE_NOZZLE_TO_BED             = _UxGT("Move Nozzle to Bed");
   LSTR MSG_BABYSTEP_X                     = _UxGT("Babystep X");
   LSTR MSG_BABYSTEP_Y                     = _UxGT("Babystep Y");
@@ -660,7 +671,6 @@ namespace Language_en {
   LSTR MSG_LOCKSCREEN                     = _UxGT("Lock Screen");
   LSTR MSG_LOCKSCREEN_LOCKED              = _UxGT("Printer is Locked,");
   LSTR MSG_LOCKSCREEN_UNLOCK              = _UxGT("Scroll to unlock.");
-  LSTR MSG_PLEASE_WAIT_REBOOT             = _UxGT("Please wait until reboot.");
 
   #if LCD_WIDTH >= 20 || HAS_DWIN_E3V2
     LSTR MSG_MEDIA_NOT_INSERTED           = _UxGT("No media inserted.");
@@ -670,6 +680,7 @@ namespace Language_en {
     LSTR MSG_INFO_PRINT_TIME              = _UxGT("Print Time");
     LSTR MSG_INFO_PRINT_LONGEST           = _UxGT("Longest Job Time");
     LSTR MSG_INFO_PRINT_FILAMENT          = _UxGT("Extruded Total");
+    LSTR MSG_PLEASE_WAIT_REBOOT           = _UxGT("Please wait until reboot. ");
 #else
     LSTR MSG_MEDIA_NOT_INSERTED           = _UxGT("No Media");
     LSTR MSG_PLEASE_PREHEAT               = _UxGT("Please Preheat");
@@ -677,6 +688,7 @@ namespace Language_en {
     LSTR MSG_INFO_PRINT_TIME              = _UxGT("Total");
     LSTR MSG_INFO_PRINT_LONGEST           = _UxGT("Longest");
     LSTR MSG_INFO_PRINT_FILAMENT          = _UxGT("Extruded");
+    LSTR MSG_PLEASE_WAIT_REBOOT           = _UxGT("Wait rebooting... ");
   #endif
 
   // Extra strings for JyersUI

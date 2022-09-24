@@ -32,7 +32,7 @@
 #include "../../sd/cardreader.h"
 
 #if ENABLED(NANODLP_Z_SYNC)
-  #include "../../module/planner.h"
+  #include "../../module/stepper.h"
 #endif
 
 extern xyze_pos_t destination;

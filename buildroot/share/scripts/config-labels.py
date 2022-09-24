@@ -22,7 +22,7 @@
 # 2020-06-05 SRL style tweaks
 #-----------------------------------
 #
-import sys
+import sys,os
 from pathlib import Path
 from distutils.dir_util import copy_tree  # for copy_tree, because shutil.copytree can't handle existing files, dirs
 
@@ -58,10 +58,10 @@ def process_file(subdir: str, filename: str):
 	# Read file
 	#------------------------
 	lines = []
-	infilepath = Path(input_examples_dir, subdir, filename)
+	infilepath = os.path.join(input_examples_dir, subdir, filename)
 	try:
 		# UTF-8 because some files contain unicode chars
-		with infilepath.open('rt', encoding="utf-8") as infile:
+		with open(infilepath, 'rt', encoding="utf-8") as infile:
 			lines = infile.readlines()
 
 	except Exception as e:
@@ -123,24 +123,25 @@ def process_file(subdir: str, filename: str):
 	#-------------------------
 	#     Output file
 	#-------------------------
-	outdir      = Path(output_examples_dir, subdir)
-	outfilepath = outdir / filename
+	outdir      = os.path.join(output_examples_dir, subdir)
+	outfilepath = os.path.join(outdir, filename)
 
 	if file_modified:
 		# Note: no need to create output dirs, as the initial copy_tree
 		# will do that.
 
-		print('  writing ' + outfilepath)
+		print('  writing ' + str(outfilepath))
 		try:
 			# Preserve unicode chars; Avoid CR-LF on Windows.
-			with outfilepath.open("w", encoding="utf-8", newline='\n') as outfile:
-				outfile.write("\n".join(outlines) + "\n")
+			with open(outfilepath, "w", encoding="utf-8", newline='\n') as outfile:
+				outfile.write("\n".join(outlines))
+				outfile.write("\n")
 
 		except Exception as e:
 			print('Failed to write file: ' + str(e) )
 			raise Exception
 	else:
-		print('  no change for ' + outfilepath)
+		print('  no change for ' + str(outfilepath))
 
 #----------
 def main():
@@ -158,8 +159,8 @@ def main():
 	output_examples_dir = output_examples_dir.strip()
 	output_examples_dir = output_examples_dir.rstrip('\\/')
 
-	for dir in (input_examples_dir, output_examples_dir):
-		if not Path(dir).exists():
+	for dir in [input_examples_dir, output_examples_dir]:
+		if not (os.path.exists(dir)):
 			print('Directory not found: ' + dir)
 			sys.exit(1)
 
@@ -180,7 +181,8 @@ def main():
 	#-----------------------------
 	# Find and process files
 	#-----------------------------
-	len_input_examples_dir = 1 + len(input_examples_dir)
+	len_input_examples_dir = len(input_examples_dir);
+	len_input_examples_dir += 1
 
 	for filename in files_to_mod:
 		input_path = Path(input_examples_dir)

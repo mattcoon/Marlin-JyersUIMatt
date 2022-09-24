@@ -34,6 +34,7 @@ FWRetract fwretract; // Single instance - this calls the constructor
 
 #include "../module/motion.h"
 #include "../module/planner.h"
+#include "../module/stepper.h"
 
 #include "../gcode/gcode.h"
 

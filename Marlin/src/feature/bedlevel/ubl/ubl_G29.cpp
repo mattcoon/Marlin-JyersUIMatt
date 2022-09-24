@@ -31,6 +31,7 @@
 #include "../../../libs/hex_print.h"
 #include "../../../module/settings.h"
 #include "../../../lcd/marlinui.h"
+#include "../../../module/stepper.h"
 #include "../../../module/planner.h"
 #include "../../../module/motion.h"
 #include "../../../module/probe.h"

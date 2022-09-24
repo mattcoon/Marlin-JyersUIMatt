@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#ifndef __has_include
+#if !defined(__has_include)
   #define __has_include(...) 1
 #endif
 
@@ -730,8 +730,3 @@
 #define __MAPLIST() _MAPLIST
 
 #define MAPLIST(OP,V...) EVAL(_MAPLIST(OP,V))
-
-// Temperature Sensor Config
-#define _HAS_E_TEMP(N) || (TEMP_SENSOR_##N != 0)
-#define HAS_E_TEMP_SENSOR (0 REPEAT(EXTRUDERS, _HAS_E_TEMP))
-#define TEMP_SENSOR_IS_MAX_TC(T) (TEMP_SENSOR_##T == -5 || TEMP_SENSOR_##T == -3 || TEMP_SENSOR_##T == -2)
