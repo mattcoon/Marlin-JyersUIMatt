@@ -176,10 +176,13 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
 
   uint16_t MarlinUI::lcd_backlight_timeout; // Initialized by settings.load()
   millis_t MarlinUI::backlight_off_ms = 0;
-#if LCD_BACKLIGHT_TIMEOUT // mmm
+#if HAS_BACKLIGHT_TIMEOUT // mmm
   void MarlinUI::refresh_backlight_timeout() {
     // 0 will fail check and store zero to timeout to diable timeout feature
-    backlight_off_ms = lcd_backlight_timeout ? millis() + lcd_backlight_timeout * 1000UL : 0;
+    if (lcd_backlight_timeout != 0) 
+      backlight_off_ms = millis() + lcd_backlight_timeout * 1000UL;
+    else
+      backlight_off_ms = 0;
     #if DISABLED(DWIN_CREALITY_LCD_JYERSUI)
       WRITE(LCD_BACKLIGHT_PIN, HIGH);
     #else // mmm

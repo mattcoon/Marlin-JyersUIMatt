@@ -188,6 +188,9 @@ typedef struct {
     uint16_t PID_e_temp = 180;
     uint16_t PID_bed_temp = 60;
   #endif
+  #if HAS_BACKLIGHT_TIMEOUT
+    bool backlight_timeout_disable = false;
+  #endif
   #if JYENHANCED
     bool cancel_lev = false;       // Cancel leveling
     #if ENABLED(NOZZLE_PARK_FEATURE)

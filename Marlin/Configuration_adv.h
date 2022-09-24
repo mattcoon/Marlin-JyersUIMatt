@@ -1329,7 +1329,10 @@
 // LCD Backlight Timeout
 //
 // 0 is diabled. other value enables as seconds
-#define LCD_BACKLIGHT_TIMEOUT 600 // (s) Timeout before turning off the backlight
+#define LCD_BACKLIGHT_TIMEOUT 0 // (s) Timeout before turning off the backlight
+  #ifdef LCD_BACKLIGHT_TIMEOUT
+    #define HAS_BACKLIGHT_TIMEOUT 1
+  #endif
 
 #if HAS_BED_PROBE && EITHER(HAS_MARLINUI_MENU, HAS_TFT_LVGL_UI)
   //#define PROBE_OFFSET_WIZARD       // Add a Probe Z Offset calibration option to the LCD menu

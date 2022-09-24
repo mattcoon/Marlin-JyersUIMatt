@@ -272,7 +272,7 @@ public:
     FORCE_INLINE static void refresh_brightness() { set_brightness(brightness); }
   #endif
 
-  #if LCD_BACKLIGHT_TIMEOUT
+  #if HAS_BACKLIGHT_TIMEOUT
     #define HAS_LCD_TIMEOUT 1
     #define LCD_BKL_TIMEOUT_MIN 0
     #define LCD_BKL_TIMEOUT_MAX UINT16_MAX // Slightly more than 18 hours

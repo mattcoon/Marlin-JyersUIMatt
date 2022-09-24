@@ -847,6 +847,7 @@ void CrealityDWINClass::Main_Menu_Icons() {
     if (selection == 3) {
       DRAW_IconWB(ICON, ICON_Info_1, 145, 184);
       DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Color_White), 145, 184, 254, 283);
+      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(eeprom_settings.icons_menu_text, Color_White), Color_Bg_Blue, 181, 255, GET_TEXT_F(MSG_BUTTON_INFO));
     }
     else
       DRAW_IconWB(ICON, ICON_Info_0, 145, 184);
@@ -912,6 +913,7 @@ void CrealityDWINClass::Print_Screen_Icons() {
   if (selection == 0) {
     DRAW_IconWB(ICON, ICON_Setup_1, 8, 252);
     DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Color_White), 8, 252, 87, 351);
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(eeprom_settings.icons_menu_text, Color_White), Color_Bg_Blue, 30, 322, GET_TEXT_F(MSG_TUNE));
   }
   else
     DRAW_IconWB(ICON, ICON_Setup_0, 8, 252);
@@ -921,6 +923,7 @@ void CrealityDWINClass::Print_Screen_Icons() {
   if (selection == 2) {
     DRAW_IconWB(ICON, ICON_Stop_1, 184, 252);
     DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Color_White), 184, 252, 263, 351);
+    DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(eeprom_settings.icons_menu_text, Color_White), Color_Bg_Blue, 205, 322, GET_TEXT_F(MSG_BUTTON_STOP));
   }
   else
     DRAW_IconWB(ICON, ICON_Stop_0, 184, 252);
@@ -931,6 +934,7 @@ void CrealityDWINClass::Print_Screen_Icons() {
     if (selection == 1) {
       DRAW_IconWB(ICON, ICON_Continue_1, 96, 252);
       DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Color_White), 96, 252, 175, 351);
+      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(eeprom_settings.icons_menu_text, Color_White), Color_Bg_Blue, 114, 322, GET_TEXT_F(MSG_BUTTON_PRINT));
     }
     else
       DRAW_IconWB(ICON, ICON_Continue_0, 96, 252);
@@ -941,6 +945,7 @@ void CrealityDWINClass::Print_Screen_Icons() {
     if (selection == 1) {
       DRAW_IconWB(ICON, ICON_Pause_1, 96, 252);
       DWIN_Draw_Rectangle(0, GetColor(eeprom_settings.highlight_box, Color_White), 96, 252, 175, 351);
+      DWIN_Draw_String(false, DWIN_FONT_MENU, GetColor(eeprom_settings.icons_menu_text, Color_White), Color_Bg_Blue, 114, 322, GET_TEXT_F(MSG_BUTTON_PAUSE));
     }
     else
       DRAW_IconWB(ICON, ICON_Pause_0, 96, 252);
@@ -2219,6 +2224,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                 gcode.process_subcommands_now(F("M701"));
                 planner.synchronize();
                 temp_val.flag_chg_fil = false;
+                thermalManager.cooldown();
                 Draw_Menu(ChangeFilament, CHANGEFIL_LOAD);
               }
             }
@@ -2262,6 +2268,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
                 sprintf_P(cmd, PSTR("M600 B1 R%i"), thermalManager.temp_hotend[0].target);
                 gcode.process_subcommands_now(cmd);
                 temp_val.flag_chg_fil = false;
+                thermalManager.cooldown();
                 Draw_Menu(ChangeFilament, CHANGEFIL_CHANGE);
               }
             }
@@ -2989,7 +2996,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             if (draw)
               Draw_Menu_Item(row, ICON_HotendTemp, GET_TEXT_F(MSG_PID_AUTOTUNE));
             else {
-              Popup_Handler(PIDWait, true);
+              Popup_Handler(PIDWait);
               sprintf_P(cmd, PSTR("M303 E-1 C%i S%i U1"), PID_cycles, temp_val.PID_bed_temp);
               gcode.process_subcommands_now(cmd);
               planner.synchronize();
@@ -4089,7 +4096,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
           else
             Modify_Value(ui.brightness, LCD_BRIGHTNESS_MIN, LCD_BRIGHTNESS_MAX, 1, ui.refresh_brightness);
           break;
-        #if LCD_BACKLIGHT_TIMEOUT 
+        #if HAS_BACKLIGHT_TIMEOUT
           case VISUAL_AUTOOFF:
               if (draw) {
                 Draw_Menu_Item(row, ICON_Brightness, GET_TEXT_F(MSG_LCD_TIMEOUT_SEC));
@@ -4421,7 +4428,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             break;
         case COLORSETTINGS_PROGRESS_PERCENT:
           if (draw) {
-            Draw_Menu_Item(row, ICON_MaxSpeed, F("Progress Percent"));
+            Draw_Menu_Item(row, ICON_MaxSpeed, F("Progress %"));
             Draw_Option(eeprom_settings.progress_percent, color_names, row, false, true);
           }
           else
@@ -6694,7 +6701,9 @@ void CrealityDWINClass::Popup_Handler(PopupID popupid, bool option/*=false*/) {
     case FilChange:     Draw_Popup(option ? GET_TEXT_F(MSG_END_PROCESS) : GET_TEXT_F(MSG_FILAMENT_CHANGE), GET_TEXT_F(MSG_PLEASE_WAIT), F(""), Wait, ICON_BLTouch); break;
     case TempWarn:      Draw_Popup(option ? GET_TEXT_F(MSG_HOTEND_TOO_COLD) : GET_TEXT_F(MSG_HOTEND_TOO_HOT), F(""), F(""), Wait, option ? ICON_TempTooLow : ICON_TempTooHigh); break;
     case Runout:        Draw_Popup(GET_TEXT_F(MSG_FILAMENT_RUNOUT), F(""), F(""), Wait, ICON_BLTouch); break;
-    case PIDWait:       Draw_Popup(option ? GET_TEXT_F(MSG_BED_PID_AUTOTUNE) : GET_TEXT_F(MSG_HOTEND_PID_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
+    #if !HAS_PIDPLOT
+      case PIDWait:       Draw_Popup(option ? GET_TEXT_F(MSG_BED_PID_AUTOTUNE) : GET_TEXT_F(MSG_HOTEND_PID_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
+    #endif
     case MPCWait:       Draw_Popup(GET_TEXT_F(MSG_MPC_AUTOTUNE), GET_TEXT_F(MSG_IN_PROGRESS), GET_TEXT_F(MSG_PLEASE_WAIT), Wait, ICON_BLTouch); break;
     case Resuming:      Draw_Popup(GET_TEXT_F(MSG_RESUMING_PRINT), GET_TEXT_F(MSG_PLEASE_WAIT), F(""), Wait, ICON_BLTouch); break;
     case PrintConfirm:  Draw_Popup(option ? GET_TEXT_F(MSG_LOADING_PREVIEW) : GET_TEXT_F(MSG_PRINT_FILE), F(""), F(""), Popup); break;
@@ -6717,10 +6726,6 @@ void CrealityDWINClass::Confirm_Handler(PopupID popupid, bool option/*=false*/) 
     case LevelError:        Draw_Popup(GET_TEXT_F(MSG_COULDNT_ENABLE_LEVELING), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), F(""), Confirm); break;
     case InvalidMesh:       Draw_Popup(GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST2), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST3), Confirm); break;
     case NocreatePlane:     Draw_Popup(GET_TEXT_F(MSG_COULDNT_CREATE_PLANE), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), F(""), Confirm); break;
-    case BadextruderNumber: Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_BAD_EXTRUDER_NUM), F(""), Confirm); break;
-    case TempTooHigh:       Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TEMP_TOO_HIGH), F(""), Confirm); break;
-    case PIDTimeout:        Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TIMEOUT), F(""), Confirm); break;
-    case PIDDone:           Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_DONE), F(""), F(""), Confirm); break;
     case Level2:            Draw_Popup(GET_TEXT_F(MSG_AUTO_BED_LEVELING), GET_TEXT_F(MSG_PLEASE_WAIT), GET_TEXT_F(MSG_CANCEL_TO_STOP), Confirm, ICON_AutoLeveling); break;
     
     default: break;
@@ -7419,12 +7424,10 @@ void CrealityDWINClass::Popup_Control() {
             if (temp_val.printing) Popup_Handler(Resuming);
             else {
               if (temp_val.flag_chg_fil) Popup_Handler(FilChange, true);
-              else {
-                thermalManager.cooldown();
-                Redraw_Menu(true, true, (active_menu==PreheatHotend));
+  
+                else Redraw_Menu(true, true, (active_menu==PreheatHotend)); // TODO: mm auto cool here
               }
             }
-          }
           break;
       #endif // ADVANCED_PAUSE_FEATURE
 
@@ -7899,8 +7902,24 @@ void CrealityDWINClass::State_Update() {
 void CrealityDWINClass::Screen_Update() {
   const millis_t ms = millis();
 
-    #if LCD_BACKLIGHT_TIMEOUT
-      if (ui.backlight_off_ms && ELAPSED(millis(), ui.backlight_off_ms)) {
+    #if HAS_BACKLIGHT_TIMEOUT
+      if(ui.lcd_backlight_timeout) {
+        temp_val.backlight_timeout_disable = false;
+        switch(process) { 
+          case Popup:
+          case Confirm:
+          case Wait:
+          case Locked:
+          case Cancel:
+          case Keyboard:
+            temp_val.backlight_timeout_disable = true;
+            break;
+          default:
+            break;
+        }
+      }
+      else temp_val.backlight_timeout_disable = true;
+      if (!temp_val.backlight_timeout_disable && ELAPSED(ms, ui.backlight_off_ms)) {
         ui.backlight = false;
         ui.set_brightness(0);
         ui.backlight_off_ms = 0;
