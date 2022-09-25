@@ -41,17 +41,20 @@
 //============================= Getting Started =============================
 //===========================================================================
 
-// TODO: runout/filament merge function
+// TODO: filament tracking (auto preheat) function
 // TODO: UBL flex mesh from proui
 // TODO: Mesh display on proui
 // TODO: Add option for fastback
 // TODO: MPC Plotting like PIDPlot
+// TODO: MPC save option popup
+// TODO: PID save option popup
 
 // In test
 // TODO: cooldown after filament change / load
-// TODO: PID PLOT hanging
+// TODO: MPC detail status update on screen
 
 // complete
+// PID PLOT hanging
 // pause screen timeout when popup active / prevent blck screen without response
 // LCD Timeout
 // FAN 3d / laser
@@ -675,10 +678,10 @@
 
 // Enable PIDTEMP for PID control or MPCTEMP for Predictive Model.
 // temperature control. Disable both for bang-bang heating.
-#ifdef MPCCTRL
-  #define MPCTEMP        // ** EXPERIMENTAL **
-#else
+#ifdef PIDCTRL
   #define PIDTEMP          // See the PID Tuning Guide at https://reprap.org/wiki/PID_Tuning
+#else
+  #define MPCTEMP        // ** EXPERIMENTAL **
 #endif
 
 #define BANG_MAX 255     // Limits current to nozzle while in bang-bang mode; 255=full current

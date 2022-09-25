@@ -924,6 +924,8 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOPGM(STR_MPC_AUTOTUNE);
     SERIAL_ECHOLNPGM(STR_MPC_AUTOTUNE_START, active_extruder);
+    ui.set_status( STR_MPC_AUTOTUNE );
+
     MPCHeaterInfo &hotend = temp_hotend[active_extruder];
     MPC_t &constants = hotend.constants;
 
@@ -940,6 +942,8 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOLNPGM(STR_MPC_COOLING_TO_AMBIENT);
     LCD_MESSAGE(MSG_COOLING);
+    ui.set_status( STR_MPC_COOLING_TO_AMBIENT );
+
     millis_t ms = millis(), next_report_ms = ms, next_test_ms = ms + 10000UL;
     celsius_float_t current_temp = degHotend(active_extruder),
                     ambient_temp = current_temp;
@@ -967,6 +971,8 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOLNPGM(STR_MPC_HEATING_PAST_200);
     LCD_MESSAGE(MSG_HEATING);
+    ui.set_status( STR_MPC_HEATING_PAST_200 );
+
     hotend.target = 200.0f;   // So M105 looks nice
     hotend.soft_pwm_amount = MPC_MAX >> 1;
     const millis_t heat_start_time = next_test_ms = ms;
@@ -1019,6 +1025,8 @@ volatile bool Temperature::raw_temps_ready = false;
     // Allow the system to stabilize under MPC, then get a better measure of ambient loss with and without fan
     SERIAL_ECHOLNPGM(STR_MPC_MEASURING_AMBIENT, hotend.modeled_block_temp);
     LCD_MESSAGE(MSG_MPC_MEASURING_AMBIENT);
+    ui.set_status( STR_MPC_MEASURING_AMBIENT );
+
     hotend.target = hotend.modeled_block_temp;
     next_test_ms = ms + MPC_dT * 1000;
     constexpr millis_t settle_time = 20000UL, test_duration = 20000UL;
@@ -1058,6 +1066,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
       if (!WITHIN(current_temp, t3 - 15.0f, hotend.target + 15.0f)) {
         SERIAL_ECHOLNPGM(STR_MPC_TEMPERATURE_ERROR);
+        ui.set_status( STR_MPC_TEMPERATURE_ERROR );
         break;
       }
     }
@@ -1079,6 +1088,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOPGM(STR_MPC_AUTOTUNE);
     SERIAL_ECHOLNPGM(STR_MPC_AUTOTUNE_FINISHED);
+    ui.set_status( STR_MPC_AUTOTUNE_FINISHED );
 
     /* <-- add a slash to enable
       SERIAL_ECHOLNPGM("t1_time ", t1_time);
