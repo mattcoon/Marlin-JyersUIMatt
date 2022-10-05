@@ -234,7 +234,7 @@
 #define STR_MPC_AUTOTUNE_FINISHED           " finished! Put the constants below into Configuration.h"
 #define STR_MPC_COOLING_TO_AMBIENT          "Cooling to ambient"
 #define STR_MPC_HEATING_PAST_200            "Heating to over 200C"
-#define STR_MPC_MEASURING_AMBIENT           "Measuring ambient heatloss at "
+#define STR_MPC_MEASURING_AMBIENT           "Measuring ambient heatloss "
 #define STR_MPC_TEMPERATURE_ERROR           "Temperature error"
 
 #define STR_HEATER_BED                      "bed"

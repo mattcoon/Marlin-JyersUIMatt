@@ -45,15 +45,25 @@
 // TODO: UBL flex mesh from proui
 // TODO: Mesh display on proui
 // TODO: Add option for fastback
-// TODO: MPC Plotting like PIDPlot
-// TODO: MPC save option popup
+// TODO: PID report afterwards
 // TODO: PID save option popup
+// TODO: MPC save option popup
+// TODO: MPC filament constant mod
+// TODO: print DONE screen
+// TODO: cancel print for SD card
+// TODO: status MPC too small
 
 // In test
 // TODO: cooldown after filament change / load
 // TODO: MPC detail status update on screen
 
 // complete
+// MPC Plotting like PIDPlot
+// MPC save menu
+// PID save menu
+// MPC filament constant in menu and EEPROM
+//  
+// v2.1.0.6
 // PID PLOT hanging
 // pause screen timeout when popup active / prevent blck screen without response
 // LCD Timeout

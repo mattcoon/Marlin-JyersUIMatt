@@ -2892,7 +2892,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define MPC_POWR (MPC_TUNE + 1)
         #define MPC_HCAP (MPC_POWR + 1)
         #define MPC_FILH (MPC_HCAP + 1)
-        #define MPC_RESP (MPC_FILH + 0) // mmm enable when working
+        #define MPC_RESP (MPC_FILH + 1)
         #define MPC_XFER (MPC_RESP + 1)
         #define MPC_XFAN (MPC_XFER + 1)
         #define MPC_SAVE (MPC_XFAN + 1)
@@ -2915,7 +2915,16 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             if (draw)
               Draw_Menu_Item(row, ICON_HotendTemp, GET_TEXT_F(MSG_MPC_AUTOTUNE));
             else {
-              Popup_Handler(MPCWait);
+              frame_rect_t gfrm = {40, 160, DWIN_WIDTH - 80, 150};
+              DWINUI::ClearMainArea();
+              DWIN_Draw_Rectangle(1, Def_PopupBg_color, 14, 60, 258, 330);
+              DWIN_Draw_Rectangle(0, Def_Highlight_Color, 14, 60, 258, 330);
+              DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 80, GET_TEXT_F(MSG_PID_AUTOTUNE));
+              DWINUI::Draw_String(Def_PopupTxt_Color, gfrm.x, gfrm.y - DWINUI::fontHeight() - 4, F("MPC target:    Celsius"));
+              DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 100, F("for Nozzle is running."));
+              Plot.Draw(gfrm, thermalManager.hotend_maxtemp[0], 200.0f);
+              DWINUI::Draw_Int(Def_PopupTxt_Color, 3, gfrm.x + 90, gfrm.y - DWINUI::fontHeight() - 4, 200 );
+
               sprintf_P(cmd, PSTR("M306 T"));
               gcode.process_subcommands_now(cmd);
               planner.synchronize();
@@ -2942,7 +2951,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
           case MPC_RESP:
             if (draw) {
               Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_SENSOR_RESPONSIVENESS_E));
-              Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 100);
+              Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 1000);
             }
             else {
               Modify_Value(thermalManager.temp_hotend[0].constants.sensor_responsiveness, 0, 1, 100);
@@ -8582,7 +8591,6 @@ void CrealityDWINClass::PreheatBefore() {
       case PID_BAD_EXTRUDER_NUM:  Confirm_Handler(BadextruderNumber);  break;
       case PID_TEMP_TOO_HIGH:  Confirm_Handler(TempTooHigh);  break;
       case PID_TUNING_TIMEOUT:  Confirm_Handler(PIDTimeout);  break;
-      case PID_DONE: Confirm_Handler(PIDDone);  break;
       default: break;
     }
   }

@@ -77,6 +77,8 @@
   #include "../feature/spindle_laser.h"
 #endif
 
+  #include "../lcd/e3v2/jyersui/plot.h"
+
 // MAX TC related macros
 #define TEMP_SENSOR_IS_MAX(n, M) (ENABLED(TEMP_SENSOR_##n##_IS_MAX##M) || (ENABLED(TEMP_SENSOR_REDUNDANT_IS_MAX##M) && REDUNDANT_TEMP_MATCH(SOURCE, E##n)))
 #define TEMP_SENSOR_IS_ANY_MAX_TC(n) (ENABLED(TEMP_SENSOR_##n##_IS_MAX_TC) || (ENABLED(TEMP_SENSOR_REDUNDANT_IS_MAX_TC) && REDUNDANT_TEMP_MATCH(SOURCE, E##n)))
@@ -889,6 +891,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
         print_heater_states(active_extruder);
         SERIAL_EOL();
+        Plot.Update(current_temp);
       }
 
       hal.idletask();
@@ -953,15 +956,18 @@ volatile bool Temperature::raw_temps_ready = false;
       if (!housekeeping(ms, current_temp, next_report_ms)) return;
 
       if (ELAPSED(ms, next_test_ms)) {
+        // check if current temp is higher than ambient to break wait loop
         if (current_temp >= ambient_temp) {
           ambient_temp = (ambient_temp + current_temp) / 2.0f;
           break;
         }
         ambient_temp = current_temp;
+        Plot.Update(current_temp);
         next_test_ms += 10000UL;
       }
     }
 
+    // turn off fams for heating
     #if HAS_FAN
       set_fan_speed(EITHER(MPC_FAN_0_ALL_HOTENDS, MPC_FAN_0_ACTIVE_HOTEND) ? 0 : active_extruder, 0);
       planner.sync_fan_speeds(fan_speed);
@@ -1000,7 +1006,7 @@ volatile bool Temperature::raw_temps_ready = false;
         }
 
         if (current_temp >= 200.0f) break;
-
+        Plot.Update(current_temp);
         next_test_ms += 1000UL * sample_distance;
       }
     }
@@ -1061,6 +1067,8 @@ volatile bool Temperature::raw_temps_ready = false;
         else if (ELAPSED(ms, test_end_ms)) break;
 
         last_temp = current_temp;
+        Plot.Update(current_temp);
+
         next_test_ms += MPC_dT * 1000;
       }
 
