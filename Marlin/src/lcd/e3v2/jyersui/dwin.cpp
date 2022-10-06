@@ -2919,7 +2919,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               DWINUI::ClearMainArea();
               DWIN_Draw_Rectangle(1, Def_PopupBg_color, 14, 60, 258, 330);
               DWIN_Draw_Rectangle(0, Def_Highlight_Color, 14, 60, 258, 330);
-              DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 80, GET_TEXT_F(MSG_PID_AUTOTUNE));
+              DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 80, GET_TEXT_F(MSG_MPC_AUTOTUNE));
               DWINUI::Draw_String(Def_PopupTxt_Color, gfrm.x, gfrm.y - DWINUI::fontHeight() - 4, F("MPC target:    Celsius"));
               DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 100, F("for Nozzle is running."));
               Plot.Draw(gfrm, thermalManager.hotend_maxtemp[0], 200.0f);
@@ -2948,10 +2948,22 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Modify_Value(thermalManager.temp_hotend[0].constants.block_heat_capacity, 0, 40, 10);
             }
             break;
+          case MPC_FILH:
+            if (draw) {
+              Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_FILAMENT_HEAT_CAPACITY_E));
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.filament_heat_capacity_permm * 100;
+              Draw_Float(temp_val.MPC_const_e_2, row, false, 100);
+            }
+            else {
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.filament_heat_capacity_permm * 100;
+              Modify_Value(temp_val.MPC_const_e_2, 0, 1, 100);
+              thermalManager.temp_hotend[0].constants.filament_heat_capacity_permm = temp_val.MPC_const_e_2 / 100;
+            }
+            break;
           case MPC_RESP:
             if (draw) {
               Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_SENSOR_RESPONSIVENESS_E));
-              Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 1000);
+              Draw_Float(thermalManager.temp_hotend[0].constants.sensor_responsiveness, row, false, 100);
             }
             else {
               Modify_Value(thermalManager.temp_hotend[0].constants.sensor_responsiveness, 0, 1, 100);
@@ -2970,10 +2982,13 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
           case MPC_XFAN:
             if (draw) {
               Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_AMBIENT_XFER_COEFF_FAN_E));
-              Draw_Float(thermalManager.temp_hotend[0].constants.fan255_adjustment, row, false, 100);
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.fan255_adjustment * 100;
+              Draw_Float(temp_val.MPC_const_e_2, row, false, 10);
             }
             else {
-              Modify_Value(thermalManager.temp_hotend[0].constants.fan255_adjustment, -1, 1, 100);
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.fan255_adjustment * 100;
+              Modify_Value(temp_val.MPC_const_e_2, 0, 10, 10);
+              thermalManager.temp_hotend[0].constants.fan255_adjustment = temp_val.MPC_const_e_2 / 100;
             }
             break;
           #endif
@@ -6757,6 +6772,7 @@ void CrealityDWINClass::Confirm_Handler(PopupID popupid, bool option/*=false*/) 
     case BadextruderNumber: Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_BAD_EXTRUDER_NUM), F(""), Confirm); break;
     case TempTooHigh:       Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TEMP_TOO_HIGH), F(""), Confirm); break;
     case PIDTimeout:        Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TIMEOUT), F(""), Confirm); break;
+    case PIDDone:           Draw_Popup(GET_TEXT_F(MSG_AUTOTUNE_DONE), F(""), F(""), Confirm); break;
     case Level2:            Draw_Popup(GET_TEXT_F(MSG_AUTO_BED_LEVELING), GET_TEXT_F(MSG_PLEASE_WAIT), GET_TEXT_F(MSG_CANCEL_TO_STOP), Confirm, ICON_AutoLeveling); break;
     
     default: break;
@@ -8590,6 +8606,7 @@ void CrealityDWINClass::PreheatBefore() {
       case PID_BAD_EXTRUDER_NUM:  Confirm_Handler(BadextruderNumber);  break;
       case PID_TEMP_TOO_HIGH:  Confirm_Handler(TempTooHigh);  break;
       case PID_TUNING_TIMEOUT:  Confirm_Handler(PIDTimeout);  break;
+      case PID_DONE: Confirm_Handler(PIDDone);  break;
       default: break;
     }
   }
