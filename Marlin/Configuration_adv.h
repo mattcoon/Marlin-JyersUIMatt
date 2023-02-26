@@ -926,7 +926,7 @@
   #define BLTOUCH_HS_MODE true
 
   // Safety: Enable voltage mode settings in the LCD menu.
-  #define BLTOUCH_LCD_VOLTAGE_MENU
+  //#define BLTOUCH_LCD_VOLTAGE_MENU
 
 #endif // BLTOUCH
 
@@ -995,7 +995,7 @@
 //
 // Add the G35 command to read bed corners to help adjust screws. Requires a bed probe.
 //
-#define ASSISTED_TRAMMING // mmm
+// #define ASSISTED_TRAMMING // mmm
 #if ENABLED(ASSISTED_TRAMMING)
 
   // Define positions for probe points.
@@ -1014,6 +1014,9 @@
 
   #define ASSISTED_TRAMMING_WAIT_POSITION { X_CENTER, Y_CENTER, 30 } // mmm Move the nozzle out of the way for adjustment
 
+
+#endif
+
   /**
    * Screw thread:
    *   M3: 30 = Clockwise, 31 = Counter-Clockwise
@@ -1021,8 +1024,6 @@
    *   M5: 50 = Clockwise, 51 = Counter-Clockwise
    */
   #define TRAMMING_SCREW_THREAD 40
-
-#endif
 
 // @section motion
 
@@ -1288,8 +1289,8 @@
 #define ENCODER_RATE_MULTIPLIER
 #if ENABLED(ENCODER_RATE_MULTIPLIER)
   #define ENCODER_5X_STEPS_PER_SEC    30  // (steps/s) Encoder rate for 5x speed
-  #define ENCODER_10X_STEPS_PER_SEC   80  // (steps/s) Encoder rate for 10x speed
-  #define ENCODER_100X_STEPS_PER_SEC 130  // (steps/s) Encoder rate for 100x speed
+  #define ENCODER_10X_STEPS_PER_SEC   60  // (steps/s) Encoder rate for 10x speed  // Ender Configs
+  #define ENCODER_100X_STEPS_PER_SEC  90  // (steps/s) Encoder rate for 100x speed  // Ender Configs
 #endif
 
 // Play a beep when the feedrate is changed from the Status Screen
@@ -1462,7 +1463,7 @@
 
   //#define GCODE_REPEAT_MARKERS            // Enable G-code M808 to set repeat markers and do looping
 
-  #define SD_PROCEDURE_DEPTH 1              // Increase if you need more nested M32 calls
+  //#define SD_PROCEDURE_DEPTH 1              // Increase if you need more nested M32 calls  // MRiscoC save program memory
 
   #define SD_FINISHED_STEPPERRELEASE false   // Disable steppers when SD Print is finished
   #define SD_FINISHED_RELEASECOMMAND "M84"  // Use "M84XYE" to keep Z enabled so your bed stays in place
@@ -1647,7 +1648,7 @@
 
   #if ENABLED(BINARY_FILE_TRANSFER)
     // Include extra facilities (e.g., 'M20 F') supporting firmware upload via BINARY_FILE_TRANSFER
-    #define CUSTOM_FIRMWARE_UPLOAD  // MRiscoC Enabled for easy firmware upgrade
+    //#define CUSTOM_FIRMWARE_UPLOAD  // MRiscoC Enabled for easy firmware upgrade
   #endif
 
   /**
@@ -1995,7 +1996,7 @@
     #endif
   #endif
 
- #define BABYSTEP_DISPLAY_TOTAL          // mmm Display total babysteps since last G28
+// #define BABYSTEP_DISPLAY_TOTAL          // mmm Display total babysteps since last G28
 
  #define BABYSTEP_ZPROBE_OFFSET          // mmm Combine M851 Z and Babystepping
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
@@ -2095,7 +2096,7 @@
 #endif
 
 #if BOTH(AUTO_BED_LEVELING_UBL, EEPROM_SETTINGS)
-  //#define OPTIMIZED_MESH_STORAGE  // Store mesh with less precision to save EEPROM space
+  #define OPTIMIZED_MESH_STORAGE  // Store mesh with less precision to save EEPROM space
 #endif
 
 /**
@@ -2304,7 +2305,7 @@
 
 // The ASCII buffer for serial input
 #define MAX_CMD_SIZE 96
-#define BUFSIZE 4
+#define BUFSIZE 16  // MRiscoC Increase buffer for Octoprint
 
 // Transmission to Host Buffer Size
 // To save 386 bytes of PROGMEM (and TX_BUFFER_SIZE+3 bytes of RAM) set to 0.
@@ -2313,7 +2314,7 @@
 // For debug-echo: 128 bytes for the optimal speed.
 // Other output doesn't need to be that speedy.
 // :[0, 2, 4, 8, 16, 32, 64, 128, 256]
-#define TX_BUFFER_SIZE 32
+#define TX_BUFFER_SIZE 64  // MRiscoC Increase buffer for Octoprint
 
 // Host Receive Buffer Size
 // Without XON/XOFF flow control (see SERIAL_XON_XOFF below) 32 bytes should be enough.
@@ -3730,6 +3731,7 @@
 
 //#define REPETIER_GCODE_M360     // Add commands originally from Repetier FW
 
+// #define NO_WORKSPACE_OFFSETS  // MRiscoC Save flash space and simplify movements
 /**
  * CNC G-code options
  * Support CNC-style G-code dialects used by laser cutters, drawing machine cams, etc.

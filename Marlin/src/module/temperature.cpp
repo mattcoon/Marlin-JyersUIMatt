@@ -77,6 +77,8 @@
   #include "../feature/spindle_laser.h"
 #endif
 
+  #include "../lcd/e3v2/jyersui/plot.h"
+
 // MAX TC related macros
 #define TEMP_SENSOR_IS_MAX(n, M) (ENABLED(TEMP_SENSOR_##n##_IS_MAX##M) || (ENABLED(TEMP_SENSOR_REDUNDANT_IS_MAX##M) && REDUNDANT_TEMP_MATCH(SOURCE, E##n)))
 #define TEMP_SENSOR_IS_ANY_MAX_TC(n) (ENABLED(TEMP_SENSOR_##n##_IS_MAX_TC) || (ENABLED(TEMP_SENSOR_REDUNDANT_IS_MAX_TC) && REDUNDANT_TEMP_MATCH(SOURCE, E##n)))
@@ -889,6 +891,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
         print_heater_states(active_extruder);
         SERIAL_EOL();
+        Plot.Update(current_temp);
       }
 
       hal.idletask();
@@ -924,6 +927,8 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOPGM(STR_MPC_AUTOTUNE);
     SERIAL_ECHOLNPGM(STR_MPC_AUTOTUNE_START, active_extruder);
+    ui.set_status( STR_MPC_AUTOTUNE );
+
     MPCHeaterInfo &hotend = temp_hotend[active_extruder];
     MPC_t &constants = hotend.constants;
 
@@ -940,6 +945,8 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOLNPGM(STR_MPC_COOLING_TO_AMBIENT);
     LCD_MESSAGE(MSG_COOLING);
+    ui.set_status( STR_MPC_COOLING_TO_AMBIENT );
+
     millis_t ms = millis(), next_report_ms = ms, next_test_ms = ms + 10000UL;
     celsius_float_t current_temp = degHotend(active_extruder),
                     ambient_temp = current_temp;
@@ -949,15 +956,18 @@ volatile bool Temperature::raw_temps_ready = false;
       if (!housekeeping(ms, current_temp, next_report_ms)) return;
 
       if (ELAPSED(ms, next_test_ms)) {
+        // check if current temp is higher than ambient to break wait loop
         if (current_temp >= ambient_temp) {
           ambient_temp = (ambient_temp + current_temp) / 2.0f;
           break;
         }
         ambient_temp = current_temp;
+        Plot.Update(current_temp);
         next_test_ms += 10000UL;
       }
     }
 
+    // turn off fams for heating
     #if HAS_FAN
       set_fan_speed(EITHER(MPC_FAN_0_ALL_HOTENDS, MPC_FAN_0_ACTIVE_HOTEND) ? 0 : active_extruder, 0);
       planner.sync_fan_speeds(fan_speed);
@@ -967,6 +977,8 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOLNPGM(STR_MPC_HEATING_PAST_200);
     LCD_MESSAGE(MSG_HEATING);
+    ui.set_status( STR_MPC_HEATING_PAST_200 );
+
     hotend.target = 200.0f;   // So M105 looks nice
     hotend.soft_pwm_amount = MPC_MAX >> 1;
     const millis_t heat_start_time = next_test_ms = ms;
@@ -994,7 +1006,7 @@ volatile bool Temperature::raw_temps_ready = false;
         }
 
         if (current_temp >= 200.0f) break;
-
+        Plot.Update(current_temp);
         next_test_ms += 1000UL * sample_distance;
       }
     }
@@ -1019,6 +1031,8 @@ volatile bool Temperature::raw_temps_ready = false;
     // Allow the system to stabilize under MPC, then get a better measure of ambient loss with and without fan
     SERIAL_ECHOLNPGM(STR_MPC_MEASURING_AMBIENT, hotend.modeled_block_temp);
     LCD_MESSAGE(MSG_MPC_MEASURING_AMBIENT);
+    ui.set_status( STR_MPC_MEASURING_AMBIENT );
+
     hotend.target = hotend.modeled_block_temp;
     next_test_ms = ms + MPC_dT * 1000;
     constexpr millis_t settle_time = 20000UL, test_duration = 20000UL;
@@ -1053,11 +1067,14 @@ volatile bool Temperature::raw_temps_ready = false;
         else if (ELAPSED(ms, test_end_ms)) break;
 
         last_temp = current_temp;
+        Plot.Update(current_temp);
+
         next_test_ms += MPC_dT * 1000;
       }
 
       if (!WITHIN(current_temp, t3 - 15.0f, hotend.target + 15.0f)) {
         SERIAL_ECHOLNPGM(STR_MPC_TEMPERATURE_ERROR);
+        ui.set_status( STR_MPC_TEMPERATURE_ERROR );
         break;
       }
     }
@@ -1079,6 +1096,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
     SERIAL_ECHOPGM(STR_MPC_AUTOTUNE);
     SERIAL_ECHOLNPGM(STR_MPC_AUTOTUNE_FINISHED);
+    ui.set_status( STR_MPC_AUTOTUNE_FINISHED );
 
     /* <-- add a slash to enable
       SERIAL_ECHOLNPGM("t1_time ", t1_time);

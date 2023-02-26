@@ -191,6 +191,9 @@ typedef struct {
   #if HAS_BACKLIGHT_TIMEOUT
     bool backlight_timeout_disable = false;
   #endif
+  #if ENABLED(MPCTEMP)
+    float_t MPC_const_e_2;
+  #endif
   #if JYENHANCED
     bool cancel_lev = false;       // Cancel leveling
     #if ENABLED(NOZZLE_PARK_FEATURE)

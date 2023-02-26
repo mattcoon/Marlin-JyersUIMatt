@@ -2801,7 +2801,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define HOTENDPID_KP (HOTENDPID_FAN + 1)
         #define HOTENDPID_KI (HOTENDPID_KP + 1)
         #define HOTENDPID_KD (HOTENDPID_KI + 1)
-        #define HOTENDPID_TOTAL HOTENDPID_KD
+        #define HOTENDPID_SAVE (HOTENDPID_KD + 1)
+        #define HOTENDPID_TOTAL HOTENDPID_SAVE
 
         switch (item) {
           case HOTENDPID_BACK:
@@ -2872,6 +2873,12 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             else
               Modify_Value(thermalManager.temp_hotend[0].pid.Kd, 0, 5000, 100, thermalManager.updatePID);
             break;
+          case HOTENDPID_SAVE:
+            if (draw)
+              Draw_Menu_Item(row, ICON_WriteEEPROM, GET_TEXT_F(MSG_STORE_EEPROM));
+            else
+              AudioFeedback(settings.save());
+            break;
         }
         break;
     #endif // HAS_HOTEND
@@ -2885,10 +2892,11 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define MPC_POWR (MPC_TUNE + 1)
         #define MPC_HCAP (MPC_POWR + 1)
         #define MPC_FILH (MPC_HCAP + 1)
-        #define MPC_RESP (MPC_FILH + 0) // mmm enable when working
+        #define MPC_RESP (MPC_FILH + 1)
         #define MPC_XFER (MPC_RESP + 1)
         #define MPC_XFAN (MPC_XFER + 1)
-        #define MPC_TOTAL (MPC_XFAN)
+        #define MPC_SAVE (MPC_XFAN + 1)
+        #define MPC_TOTAL (MPC_SAVE)
 
         switch (item) {
           case MPC_BACK:
@@ -2907,7 +2915,16 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             if (draw)
               Draw_Menu_Item(row, ICON_HotendTemp, GET_TEXT_F(MSG_MPC_AUTOTUNE));
             else {
-              Popup_Handler(MPCWait);
+              frame_rect_t gfrm = {40, 160, DWIN_WIDTH - 80, 150};
+              DWINUI::ClearMainArea();
+              DWIN_Draw_Rectangle(1, Def_PopupBg_color, 14, 60, 258, 330);
+              DWIN_Draw_Rectangle(0, Def_Highlight_Color, 14, 60, 258, 330);
+              DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 80, GET_TEXT_F(MSG_MPC_AUTOTUNE));
+              DWINUI::Draw_String(Def_PopupTxt_Color, gfrm.x, gfrm.y - DWINUI::fontHeight() - 4, F("MPC target:    Celsius"));
+              DWINUI::Draw_CenteredString(Def_PopupTxt_Color, 100, F("for Nozzle is running."));
+              Plot.Draw(gfrm, thermalManager.hotend_maxtemp[0], 200.0f);
+              DWINUI::Draw_Int(Def_PopupTxt_Color, 3, gfrm.x + 90, gfrm.y - DWINUI::fontHeight() - 4, 200 );
+
               sprintf_P(cmd, PSTR("M306 T"));
               gcode.process_subcommands_now(cmd);
               planner.synchronize();
@@ -2929,6 +2946,18 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             }
             else {
               Modify_Value(thermalManager.temp_hotend[0].constants.block_heat_capacity, 0, 40, 10);
+            }
+            break;
+          case MPC_FILH:
+            if (draw) {
+              Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_FILAMENT_HEAT_CAPACITY_E));
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.filament_heat_capacity_permm * 100;
+              Draw_Float(temp_val.MPC_const_e_2, row, false, 100);
+            }
+            else {
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.filament_heat_capacity_permm * 100;
+              Modify_Value(temp_val.MPC_const_e_2, 0, 1, 100);
+              thermalManager.temp_hotend[0].constants.filament_heat_capacity_permm = temp_val.MPC_const_e_2 / 100;
             }
             break;
           case MPC_RESP:
@@ -2953,13 +2982,22 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
           case MPC_XFAN:
             if (draw) {
               Draw_Menu_Item(row, ICON_FanSpeed, GET_TEXT_F(MSG_MPC_AMBIENT_XFER_COEFF_FAN_E));
-              Draw_Float(thermalManager.temp_hotend[0].constants.fan255_adjustment, row, false, 100);
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.fan255_adjustment * 100;
+              Draw_Float(temp_val.MPC_const_e_2, row, false, 10);
             }
             else {
-              Modify_Value(thermalManager.temp_hotend[0].constants.fan255_adjustment, -1, 1, 100);
+              temp_val.MPC_const_e_2 = thermalManager.temp_hotend[0].constants.fan255_adjustment * 100;
+              Modify_Value(temp_val.MPC_const_e_2, 0, 10, 10);
+              thermalManager.temp_hotend[0].constants.fan255_adjustment = temp_val.MPC_const_e_2 / 100;
             }
             break;
           #endif
+          case MPC_SAVE:
+            if (draw)
+              Draw_Menu_Item(row, ICON_WriteEEPROM, GET_TEXT_F(MSG_STORE_EEPROM));
+            else
+              AudioFeedback(settings.save());
+            break;
         }
 
         break;
@@ -2977,7 +3015,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
         #define BEDPID_KP (BEDPID_TEMP + 1)
         #define BEDPID_KI (BEDPID_KP + 1)
         #define BEDPID_KD (BEDPID_KI + 1)
-        #define BEDPID_TOTAL BEDPID_KD
+        #define BIDPID_SAVE (BEDPID_KD + 1)
+        #define BEDPID_TOTAL BIDPID_SAVE
 
         switch (item) {
           case BEDPID_BACK:
@@ -3011,7 +3050,6 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             else
               Modify_Value(temp_val.PID_bed_temp, MIN_BED_TEMP, MAX_BED_TEMP, 1);
             break;
-          #if ENABLED(PIDTEMP)
           case BEDPID_KP:
             if (draw) {
               sprintf_P(cmd, PSTR("%s %s: "), GET_TEXT(MSG_PID_P), GET_TEXT(MSG_PID_VALUE));
@@ -3019,7 +3057,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Draw_Float(thermalManager.temp_bed.pid.Kp, row, false, 100);
             }
             else
-              Modify_Value(thermalManager.temp_bed.pid.Kp, 0, 5000, 100, thermalManager.updatePID);
+              Modify_Value(thermalManager.temp_bed.pid.Kp, 0, 5000, 100);
             break;
           case BEDPID_KI:
             if (draw) {
@@ -3028,7 +3066,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Draw_Float(unscalePID_i(thermalManager.temp_bed.pid.Ki), row, false, 100);
             }
             else
-              Modify_Value(thermalManager.temp_bed.pid.Ki, 0, 5000, 100, thermalManager.updatePID);
+              Modify_Value(thermalManager.temp_bed.pid.Ki, 0, 5000, 100);
             break;
           case BEDPID_KD:
             if (draw) {
@@ -3037,9 +3075,14 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Draw_Float(unscalePID_d(thermalManager.temp_bed.pid.Kd), row, false, 100);
             }
             else
-              Modify_Value(thermalManager.temp_bed.pid.Kd, 0, 5000, 100, thermalManager.updatePID);
+              Modify_Value(thermalManager.temp_bed.pid.Kd, 0, 5000, 100);
             break;
-          #endif // PIDTEMP
+          case BIDPID_SAVE:
+            if (draw)
+              Draw_Menu_Item(row, ICON_WriteEEPROM, GET_TEXT_F(MSG_STORE_EEPROM));
+            else
+              AudioFeedback(settings.save());
+            break;
         }
         break;
     #endif // HAS_HEATED_BED
@@ -6726,6 +6769,10 @@ void CrealityDWINClass::Confirm_Handler(PopupID popupid, bool option/*=false*/) 
     case LevelError:        Draw_Popup(GET_TEXT_F(MSG_COULDNT_ENABLE_LEVELING), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), F(""), Confirm); break;
     case InvalidMesh:       Draw_Popup(GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST2), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST3), Confirm); break;
     case NocreatePlane:     Draw_Popup(GET_TEXT_F(MSG_COULDNT_CREATE_PLANE), GET_TEXT_F(MSG_VALID_MESH_MUST_EXIST), F(""), Confirm); break;
+    case BadextruderNumber: Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_BAD_EXTRUDER_NUM), F(""), Confirm); break;
+    case TempTooHigh:       Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TEMP_TOO_HIGH), F(""), Confirm); break;
+    case PIDTimeout:        Draw_Popup(GET_TEXT_F(MSG_PID_AUTOTUNE_FAILED), GET_TEXT_F(MSG_PID_TIMEOUT), F(""), Confirm); break;
+    case PIDDone:           Draw_Popup(GET_TEXT_F(MSG_AUTOTUNE_DONE), F(""), F(""), Confirm); break;
     case Level2:            Draw_Popup(GET_TEXT_F(MSG_AUTO_BED_LEVELING), GET_TEXT_F(MSG_PLEASE_WAIT), GET_TEXT_F(MSG_CANCEL_TO_STOP), Confirm, ICON_AutoLeveling); break;
     
     default: break;

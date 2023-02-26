@@ -41,17 +41,25 @@
 //============================= Getting Started =============================
 //===========================================================================
 
-// TODO: runout/filament merge function
+// TODO: filament tracking (auto preheat) function
 // TODO: UBL flex mesh from proui
 // TODO: Mesh display on proui
 // TODO: Add option for fastback
-// TODO: MPC Plotting like PIDPlot
+// TODO: cancel print for SD card
 
 // In test
 // TODO: cooldown after filament change / load
-// TODO: PID PLOT hanging
+// TODO: MPC filament constant mod
 
-// complete
+// --------COMPLETED--------
+// V2.1.0.7
+// MPC detail status update on screen
+// MPC Plotting like PIDPlot
+// MPC save menu
+// PID save menu
+// MPC filament constant in menu and EEPROM
+// v2.1.0.6
+// PID PLOT hanging
 // pause screen timeout when popup active / prevent blck screen without response
 // LCD Timeout
 // FAN 3d / laser
@@ -675,10 +683,10 @@
 
 // Enable PIDTEMP for PID control or MPCTEMP for Predictive Model.
 // temperature control. Disable both for bang-bang heating.
-#ifdef MPCCTRL
-  #define MPCTEMP        // ** EXPERIMENTAL **
-#else
+#ifdef PIDCTRL
   #define PIDTEMP          // See the PID Tuning Guide at https://reprap.org/wiki/PID_Tuning
+#else
+  #define MPCTEMP        // ** EXPERIMENTAL **
 #endif
 
 #define BANG_MAX 255     // Limits current to nozzle while in bang-bang mode; 255=full current
@@ -1948,7 +1956,7 @@
   /**
    * Enable the G26 Mesh Validation Pattern tool.
    */
-  #define G26_MESH_VALIDATION // mmm
+//  #define G26_MESH_VALIDATION // mmm
   #if ENABLED(G26_MESH_VALIDATION)
     #define MESH_TEST_NOZZLE_SIZE    0.4  // (mm) Diameter of primary nozzle.
     #define MESH_TEST_LAYER_HEIGHT   0.2  // (mm) Default layer height for G26.
@@ -2155,7 +2163,7 @@
 
   // Or, set the default skew factors directly here
   // to override the above measurements:
-  #define XY_SKEW_FACTOR 0.0
+  // #define XY_SKEW_FACTOR 0.0
 
   //#define SKEW_CORRECTION_FOR_Z
   #if ENABLED(SKEW_CORRECTION_FOR_Z)
@@ -2164,8 +2172,8 @@
     #define YZ_DIAG_AC 282.8427124746
     #define YZ_DIAG_BD 282.8427124746
     #define YZ_SIDE_AD 200
-    #define XZ_SKEW_FACTOR 0.0
-    #define YZ_SKEW_FACTOR 0.0
+    // #define XZ_SKEW_FACTOR 0.0
+    // #define YZ_SKEW_FACTOR 0.0
   #endif
 
   // Enable this option for M852 to set skew at runtime

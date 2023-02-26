@@ -36,6 +36,10 @@ class PlotClass {
 public:
   void Draw(frame_rect_t frame, float max, float ref = 0);
   void Update(float value);
+private:
+  frame_rect_t grphframe;
+  float scale;
+  uint16_t grphpoints, r, x2, y2;
 };
 
 extern PlotClass Plot;
